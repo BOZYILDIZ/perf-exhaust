@@ -12,6 +12,8 @@ import PartnersSection from "@/components/sections/PartnersSection";
 import CTASection from "@/components/sections/CTASection";
 import FAQSection from "@/components/sections/FAQSection";
 import LocalSection from "@/components/sections/LocalSection";
+import WhyChooseSection from "@/components/sections/WhyChooseSection";
+import ExpertiseSection from "@/components/sections/ExpertiseSection";
 
 const WeldingIntro = dynamic(() => import("@/components/animations/WeldingIntro"), { ssr: false });
 
@@ -36,7 +38,9 @@ export default function HomePage() {
       <Hero />
       <ServicesSection />
       <GallerySection />
+      <WhyChooseSection />
       <ProcessSection />
+      <ExpertiseSection />
       <LocalSection />
       <SocialFeedSection />
       <FAQSection />

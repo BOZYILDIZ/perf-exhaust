@@ -229,7 +229,7 @@ export default function Hero() {
             transition={{ duration: 0.8, delay: 0.9 }}
           >
             {[
-              { value: "15+", label: "Projets réalisés" },
+              { value: "900+", label: "Projets réalisés" },
               { value: "100%", label: "Sur mesure" },
               { value: "Inox 304L", label: "Matériau premium" },
               { value: "Alsace", label: "Bas-Rhin · 67" },
