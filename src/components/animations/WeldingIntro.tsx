@@ -34,7 +34,7 @@ export default function WeldingIntro({ onComplete }: { onComplete: () => void })
     window.addEventListener("resize", resize);
 
     const sparks: Spark[] = [];
-    const colors = ["#f97316", "#fb923c", "#fed7aa", "#fbbf24", "#fff7ed", "#dc2626"];
+    const colors = ["#1266ea", "#4d8ef0", "#93c5fd", "#bfdbfe", "#e8f1ff", "#ffffff"];
 
     const createSparks = (x: number, y: number, count: number) => {
       for (let i = 0; i < count; i++) {
@@ -70,8 +70,8 @@ export default function WeldingIntro({ onComplete }: { onComplete: () => void })
 
         // Weld line
         const gradient = ctx.createLinearGradient(Math.max(0, weldX - 200), 0, weldX, 0);
-        gradient.addColorStop(0, "rgba(249,115,22,0)");
-        gradient.addColorStop(0.7, "rgba(249,115,22,0.3)");
+        gradient.addColorStop(0, "rgba(18,102,234,0)");
+        gradient.addColorStop(0.7, "rgba(18,102,234,0.3)");
         gradient.addColorStop(1, "rgba(255,255,255,0.9)");
         ctx.strokeStyle = gradient;
         ctx.lineWidth = 2;
@@ -83,8 +83,8 @@ export default function WeldingIntro({ onComplete }: { onComplete: () => void })
         // Weld glow point
         const grd = ctx.createRadialGradient(weldX, weldY, 0, weldX, weldY, 30);
         grd.addColorStop(0, "rgba(255,255,255,1)");
-        grd.addColorStop(0.2, "rgba(249,115,22,0.8)");
-        grd.addColorStop(1, "rgba(249,115,22,0)");
+        grd.addColorStop(0.2, "rgba(18,102,234,0.8)");
+        grd.addColorStop(1, "rgba(18,102,234,0)");
         ctx.fillStyle = grd;
         ctx.beginPath();
         ctx.arc(weldX, weldY, 30, 0, Math.PI * 2);
@@ -140,7 +140,7 @@ export default function WeldingIntro({ onComplete }: { onComplete: () => void })
           style={{
             fontFamily: "Oswald, sans-serif",
             letterSpacing: "0.08em",
-            textShadow: "0 0 40px rgba(249,115,22,0.8), 0 0 80px rgba(249,115,22,0.4)",
+            textShadow: "0 0 40px rgba(18,102,234,0.8), 0 0 80px rgba(18,102,234,0.4)",
           }}
         >
           PERF&apos;EXHAUST

@@ -30,7 +30,7 @@ export default function Header() {
           ? "rgba(8,8,8,0.97)"
           : "rgba(8,8,8,0.7)",
         backdropFilter: "blur(12px)",
-        borderBottom: scrolled ? "1px solid rgba(249,115,22,0.15)" : "1px solid transparent",
+        borderBottom: scrolled ? "1px solid rgba(18,102,234,0.15)" : "1px solid transparent",
       }}
     >
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
@@ -39,11 +39,11 @@ export default function Header() {
           <div
             className="w-10 h-10 flex items-center justify-center"
             style={{
-              background: "linear-gradient(135deg, #f97316, #dc2626)",
+              background: "linear-gradient(135deg, #1266ea, #0d54c8)",
               clipPath: "polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))",
             }}
           >
-            <span className="text-black font-black text-sm" style={{ fontFamily: "Oswald, sans-serif" }}>PE</span>
+            <span className="text-white font-black text-sm" style={{ fontFamily: "Oswald, sans-serif" }}>PE</span>
           </div>
           <div>
             <div
@@ -83,9 +83,9 @@ export default function Header() {
           </a>
           <Link
             href="/rendez-vous"
-            className="text-sm font-bold tracking-wider uppercase text-black px-5 py-2.5 transition-all hover:-translate-y-0.5"
+            className="text-sm font-bold tracking-wider uppercase text-white px-5 py-2.5 transition-all hover:-translate-y-0.5"
             style={{
-              background: "linear-gradient(135deg, #f97316, #ea580c)",
+              background: "linear-gradient(135deg, #1266ea, #0d54c8)",
               clipPath: "polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))",
             }}
           >
@@ -107,7 +107,7 @@ export default function Header() {
       {menuOpen && (
         <div
           className="md:hidden"
-          style={{ background: "rgba(8,8,8,0.98)", borderTop: "1px solid rgba(249,115,22,0.2)" }}
+          style={{ background: "rgba(8,8,8,0.98)", borderTop: "1px solid rgba(18,102,234,0.2)" }}
         >
           <nav className="flex flex-col px-6 py-4 gap-4">
             {navLinks.map((link) => (
@@ -122,9 +122,9 @@ export default function Header() {
             ))}
             <Link
               href="/rendez-vous"
-              className="mt-2 text-center text-sm font-bold tracking-wider uppercase text-black px-5 py-3"
+              className="mt-2 text-center text-sm font-bold tracking-wider uppercase text-white px-5 py-3"
               style={{
-                background: "linear-gradient(135deg, #f97316, #ea580c)",
+                background: "linear-gradient(135deg, #1266ea, #0d54c8)",
                 clipPath: "polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))",
               }}
               onClick={() => setMenuOpen(false)}

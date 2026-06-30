@@ -221,7 +221,7 @@ export default function AppointmentForm() {
       </div>
 
       {/* RGPD */}
-      <div className="flex items-start gap-3 p-4" style={{ background: "rgba(249,115,22,0.03)", border: "1px solid rgba(249,115,22,0.1)" }}>
+      <div className="flex items-start gap-3 p-4" style={{ background: "rgba(18,102,234,0.03)", border: "1px solid rgba(18,102,234,0.1)" }}>
         <input
           type="checkbox"
           id="rgpd"
@@ -251,9 +251,9 @@ export default function AppointmentForm() {
       <button
         type="submit"
         disabled={status === "loading"}
-        className="w-full flex items-center justify-center gap-3 py-4 text-sm font-bold tracking-widest uppercase text-black transition-all hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed"
+        className="w-full flex items-center justify-center gap-3 py-4 text-sm font-bold tracking-widest uppercase text-white transition-all hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed"
         style={{
-          background: "linear-gradient(135deg, #f97316, #ea580c)",
+          background: "linear-gradient(135deg, #1266ea, #0d54c8)",
           clipPath: "polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px))",
         }}
       >

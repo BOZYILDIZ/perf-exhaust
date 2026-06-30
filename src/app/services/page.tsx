@@ -71,7 +71,7 @@ export default function ServicesPage() {
                   aria-hidden="true"
                 >
                   <div className="text-center">
-                    <div className="w-16 h-16 mx-auto mb-4 flex items-center justify-center" style={{ background: "rgba(249,115,22,0.1)", border: "1px solid rgba(249,115,22,0.2)" }}>
+                    <div className="w-16 h-16 mx-auto mb-4 flex items-center justify-center" style={{ background: "rgba(18,102,234,0.1)", border: "1px solid rgba(18,102,234,0.2)" }}>
                       <Icon size={28} className="text-orange-500" />
                     </div>
                     <span className="text-3xl font-bold text-white/10 font-oswald">0{i + 1}</span>
@@ -81,7 +81,7 @@ export default function ServicesPage() {
                   <div className="flex items-start justify-between mb-3">
                     <h2 className="font-oswald text-2xl font-bold text-white">{service.title}</h2>
                     {service.badge && (
-                      <span className="text-xs font-bold tracking-wider uppercase text-orange-400 px-2 py-1" style={{ background: "rgba(249,115,22,0.1)", border: "1px solid rgba(249,115,22,0.2)" }}>
+                      <span className="text-xs font-bold tracking-wider uppercase text-orange-400 px-2 py-1" style={{ background: "rgba(18,102,234,0.1)", border: "1px solid rgba(18,102,234,0.2)" }}>
                         {service.badge}
                       </span>
                     )}
@@ -144,7 +144,7 @@ export default function ServicesPage() {
               <div className="mt-6 flex gap-3">
                 <Link
                   href="/rendez-vous"
-                  className="inline-flex items-center gap-2 px-5 py-3 bg-orange-500 text-black font-bold text-xs tracking-widest uppercase hover:bg-orange-400 transition-colors"
+                  className="inline-flex items-center gap-2 px-5 py-3 bg-orange-500 text-white font-bold text-xs tracking-widest uppercase hover:bg-orange-400 transition-colors"
                   style={{ clipPath: "polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))" }}
                 >
                   Demander un devis
@@ -161,13 +161,13 @@ export default function ServicesPage() {
         </section>
 
         <section className="mt-16" aria-label="Appel à l'action">
-          <div className="text-center py-12 border" style={{ background: "rgba(249,115,22,0.03)", borderColor: "rgba(249,115,22,0.15)" }}>
+          <div className="text-center py-12 border" style={{ background: "rgba(18,102,234,0.03)", borderColor: "rgba(18,102,234,0.15)" }}>
             <h2 className="font-oswald text-3xl font-bold text-white mb-3">Votre projet sur mesure</h2>
             <p className="text-gray-400 mb-6 max-w-lg mx-auto">
               Décrivez votre véhicule et vos attentes. Nous vous répondons sous 48h avec une proposition adaptée.
             </p>
             <div className="flex flex-wrap gap-3 justify-center">
-              <Link href="/rendez-vous" className="inline-flex items-center gap-2 px-8 py-4 text-sm font-bold tracking-widest uppercase text-black" style={{ background: "linear-gradient(135deg, #f97316, #ea580c)", clipPath: "polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))" }}>
+              <Link href="/rendez-vous" className="inline-flex items-center gap-2 px-8 py-4 text-sm font-bold tracking-widest uppercase text-white" style={{ background: "linear-gradient(135deg, #1266ea, #0d54c8)", clipPath: "polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))" }}>
                 Demander un devis <ArrowRight size={14} />
               </Link>
               <Link href="/a-propos" className="inline-flex items-center gap-2 px-8 py-4 text-sm font-bold tracking-widest uppercase border border-white/20 text-white/70 hover:border-orange-500 hover:text-orange-400 transition-colors">

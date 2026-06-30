@@ -41,11 +41,11 @@ export default function Footer() {
               <div
                 className="w-10 h-10 flex items-center justify-center"
                 style={{
-                  background: "linear-gradient(135deg, #f97316, #dc2626)",
+                  background: "linear-gradient(135deg, #1266ea, #0d54c8)",
                   clipPath: "polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))",
                 }}
               >
-                <span className="text-black font-black text-sm" style={{ fontFamily: "Oswald, sans-serif" }}>PE</span>
+                <span className="text-white font-black text-sm" style={{ fontFamily: "Oswald, sans-serif" }}>PE</span>
               </div>
               <div
                 className="text-white font-black text-xl"

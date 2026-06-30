@@ -87,7 +87,7 @@ export default function AProposPage() {
             <div className="mt-8 flex gap-3">
               <Link
                 href="/services"
-                className="inline-flex items-center gap-2 px-5 py-3 bg-orange-500 text-black font-bold text-xs tracking-widest uppercase hover:bg-orange-400 transition-colors"
+                className="inline-flex items-center gap-2 px-5 py-3 bg-orange-500 text-white font-bold text-xs tracking-widest uppercase hover:bg-orange-400 transition-colors"
                 style={{ clipPath: "polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))" }}
               >
                 Nos services
@@ -168,14 +168,14 @@ export default function AProposPage() {
           ))}
         </section>
 
-        <section className="text-center py-12 border" style={{ background: "rgba(249,115,22,0.03)", borderColor: "rgba(249,115,22,0.15)" }}>
+        <section className="text-center py-12 border" style={{ background: "rgba(18,102,234,0.03)", borderColor: "rgba(18,102,234,0.15)" }}>
           <h2 className="font-oswald text-2xl font-bold text-white mb-3">Votre projet nous intéresse</h2>
           <p className="text-gray-400 mb-6 max-w-lg mx-auto">
             Chaque projet est unique. Discutons ensemble de votre véhicule, de vos attentes sonores
             et de votre budget. Devis gratuit, réponse sous 48h.
           </p>
           <div className="flex flex-wrap gap-3 justify-center">
-            <Link href="/rendez-vous" className="inline-flex items-center gap-2 px-8 py-4 text-sm font-bold tracking-widest uppercase text-black" style={{ background: "linear-gradient(135deg, #f97316, #ea580c)", clipPath: "polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))" }}>
+            <Link href="/rendez-vous" className="inline-flex items-center gap-2 px-8 py-4 text-sm font-bold tracking-widest uppercase text-white" style={{ background: "linear-gradient(135deg, #1266ea, #0d54c8)", clipPath: "polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))" }}>
               Demander un devis <ArrowRight size={14} />
             </Link>
             <Link href="/contact" className="inline-flex items-center gap-2 px-8 py-4 text-sm font-bold tracking-widest uppercase border border-white/20 text-white/70 hover:border-orange-500 hover:text-orange-400 transition-colors">

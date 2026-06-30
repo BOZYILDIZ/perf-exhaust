@@ -29,7 +29,7 @@ export default function RealisationsPage() {
           className="absolute inset-0 opacity-[0.03]"
           style={{
             backgroundImage:
-              "linear-gradient(rgba(249,115,22,1) 1px, transparent 1px), linear-gradient(90deg, rgba(249,115,22,1) 1px, transparent 1px)",
+              "linear-gradient(rgba(18,102,234,1) 1px, transparent 1px), linear-gradient(90deg, rgba(18,102,234,1) 1px, transparent 1px)",
             backgroundSize: "50px 50px",
           }}
         />
@@ -67,8 +67,8 @@ export default function RealisationsPage() {
         <div
           className="p-8 text-center border"
           style={{
-            background: "rgba(249,115,22,0.03)",
-            borderColor: "rgba(249,115,22,0.15)",
+            background: "rgba(18,102,234,0.03)",
+            borderColor: "rgba(18,102,234,0.15)",
           }}
         >
           <h2
@@ -82,9 +82,9 @@ export default function RealisationsPage() {
           </p>
           <Link
             href="/rendez-vous"
-            className="inline-flex items-center gap-2 px-8 py-4 text-sm font-bold tracking-widest uppercase text-black"
+            className="inline-flex items-center gap-2 px-8 py-4 text-sm font-bold tracking-widest uppercase text-white"
             style={{
-              background: "linear-gradient(135deg, #f97316, #ea580c)",
+              background: "linear-gradient(135deg, #1266ea, #0d54c8)",
               clipPath:
                 "polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))",
             }}

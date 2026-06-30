@@ -46,7 +46,7 @@ const SOUND_PROFILES = [
     icon: "⚡",
     description: "Signature sonore puissante pour circuit et événements.",
     intensity: 5,
-    color: "#f97316",
+    color: "#1266ea",
     details: ["Volume maximum", "Pour circuit", "Valve optionnelle"],
   },
   {
@@ -55,7 +55,7 @@ const SOUND_PROFILES = [
     icon: "🎛️",
     description: "Nous créons exactement la sonorité que vous avez en tête.",
     intensity: 0,
-    color: "#f97316",
+    color: "#1266ea",
     details: ["Consultation approfondie", "Prototypage", "Validation ensemble"],
   },
 ];
@@ -108,7 +108,7 @@ export default function SoundConfigurator({ onSelect, selected }: SoundConfigura
               <motion.div
                 layoutId="sound-glow"
                 className="absolute inset-0 pointer-events-none"
-                style={{ boxShadow: "inset 0 0 20px rgba(249,115,22,0.15)" }}
+                style={{ boxShadow: "inset 0 0 20px rgba(18,102,234,0.15)" }}
               />
             )}
             <div className="text-2xl mb-2">{profile.icon}</div>

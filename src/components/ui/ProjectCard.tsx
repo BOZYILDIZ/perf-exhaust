@@ -6,11 +6,11 @@ import { ArrowRight } from "lucide-react";
 import type { Project } from "@/types";
 
 const PRESTATION_COLORS: Record<string, string> = {
-  "Ligne complète": "#f97316",
+  "Ligne complète": "#1266ea",
   "Demi-ligne": "#3b82f6",
   "Silencieux": "#8b5cf6",
   "Réparation": "#10b981",
-  "Modification sonore": "#f59e0b",
+  "Modification sonore": "#1266ea",
   "default": "#6b7280",
 };
 
@@ -63,7 +63,7 @@ export default function ProjectCard({ project }: { project: Project }) {
           {/* Hover glow */}
           <div
             className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
-            style={{ background: "radial-gradient(circle at 50% 100%, rgba(249,115,22,0.25) 0%, transparent 60%)" }}
+            style={{ background: "radial-gradient(circle at 50% 100%, rgba(18,102,234,0.25) 0%, transparent 60%)" }}
           />
 
           {/* Sonority badge */}
@@ -117,7 +117,7 @@ export default function ProjectCard({ project }: { project: Project }) {
         {/* Bottom glow line */}
         <div
           className="absolute bottom-0 left-0 right-0 h-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-          style={{ background: "linear-gradient(90deg, transparent, #f97316, transparent)" }}
+          style={{ background: "linear-gradient(90deg, transparent, #1266ea, transparent)" }}
         />
       </Link>
     </motion.article>

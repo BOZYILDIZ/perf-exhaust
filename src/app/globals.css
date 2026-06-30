@@ -1,25 +1,73 @@
 @import "tailwindcss";
 
+/* ============================================================
+   PERF'EXHAUST — Design System
+   Brand Primary: #1266EA (Blue Electric)
+   ============================================================ */
+
 :root {
-  --bg-primary: #080808;
-  --bg-secondary: #0f0f0f;
-  --bg-card: #141414;
-  --bg-border: #1e1e1e;
-  --text-primary: #f5f5f5;
+  /* Brand palette */
+  --brand:           #1266EA;
+  --brand-hover:     #0d54c8;
+  --brand-light:     #4d8ef0;
+  --brand-dark:      #0a43a0;
+  --brand-xdark:     #07317a;
+  --brand-glow:      rgba(18, 102, 234, 0.35);
+  --brand-glow-sm:   rgba(18, 102, 234, 0.18);
+  --brand-glow-xs:   rgba(18, 102, 234, 0.08);
+
+  /* Surfaces */
+  --bg-primary:    #080808;
+  --bg-secondary:  #0f0f0f;
+  --bg-card:       #111111;
+  --bg-elevated:   #161616;
+  --bg-border:     #1e1e1e;
+
+  /* Text */
+  --text-primary:   #f5f5f5;
   --text-secondary: #a3a3a3;
-  --text-muted: #525252;
-  --accent-orange: #f97316;
-  --accent-amber: #d97706;
-  --accent-red: #dc2626;
-  --metal-light: #9ca3af;
-  --metal-mid: #6b7280;
-  --metal-dark: #374151;
+  --text-muted:     #525252;
+
+  /* Metal tones */
+  --metal-light:  #9ca3af;
+  --metal-mid:    #6b7280;
+  --metal-dark:   #374151;
+
+  /* Semantic */
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error:   #ef4444;
+
+  /* Legacy alias — kept for backward compat, both point to brand */
+  --accent-orange: var(--brand);
+  --accent-amber:  var(--brand-hover);
+  --accent-red:    var(--error);
 }
 
+/* Override Tailwind's orange palette → brand blue
+   This remaps ALL text-orange-* / bg-orange-* / border-orange-* etc.
+   without touching any component file. */
 @theme inline {
   --color-background: var(--bg-primary);
   --color-foreground: var(--text-primary);
+
+  /* Orange → Brand blue remapping */
+  --color-orange-50:  #eff6ff;
+  --color-orange-100: #dbeafe;
+  --color-orange-200: #bfdbfe;
+  --color-orange-300: #93c5fd;
+  --color-orange-400: #4d8ef0;
+  --color-orange-500: #1266EA;
+  --color-orange-600: #0d54c8;
+  --color-orange-700: #0a43a0;
+  --color-orange-800: #07317a;
+  --color-orange-900: #052258;
+  --color-orange-950: #031540;
 }
+
+/* ============================================================
+   Base
+   ============================================================ */
 
 *, *::before, *::after { box-sizing: border-box; }
 
@@ -36,69 +84,100 @@ body {
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: var(--bg-primary); }
 ::-webkit-scrollbar-thumb { background: #374151; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: var(--accent-orange); }
+::-webkit-scrollbar-thumb:hover { background: var(--brand); }
 
-::selection { background: var(--accent-orange); color: #000; }
+::selection { background: var(--brand); color: #fff; }
+
+/* ============================================================
+   Keyframes
+   ============================================================ */
 
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(30px); }
-  to { opacity: 1; transform: translateY(0); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes fadeIn {
   from { opacity: 0; }
-  to { opacity: 1; }
+  to   { opacity: 1; }
 }
 
 @keyframes slideInLeft {
   from { opacity: 0; transform: translateX(-40px); }
-  to { opacity: 1; transform: translateX(0); }
+  to   { opacity: 1; transform: translateX(0); }
 }
 
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
+  0%   { background-position: -200% 0; }
   100% { background-position: 200% 0; }
 }
 
+@keyframes pulse-brand {
+  0%, 100% { box-shadow: 0 0 0 0 var(--brand-glow); }
+  50%       { box-shadow: 0 0 0 10px rgba(18, 102, 234, 0); }
+}
+
+/* Legacy alias */
 @keyframes pulse-orange {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.4); }
-  50% { box-shadow: 0 0 0 10px rgba(249, 115, 22, 0); }
+  0%, 100% { box-shadow: 0 0 0 0 var(--brand-glow); }
+  50%       { box-shadow: 0 0 0 10px rgba(18, 102, 234, 0); }
 }
 
 @keyframes spark-fly {
-  0% { opacity: 1; transform: translate(0,0) scale(1); }
+  0%   { opacity: 1; transform: translate(0,0) scale(1); }
   100% { opacity: 0; transform: translate(var(--dx, 40px), var(--dy, -60px)) scale(0.1); }
 }
 
 @keyframes weld-pulse {
   0%, 100% { opacity: 0.9; }
-  50% { opacity: 1; filter: brightness(1.3); }
+  50%       { opacity: 1; filter: brightness(1.3); }
 }
 
 @keyframes line-draw {
   from { stroke-dashoffset: 1000; }
-  to { stroke-dashoffset: 0; }
+  to   { stroke-dashoffset: 0; }
 }
 
 @keyframes float {
   0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-8px); }
+  50%       { transform: translateY(-8px); }
 }
 
-/* Typography */
-.font-oswald { font-family: 'Oswald', sans-serif; }
+@keyframes electric-pulse {
+  0%, 100% { opacity: 0.6; filter: blur(20px); }
+  50%       { opacity: 1;   filter: blur(30px) brightness(1.3); }
+}
 
+/* ============================================================
+   Typography
+   ============================================================ */
+
+.font-oswald { font-family: 'Oswald', sans-serif; }
 h1, h2, h3, h4 { line-height: 1.1; }
 
-/* Focus accessibility */
-:focus-visible { outline: 2px solid var(--accent-orange); outline-offset: 3px; }
+/* ============================================================
+   Focus / Accessibility
+   ============================================================ */
 
-/* Glow utilities */
-.glow-orange { box-shadow: 0 0 20px rgba(249,115,22,0.3), 0 0 40px rgba(249,115,22,0.1); }
-.glow-orange-sm { box-shadow: 0 0 10px rgba(249,115,22,0.25); }
-.text-glow-orange { text-shadow: 0 0 20px rgba(249,115,22,0.5); }
+:focus-visible { outline: 2px solid var(--brand); outline-offset: 3px; }
 
-/* Metal texture */
+/* ============================================================
+   Glow utilities (brand blue)
+   ============================================================ */
+
+.glow-brand    { box-shadow: 0 0 20px var(--brand-glow), 0 0 40px var(--brand-glow-xs); }
+.glow-brand-sm { box-shadow: 0 0 10px var(--brand-glow-sm); }
+.text-glow     { text-shadow: 0 0 20px var(--brand-glow); }
+
+/* Legacy aliases so existing .glow-orange usage still resolves */
+.glow-orange    { box-shadow: 0 0 20px var(--brand-glow), 0 0 40px var(--brand-glow-xs); }
+.glow-orange-sm { box-shadow: 0 0 10px var(--brand-glow-sm); }
+.text-glow-orange { text-shadow: 0 0 20px var(--brand-glow); }
+
+/* ============================================================
+   Metal / texture
+   ============================================================ */
+
 .metal-texture {
   background-image: repeating-linear-gradient(
     0deg, transparent, transparent 8px,
@@ -106,11 +185,25 @@ h1, h2, h3, h4 { line-height: 1.1; }
   );
 }
 
-.animate-fade-in-up { animation: fadeInUp 0.7s ease forwards; }
-.animate-fade-in { animation: fadeIn 0.5s ease forwards; }
-.animate-slide-left { animation: slideInLeft 0.6s ease forwards; }
-.animate-pulse-orange { animation: pulse-orange 2s ease infinite; }
-.animate-float { animation: float 3s ease infinite; }
+/* Electric grid overlay (replaces warm metal) */
+.electric-grid {
+  background-image:
+    linear-gradient(rgba(18,102,234,0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(18,102,234,0.06) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+/* ============================================================
+   Animation utilities
+   ============================================================ */
+
+.animate-fade-in-up    { animation: fadeInUp 0.7s ease forwards; }
+.animate-fade-in       { animation: fadeIn 0.5s ease forwards; }
+.animate-slide-left    { animation: slideInLeft 0.6s ease forwards; }
+.animate-pulse-brand   { animation: pulse-brand 2s ease infinite; }
+.animate-pulse-orange  { animation: pulse-brand 2s ease infinite; }  /* legacy */
+.animate-float         { animation: float 3s ease infinite; }
+.animate-electric      { animation: electric-pulse 3s ease infinite; }
 
 .delay-100 { animation-delay: 0.1s; }
 .delay-200 { animation-delay: 0.2s; }

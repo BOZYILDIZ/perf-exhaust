@@ -15,7 +15,7 @@ interface Spark {
   color: string;
 }
 
-const SPARK_COLORS = ["#f97316", "#fb923c", "#fdba74", "#fde68a", "#fff"];
+const SPARK_COLORS = ["#1266ea", "#4d8ef0", "#93c5fd", "#bfdbfe", "#fff"];
 
 export default function Hero() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -106,11 +106,11 @@ export default function Hero() {
       <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
         <div
           className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] opacity-20"
-          style={{ background: "radial-gradient(ellipse, #f97316 0%, transparent 60%)", filter: "blur(60px)" }}
+          style={{ background: "radial-gradient(ellipse, #1266ea 0%, transparent 60%)", filter: "blur(60px)" }}
         />
         <div
           className="absolute top-1/3 right-0 w-64 h-64 opacity-10"
-          style={{ background: "radial-gradient(circle, #f97316 0%, transparent 70%)", filter: "blur(40px)" }}
+          style={{ background: "radial-gradient(circle, #1266ea 0%, transparent 70%)", filter: "blur(40px)" }}
         />
       </div>
 
@@ -159,7 +159,7 @@ export default function Hero() {
             <br />
             <span
               className="text-transparent"
-              style={{ WebkitTextStroke: "1px rgba(249,115,22,0.6)" }}
+              style={{ WebkitTextStroke: "1px rgba(18,102,234,0.6)" }}
             >
               sur mesure
             </span>
@@ -199,7 +199,7 @@ export default function Hero() {
           >
             <Link
               href="/rendez-vous"
-              className="group inline-flex items-center gap-3 px-7 py-4 bg-orange-500 text-black font-bold text-sm tracking-widest uppercase hover:bg-orange-400 transition-all hover:-translate-y-0.5"
+              className="group inline-flex items-center gap-3 px-7 py-4 bg-orange-500 text-white font-bold text-sm tracking-widest uppercase hover:bg-orange-400 transition-all hover:-translate-y-0.5"
               style={{ clipPath: "polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px))" }}
             >
               Devis gratuit

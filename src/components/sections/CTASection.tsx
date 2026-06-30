@@ -6,21 +6,21 @@ export default function CTASection() {
     <section
       className="py-24 relative overflow-hidden"
       style={{
-        background: "linear-gradient(135deg, #0f0800 0%, #1a0a00 50%, #0f0800 100%)",
-        borderTop: "1px solid rgba(249,115,22,0.15)",
-        borderBottom: "1px solid rgba(249,115,22,0.15)",
+        background: "linear-gradient(135deg, #060810 0%, #0c1018 50%, #060810 100%)",
+        borderTop: "1px solid rgba(18,102,234,0.15)",
+        borderBottom: "1px solid rgba(18,102,234,0.15)",
       }}
     >
       <div
         className="absolute inset-0 opacity-[0.05]"
         style={{
-          backgroundImage: "radial-gradient(rgba(249,115,22,1) 1px, transparent 1px)",
+          backgroundImage: "radial-gradient(rgba(18,102,234,1) 1px, transparent 1px)",
           backgroundSize: "30px 30px",
         }}
       />
       <div
         className="absolute inset-0"
-        style={{ background: "radial-gradient(ellipse at center, rgba(249,115,22,0.08) 0%, transparent 70%)" }}
+        style={{ background: "radial-gradient(ellipse at center, rgba(18,102,234,0.08) 0%, transparent 70%)" }}
       />
 
       <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
@@ -39,7 +39,7 @@ export default function CTASection() {
           }}
         >
           VOTRE ÉCHAPPEMENT<br/>
-          <span style={{ WebkitTextStroke: "2px #f97316", color: "transparent" }}>
+          <span style={{ WebkitTextStroke: "2px #1266ea", color: "transparent" }}>
             SUR MESURE
           </span>
         </h2>
@@ -51,16 +51,16 @@ export default function CTASection() {
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
           <Link
             href="/rendez-vous"
-            className="inline-flex items-center gap-3 px-10 py-5 text-sm font-bold tracking-widest uppercase text-black transition-all hover:-translate-y-1 hover:shadow-2xl hover:shadow-orange-500/30"
+            className="inline-flex items-center gap-3 px-10 py-5 text-sm font-bold tracking-widest uppercase text-white transition-all hover:-translate-y-1 hover:shadow-2xl hover:shadow-orange-500/30"
             style={{
-              background: "linear-gradient(135deg, #f97316, #ea580c)",
+              background: "linear-gradient(135deg, #1266ea, #0d54c8)",
               clipPath: "polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))",
             }}
           >
             Demander un devis gratuit <ArrowRight size={16} />
           </Link>
           <a
-            href="tel:+33XXXXXXXXX"
+            href="tel:+33636523058"
             className="inline-flex items-center gap-3 px-10 py-5 text-sm font-bold tracking-widest uppercase text-white border border-white/20 hover:border-orange-500 hover:text-orange-400 transition-all hover:-translate-y-0.5"
           >
             <Phone size={14} /> Appeler l&apos;atelier

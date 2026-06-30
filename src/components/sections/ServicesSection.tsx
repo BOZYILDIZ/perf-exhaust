@@ -39,8 +39,8 @@ export default function ServicesSection() {
                   borderRadius: "2px",
                 }}
                 onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLElement).style.borderColor = "rgba(249,115,22,0.3)";
-                  (e.currentTarget as HTMLElement).style.boxShadow = "0 20px 40px rgba(0,0,0,0.4), 0 0 20px rgba(249,115,22,0.08)";
+                  (e.currentTarget as HTMLElement).style.borderColor = "rgba(18,102,234,0.3)";
+                  (e.currentTarget as HTMLElement).style.boxShadow = "0 20px 40px rgba(0,0,0,0.4), 0 0 20px rgba(18,102,234,0.08)";
                 }}
                 onMouseLeave={(e) => {
                   (e.currentTarget as HTMLElement).style.borderColor = "#1e1e1e";
@@ -51,8 +51,8 @@ export default function ServicesSection() {
                   <div
                     className="w-10 h-10 flex items-center justify-center"
                     style={{
-                      background: "rgba(249,115,22,0.1)",
-                      border: "1px solid rgba(249,115,22,0.2)",
+                      background: "rgba(18,102,234,0.1)",
+                      border: "1px solid rgba(18,102,234,0.2)",
                     }}
                   >
                     <Icon size={18} className="text-orange-500" />
@@ -60,7 +60,7 @@ export default function ServicesSection() {
                   {service.badge && (
                     <span
                       className="text-xs font-bold tracking-wider uppercase text-orange-400 px-2 py-0.5"
-                      style={{ background: "rgba(249,115,22,0.1)", border: "1px solid rgba(249,115,22,0.2)" }}
+                      style={{ background: "rgba(18,102,234,0.1)", border: "1px solid rgba(18,102,234,0.2)" }}
                     >
                       {service.badge}
                     </span>
@@ -91,7 +91,7 @@ export default function ServicesSection() {
         {/* Prix sur devis banner */}
         <div
           className="mt-8 p-6 flex flex-col sm:flex-row items-center justify-between gap-4"
-          style={{ background: "rgba(249,115,22,0.05)", border: "1px solid rgba(249,115,22,0.15)" }}
+          style={{ background: "rgba(18,102,234,0.05)", border: "1px solid rgba(18,102,234,0.15)" }}
         >
           <div>
             <p className="text-white font-bold text-lg" style={{ fontFamily: "Oswald, sans-serif" }}>
@@ -103,9 +103,9 @@ export default function ServicesSection() {
           </div>
           <Link
             href="/rendez-vous"
-            className="flex-shrink-0 inline-flex items-center gap-2 px-6 py-3 text-sm font-bold tracking-widest uppercase text-black"
+            className="flex-shrink-0 inline-flex items-center gap-2 px-6 py-3 text-sm font-bold tracking-widest uppercase text-white"
             style={{
-              background: "linear-gradient(135deg, #f97316, #ea580c)",
+              background: "linear-gradient(135deg, #1266ea, #0d54c8)",
               clipPath: "polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))",
             }}
           >

@@ -31,7 +31,7 @@ export async function sendAppointmentToShop(data: AppointmentData) {
     subject: `Nouvelle demande de devis — ${data.prenom} ${data.nom} — ${data.marque} ${data.modele}`,
     html: `
       <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
-        <h2 style="color:#f97316;border-bottom:2px solid #f97316;padding-bottom:8px">Nouvelle demande de devis</h2>
+        <h2 style="color:#1266ea;border-bottom:2px solid #1266ea;padding-bottom:8px">Nouvelle demande de devis</h2>
         <h3>Informations client</h3>
         <p><strong>Nom:</strong> ${data.prenom} ${data.nom}</p>
         <p><strong>Téléphone:</strong> ${data.telephone}</p>
@@ -62,7 +62,7 @@ export async function sendConfirmationToClient(data: AppointmentData) {
     subject: 'Votre demande de devis PERF\'EXHAUST — Confirmation',
     html: `
       <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#0a0a0a;color:#ffffff;padding:32px">
-        <h2 style="color:#f97316">Demande reçue ✓</h2>
+        <h2 style="color:#1266ea">Demande reçue ✓</h2>
         <p>Bonjour ${data.prenom},</p>
         <p>Votre demande de devis pour votre <strong>${data.marque} ${data.modele}</strong> a bien été reçue.</p>
         <p>Notre équipe va analyser votre projet et vous recontactera dans les <strong>24 à 48h</strong> pour vous transmettre un devis personnalisé.</p>

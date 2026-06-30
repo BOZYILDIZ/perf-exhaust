@@ -23,7 +23,7 @@ export default function PartnersSection() {
             >
               <div
                 className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                style={{ background: "linear-gradient(135deg, rgba(249,115,22,0.03), transparent)" }}
+                style={{ background: "linear-gradient(135deg, rgba(18,102,234,0.03), transparent)" }}
               />
               <div className="relative z-10">
                 <div className="flex items-center gap-4 mb-4">

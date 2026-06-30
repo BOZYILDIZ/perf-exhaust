@@ -13,7 +13,7 @@ export default function LocalSection() {
   return (
     <section className="py-24 bg-[#0a0a0a] relative overflow-hidden" aria-label="Zone d'intervention Alsace">
       <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
-        <div className="absolute top-0 right-0 w-96 h-96 opacity-5" style={{ background: "radial-gradient(circle, #f97316 0%, transparent 70%)", transform: "translate(30%, -30%)" }} />
+        <div className="absolute top-0 right-0 w-96 h-96 opacity-5" style={{ background: "radial-gradient(circle, #1266ea 0%, transparent 70%)", transform: "translate(30%, -30%)" }} />
       </div>
 
       <div className="max-w-7xl mx-auto px-6 relative z-10">
@@ -36,7 +36,7 @@ export default function LocalSection() {
             <div className="flex flex-wrap gap-3">
               <Link
                 href="/rendez-vous"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-orange-500 text-black font-bold text-sm tracking-widest uppercase hover:bg-orange-400 transition-colors"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-orange-500 text-white font-bold text-sm tracking-widest uppercase hover:bg-orange-400 transition-colors"
                 style={{ clipPath: "polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px))" }}
               >
                 Prendre rendez-vous
@@ -64,7 +64,7 @@ export default function LocalSection() {
             <div className="mt-6 p-4 border border-orange-500/20 bg-orange-500/5">
               <div className="flex items-start gap-3">
                 <div className="w-8 h-8 bg-orange-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f97316" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1266ea" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                     <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
                     <circle cx="12" cy="9" r="2.5"/>
                   </svg>

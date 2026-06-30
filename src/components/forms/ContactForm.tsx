@@ -80,9 +80,9 @@ export default function ContactForm() {
       <button
         type="submit"
         disabled={status === "loading"}
-        className="w-full flex items-center justify-center gap-2 py-4 text-sm font-bold tracking-widest uppercase text-black"
+        className="w-full flex items-center justify-center gap-2 py-4 text-sm font-bold tracking-widest uppercase text-white"
         style={{
-          background: "linear-gradient(135deg, #f97316, #ea580c)",
+          background: "linear-gradient(135deg, #1266ea, #0d54c8)",
           clipPath: "polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))",
         }}
       >

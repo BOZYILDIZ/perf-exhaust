@@ -15,7 +15,7 @@ export default function ProcessSection() {
       <div
         className="absolute inset-0 opacity-[0.03]"
         style={{
-          backgroundImage: "linear-gradient(rgba(249,115,22,1) 1px, transparent 1px), linear-gradient(90deg, rgba(249,115,22,1) 1px, transparent 1px)",
+          backgroundImage: "linear-gradient(rgba(18,102,234,1) 1px, transparent 1px), linear-gradient(90deg, rgba(18,102,234,1) 1px, transparent 1px)",
           backgroundSize: "40px 40px",
         }}
       />
@@ -38,7 +38,7 @@ export default function ProcessSection() {
             >
               <div
                 className="absolute top-0 left-0 w-1 h-full"
-                style={{ background: "linear-gradient(180deg, #f97316, #dc2626)" }}
+                style={{ background: "linear-gradient(180deg, #1266ea, #dc2626)" }}
               />
               <div className="pl-4">
                 <div className="flex items-center gap-4 mb-4">
@@ -46,7 +46,7 @@ export default function ProcessSection() {
                     className="text-4xl font-black"
                     style={{
                       fontFamily: "Oswald, sans-serif",
-                      WebkitTextStroke: "1px rgba(249,115,22,0.4)",
+                      WebkitTextStroke: "1px rgba(18,102,234,0.4)",
                       color: "transparent",
                     }}
                   >

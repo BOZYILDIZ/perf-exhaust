@@ -29,7 +29,7 @@ export default function RendezVousPage() {
         <div
           className="absolute inset-0 opacity-[0.03]"
           style={{
-            backgroundImage: "linear-gradient(rgba(249,115,22,1) 1px, transparent 1px), linear-gradient(90deg, rgba(249,115,22,1) 1px, transparent 1px)",
+            backgroundImage: "linear-gradient(rgba(18,102,234,1) 1px, transparent 1px), linear-gradient(90deg, rgba(18,102,234,1) 1px, transparent 1px)",
             backgroundSize: "50px 50px",
           }}
         />
@@ -72,7 +72,7 @@ export default function RendezVousPage() {
               </div>
             </div>
 
-            <div className="p-6 border" style={{ background: "rgba(249,115,22,0.04)", borderColor: "rgba(249,115,22,0.2)" }}>
+            <div className="p-6 border" style={{ background: "rgba(18,102,234,0.04)", borderColor: "rgba(18,102,234,0.2)" }}>
               <h3 className="text-orange-400 font-bold text-sm tracking-widest uppercase mb-3">Prix sur devis</h3>
               <p className="text-gray-400 text-sm leading-relaxed">
                 Chaque projet est unique. Nos tarifs dépendent du véhicule, des matériaux et des prestations.

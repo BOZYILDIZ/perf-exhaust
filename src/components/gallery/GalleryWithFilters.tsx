@@ -41,7 +41,7 @@ export default function GalleryWithFilters({ projects }: { projects: Project[] }
             className={[
               "px-4 py-2 text-xs font-bold tracking-widest uppercase transition-all duration-200 border",
               active === f.id
-                ? "bg-orange-500 text-black border-orange-500"
+                ? "bg-orange-500 text-white border-orange-500"
                 : "bg-transparent text-white/50 border-white/20 hover:border-white/40 hover:text-white",
             ].join(" ")}
           >

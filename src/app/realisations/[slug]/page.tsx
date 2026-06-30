@@ -56,7 +56,7 @@ export default async function ProjectDetailPage({ params }: Props) {
           {/* Info */}
           <div>
             <div className="flex flex-wrap gap-2 mb-4">
-              <span className="text-xs font-bold tracking-wider uppercase text-orange-400 px-3 py-1" style={{ background: "rgba(249,115,22,0.1)", border: "1px solid rgba(249,115,22,0.25)" }}>
+              <span className="text-xs font-bold tracking-wider uppercase text-orange-400 px-3 py-1" style={{ background: "rgba(18,102,234,0.1)", border: "1px solid rgba(18,102,234,0.25)" }}>
                 {project.sonoriteTag}
               </span>
               {project.tags.map((tag) => (
@@ -87,9 +87,9 @@ export default async function ProjectDetailPage({ params }: Props) {
             <div className="mt-8 flex flex-col sm:flex-row gap-3">
               <Link
                 href="/rendez-vous"
-                className="flex-1 text-center py-4 text-sm font-bold tracking-widest uppercase text-black"
+                className="flex-1 text-center py-4 text-sm font-bold tracking-widest uppercase text-white"
                 style={{
-                  background: "linear-gradient(135deg, #f97316, #ea580c)",
+                  background: "linear-gradient(135deg, #1266ea, #0d54c8)",
                   clipPath: "polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))",
                 }}
               >
@@ -151,8 +151,8 @@ export default async function ProjectDetailPage({ params }: Props) {
 
 function InfoBlock({ title, content, accent }: { title: string; content: string; accent?: boolean }) {
   return (
-    <div className="p-4 border" style={{ background: accent ? "rgba(249,115,22,0.04)" : "#0f0f0f", borderColor: accent ? "rgba(249,115,22,0.2)" : "#1a1a1a" }}>
-      <p className="text-xs font-bold tracking-widest uppercase mb-1" style={{ color: accent ? "#f97316" : "#6b7280" }}>{title}</p>
+    <div className="p-4 border" style={{ background: accent ? "rgba(18,102,234,0.04)" : "#0f0f0f", borderColor: accent ? "rgba(18,102,234,0.2)" : "#1a1a1a" }}>
+      <p className="text-xs font-bold tracking-widest uppercase mb-1" style={{ color: accent ? "#1266ea" : "#6b7280" }}>{title}</p>
       <p className="text-gray-300 text-sm leading-relaxed">{content}</p>
     </div>
   );
