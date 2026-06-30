@@ -1,94 +1,125 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Car } from "lucide-react";
+import { motion } from "framer-motion";
+import { ArrowRight } from "lucide-react";
 import type { Project } from "@/types";
 
-export default function ProjectCard({ project }: { project: Project }) {
-  return (
-    <Link
-      href={`/realisations/${project.slug}`}
-      className="group block overflow-hidden border transition-all duration-300 hover:-translate-y-1"
-      style={{
-        background: "#111111",
-        borderColor: "#1e1e1e",
-        borderRadius: "2px",
-      }}
-      onMouseEnter={(e) => {
-        (e.currentTarget as HTMLElement).style.borderColor =
-          "rgba(249,115,22,0.3)";
-        (e.currentTarget as HTMLElement).style.boxShadow =
-          "0 20px 60px rgba(0,0,0,0.5)";
-      }}
-      onMouseLeave={(e) => {
-        (e.currentTarget as HTMLElement).style.borderColor = "#1e1e1e";
-        (e.currentTarget as HTMLElement).style.boxShadow = "none";
-      }}
-    >
-      {/* Image placeholder */}
-      <div
-        className="relative h-52 flex items-center justify-center"
-        style={{ background: "linear-gradient(135deg, #141414, #1a1a1a)" }}
-      >
-        <div className="flex flex-col items-center gap-2 text-gray-700">
-          <Car size={40} />
-          <span className="text-xs font-medium">{project.marque}</span>
-        </div>
-        {project.featured && (
-          <div className="absolute top-3 right-3">
-            <span
-              className="text-xs font-bold tracking-wider uppercase text-black px-2 py-1"
-              style={{ background: "#f97316" }}
-            >
-              Mis en avant
-            </span>
-          </div>
-        )}
-        <div
-          className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-          style={{
-            background:
-              "linear-gradient(135deg, rgba(249,115,22,0.04) 0%, transparent 100%)",
-          }}
-        />
-      </div>
+const PRESTATION_COLORS: Record<string, string> = {
+  "Ligne complète": "#f97316",
+  "Demi-ligne": "#3b82f6",
+  "Silencieux": "#8b5cf6",
+  "Réparation": "#10b981",
+  "Modification sonore": "#f59e0b",
+  "default": "#6b7280",
+};
 
-      {/* Content */}
-      <div className="p-5">
-        <div className="flex flex-wrap gap-2 mb-3">
-          <span
-            className="text-xs font-bold tracking-wider uppercase text-orange-400 px-2 py-0.5"
-            style={{
-              background: "rgba(249,115,22,0.1)",
-              border: "1px solid rgba(249,115,22,0.2)",
-            }}
-          >
-            {project.sonoriteTag}
-          </span>
-          <span
-            className="text-xs font-bold tracking-wider uppercase text-gray-400 px-2 py-0.5"
-            style={{
-              background: "rgba(255,255,255,0.05)",
-              border: "1px solid rgba(255,255,255,0.1)",
-            }}
-          >
-            {project.prestation}
-          </span>
-        </div>
-        <h3
-          className="text-white font-bold text-xl leading-tight group-hover:text-orange-400 transition-colors mb-1"
-          style={{ fontFamily: "Oswald, sans-serif" }}
+const SONORITY_GRADIENTS: Record<string, string> = {
+  "Grave": "from-purple-900/60 to-black",
+  "Agressif": "from-red-900/60 to-black",
+  "Sportif": "from-blue-900/60 to-black",
+  "Discret": "from-gray-800/60 to-black",
+  "Fort": "from-orange-900/60 to-black",
+  "Sur mesure": "from-amber-900/60 to-black",
+};
+
+export default function ProjectCard({ project }: { project: Project }) {
+  const prestColor = PRESTATION_COLORS[project.prestation] || PRESTATION_COLORS.default;
+  const gradKey = project.sonoriteTag || "default";
+  const grad = SONORITY_GRADIENTS[gradKey] || "from-gray-900/60 to-black";
+
+  return (
+    <motion.article
+      whileHover={{ y: -4 }}
+      transition={{ duration: 0.25, ease: "easeOut" }}
+      className="group relative bg-[#111] border border-white/10 overflow-hidden"
+      style={{ willChange: "transform" }}
+    >
+      <Link href={"/realisations/" + project.slug} aria-label={"Voir le projet " + project.vehicule}>
+        {/* Thumbnail placeholder */}
+        <div
+          className={"relative h-56 bg-gradient-to-br " + grad + " flex items-center justify-center overflow-hidden"}
+          aria-hidden="true"
         >
-          {project.vehicule}
-        </h3>
-        <p className="text-gray-400 text-xs mb-1">{project.annee}</p>
-        <p className="text-gray-500 text-sm leading-relaxed line-clamp-2">
-          {project.description}
-        </p>
-        <div className="mt-4 flex items-center gap-2 text-orange-500 text-xs font-bold tracking-wider uppercase">
-          Voir le projet <ArrowRight size={12} />
+          {/* Metal texture lines */}
+          <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 8px, rgba(255,255,255,0.3) 8px, rgba(255,255,255,0.3) 9px)" }} />
+
+          {/* Car silhouette SVG */}
+          <svg
+            width="120"
+            height="60"
+            viewBox="0 0 120 60"
+            fill="none"
+            className="opacity-20 group-hover:opacity-30 transition-opacity duration-300"
+          >
+            <path d="M10 40 C10 40 20 20 40 18 L60 14 L80 18 C100 20 110 40 110 40" stroke="white" strokeWidth="2" fill="none"/>
+            <rect x="5" y="40" width="110" height="12" rx="3" fill="white" opacity="0.3"/>
+            <circle cx="28" cy="52" r="8" stroke="white" strokeWidth="2" fill="none"/>
+            <circle cx="92" cy="52" r="8" stroke="white" strokeWidth="2" fill="none"/>
+            <circle cx="28" cy="52" r="3" fill="white" opacity="0.5"/>
+            <circle cx="92" cy="52" r="3" fill="white" opacity="0.5"/>
+          </svg>
+
+          {/* Hover glow */}
+          <div
+            className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+            style={{ background: "radial-gradient(circle at 50% 100%, rgba(249,115,22,0.25) 0%, transparent 60%)" }}
+          />
+
+          {/* Sonority badge */}
+          {project.sonoriteTag && (
+            <div className="absolute top-3 right-3 px-2 py-1 bg-black/60 border border-white/10 text-xs font-bold text-white/70 tracking-wider uppercase backdrop-blur-sm">
+              {project.sonoriteTag}
+            </div>
+          )}
         </div>
-      </div>
-    </Link>
+
+        {/* Content */}
+        <div className="p-5">
+          <div className="flex items-start justify-between gap-2 mb-3">
+            <div>
+              <h3 className="font-oswald text-lg font-bold text-white uppercase tracking-wide leading-tight group-hover:text-orange-400 transition-colors duration-300">
+                {project.vehicule}
+              </h3>
+              <div className="text-xs text-white/40 mt-0.5">{project.annee}</div>
+            </div>
+            <div
+              className="flex-shrink-0 px-2 py-1 text-xs font-bold tracking-wider uppercase border"
+              style={{ color: prestColor, borderColor: prestColor + "40", background: prestColor + "15" }}
+            >
+              {project.prestation}
+            </div>
+          </div>
+
+          <p className="text-sm text-white/50 leading-relaxed line-clamp-2 mb-4">
+            {project.description}
+          </p>
+
+          {/* Tags */}
+          {project.tags && project.tags.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mb-4">
+              {project.tags.slice(0, 3).map((tag) => (
+                <span
+                  key={tag}
+                  className="text-xs px-2 py-0.5 bg-white/5 border border-white/10 text-white/40"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
+
+          <div className="flex items-center gap-1 text-xs font-bold tracking-wider uppercase text-orange-400/70 group-hover:text-orange-400 transition-colors duration-300">
+            Voir le projet <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform duration-300" />
+          </div>
+        </div>
+
+        {/* Bottom glow line */}
+        <div
+          className="absolute bottom-0 left-0 right-0 h-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+          style={{ background: "linear-gradient(90deg, transparent, #f97316, transparent)" }}
+        />
+      </Link>
+    </motion.article>
   );
 }

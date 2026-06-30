@@ -4,8 +4,16 @@ import { ArrowRight, Shield, Wrench, Award, MapPin } from "lucide-react";
 import { partners } from "@/data/partners";
 
 export const metadata: Metadata = {
-  title: "À propos — PERF'EXHAUST Alsace",
-  description: "Découvrez PERF'EXHAUST, atelier artisanal d'échappements sur mesure à Rountzenheim-Auenheim, Alsace. Soudure TIG inox, fabrication sur mesure, partenaire SHIFTECH.",
+  title: "À propos — Atelier PERF'EXHAUST Rountzenheim-Auenheim Alsace",
+  description: "Découvrez PERF'EXHAUST, atelier artisanal d'échappements sur mesure à Rountzenheim-Auenheim en Alsace. Soudure TIG inox, partenaire SHIFTECH, fabrication sur mesure depuis le Bas-Rhin.",
+  keywords: ["atelier echappement Rountzenheim", "PERF EXHAUST Alsace", "fabricant échappement Bas-Rhin", "soudeur inox Grand Est", "partenaire SHIFTECH Alsace"],
+  openGraph: {
+    title: "À propos — PERF'EXHAUST Atelier Alsace",
+    description: "Atelier artisanal d'échappements à Rountzenheim-Auenheim. Soudure TIG, inox, partenaire SHIFTECH.",
+    url: "https://perfexhaust.vercel.app/a-propos",
+    type: "website",
+  },
+  alternates: { canonical: "https://perfexhaust.vercel.app/a-propos" },
 };
 
 export default function AProposPage() {

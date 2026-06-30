@@ -5,8 +5,16 @@ import SectionTitle from "@/components/ui/SectionTitle";
 import { ArrowRight, Wrench, Zap, Volume2, Flame, Music, Star, Settings } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Services — Échappements sur mesure Alsace",
-  description: "Tous nos services : ligne complète, demi-ligne, silencieux sur mesure, soudure inox, réparation. PERF'EXHAUST — Rountzenheim-Auenheim.",
+  title: "Services — Échappements sur mesure, soudure inox, modification sonore Alsace",
+  description: "Découvrez tous nos services : ligne complète inox, demi-ligne, silencieux sur mesure, soudure TIG, réparation et modification sonore à Rountzenheim-Auenheim en Alsace. Devis gratuit.",
+  keywords: ["ligne complète inox Alsace", "soudure TIG Bas-Rhin", "silencieux sur mesure Strasbourg", "modification sonore véhicule", "échappement inox Haguenau"],
+  openGraph: {
+    title: "Services échappements sur mesure — PERF'EXHAUST Alsace",
+    description: "Ligne complète, demi-ligne, silencieux, soudure inox, modification sonore. Fabrication artisanale à Rountzenheim-Auenheim.",
+    url: "https://perfexhaust.vercel.app/services",
+    type: "website",
+  },
+  alternates: { canonical: "https://perfexhaust.vercel.app/services" },
 };
 
 const iconMap: Record<string, React.ElementType> = {

@@ -1,13 +1,20 @@
 import { Metadata } from "next";
 import Link from "next/link";
 import { projects } from "@/data/projects";
-import ProjectCard from "@/components/ui/ProjectCard";
+import GalleryWithFilters from "@/components/gallery/GalleryWithFilters";
 import { ArrowRight } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Réalisations — Projets échappements sur mesure",
-  description:
-    "Découvrez nos 15 réalisations en Alsace : Golf GTI, BMW M2, Audi RS3, Porsche Cayman et bien plus. Échappements inox sur mesure par PERF'EXHAUST.",
+  title: "Réalisations — Projets échappements inox sur mesure en Alsace",
+  description: "15 projets réalisés : Golf GTI, BMW M2, Audi RS3, Porsche Cayman... Échappements inox sur mesure par PERF'EXHAUST à Rountzenheim-Auenheim. Découvrez notre savoir-faire.",
+  keywords: ["réalisations échappements Alsace", "Golf GTI échappement inox", "BMW M2 silencieux sport", "Audi RS3 ligne complète", "projets sur mesure Bas-Rhin"],
+  openGraph: {
+    title: "Nos réalisations — PERF'EXHAUST Échappements sur mesure Alsace",
+    description: "15 projets réalisés dans notre atelier alsacien. Chaque véhicule, une sonorité unique.",
+    url: "https://perfexhaust.vercel.app/realisations",
+    type: "website",
+  },
+  alternates: { canonical: "https://perfexhaust.vercel.app/realisations" },
 };
 
 export default function RealisationsPage() {
@@ -50,13 +57,9 @@ export default function RealisationsPage() {
         </div>
       </div>
 
-      {/* Grid */}
+      {/* Gallery with filters */}
       <div className="max-w-7xl mx-auto px-6 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {projects.map((project) => (
-            <ProjectCard key={project.id} project={project} />
-          ))}
-        </div>
+        <GalleryWithFilters projects={projects} />
       </div>
 
       {/* CTA */}

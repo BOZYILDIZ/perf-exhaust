@@ -75,7 +75,7 @@ export default function Header() {
         {/* CTA */}
         <div className="hidden md:flex items-center gap-4">
           <a
-            href="tel:+33XXXXXXXXX"
+            href="tel:+33636523058"
             className="flex items-center gap-2 text-sm text-gray-300 hover:text-orange-400 transition-colors"
           >
             <Phone size={14} />

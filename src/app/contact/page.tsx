@@ -3,8 +3,16 @@ import ContactForm from "@/components/forms/ContactForm";
 import { MapPin, Phone, Mail, Clock } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Contact — PERF'EXHAUST Alsace",
-  description: "Contactez PERF'EXHAUST à Rountzenheim-Auenheim. Téléphone, email, formulaire de contact. Sur rendez-vous uniquement.",
+  title: "Contact — Atelier PERF'EXHAUST Rountzenheim-Auenheim",
+  description: "Contactez PERF'EXHAUST à Rountzenheim-Auenheim (Bas-Rhin). Téléphone : +33 6 36 52 30 58. Email, formulaire. Atelier sur rendez-vous. Devis gratuit en Alsace.",
+  keywords: ["contact echappement Alsace", "atelier Rountzenheim téléphone", "PERF EXHAUST contact", "rendez-vous échappement Bas-Rhin"],
+  openGraph: {
+    title: "Contact — PERF'EXHAUST Rountzenheim-Auenheim",
+    description: "Contactez notre atelier à Rountzenheim-Auenheim. Tél: +33 6 36 52 30 58.",
+    url: "https://perfexhaust.vercel.app/contact",
+    type: "website",
+  },
+  alternates: { canonical: "https://perfexhaust.vercel.app/contact" },
 };
 
 export default function ContactPage() {
@@ -41,7 +49,7 @@ export default function ContactPage() {
                 </div>
                 <div className="flex items-center gap-3">
                   <Phone size={16} className="text-orange-500 flex-shrink-0" />
-                  <a href="tel:+33XXXXXXXXX" className="text-gray-300 text-sm hover:text-orange-400 transition-colors">+33 X XX XX XX XX</a>
+                  <a href="tel:+33636523058" className="text-gray-300 text-sm hover:text-orange-400 transition-colors">+33 6 36 52 30 58</a>
                 </div>
                 <div className="flex items-center gap-3">
                   <Mail size={16} className="text-orange-500 flex-shrink-0" />

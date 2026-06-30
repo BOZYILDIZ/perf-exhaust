@@ -3,8 +3,16 @@ import AppointmentForm from "@/components/forms/AppointmentForm";
 import { CheckCircle, Clock, Phone } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Demande de devis — Rendez-vous",
-  description: "Demandez un devis gratuit pour votre projet d'échappement sur mesure. PERF'EXHAUST vous répond sous 24-48h.",
+  title: "Demande de devis gratuit — Échappement sur mesure Alsace",
+  description: "Demandez votre devis gratuit pour un échappement sur mesure en Alsace. Remplissez le formulaire et PERF'EXHAUST vous répond sous 24-48h. Soudure inox, sonorité personnalisée.",
+  keywords: ["devis échappement Alsace", "devis gratuit inox Bas-Rhin", "rendez-vous atelier Rountzenheim", "projet échappement sur mesure"],
+  openGraph: {
+    title: "Devis gratuit — Échappement sur mesure PERF'EXHAUST Alsace",
+    description: "Votre projet d'échappement sur mesure en Alsace. Devis gratuit, réponse sous 48h.",
+    url: "https://perfexhaust.vercel.app/rendez-vous",
+    type: "website",
+  },
+  alternates: { canonical: "https://perfexhaust.vercel.app/rendez-vous" },
 };
 
 const advantages = [
@@ -75,8 +83,8 @@ export default function RendezVousPage() {
             <div className="p-6 border" style={{ background: "#0f0f0f", borderColor: "#1e1e1e" }}>
               <h3 className="text-white font-bold text-sm tracking-widest uppercase mb-3">Contact direct</h3>
               <div className="space-y-2">
-                <a href="tel:+33XXXXXXXXX" className="flex items-center gap-2 text-gray-400 text-sm hover:text-orange-400 transition-colors">
-                  <Phone size={14} className="text-orange-500" /> +33 X XX XX XX XX
+                <a href="tel:+33636523058" className="flex items-center gap-2 text-gray-400 text-sm hover:text-orange-400 transition-colors">
+                  <Phone size={14} className="text-orange-500" /> +33 6 36 52 30 58
                 </a>
                 <a href="mailto:contact@perfexhaust.fr" className="flex items-center gap-2 text-gray-400 text-sm hover:text-orange-400 transition-colors">
                   <span className="text-orange-500 text-xs">✉</span> contact@perfexhaust.fr
