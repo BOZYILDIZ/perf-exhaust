@@ -187,7 +187,7 @@ export default function Hero() {
             transition={{ duration: 0.6, delay: 0.5 }}
           >
             Atelier spécialisé en fabrication d&apos;échappements inox sur mesure en Alsace.
-            Chaque ligne est créée à la main — pour la sonorité que vous méritez.
+            Chaque ligne d&apos;échappement est conçue sur mesure afin d&apos;obtenir la sonorité qui correspond parfaitement à vos attentes.
           </motion.p>
 
           {/* CTAs */}
@@ -229,7 +229,7 @@ export default function Hero() {
             transition={{ duration: 0.8, delay: 0.9 }}
           >
             {[
-              { value: "900+", label: "Projets réalisés" },
+              { value: "De nombreux", label: "Projets réalisés" },
               { value: "100%", label: "Sur mesure" },
               { value: "Inox 304L", label: "Matériau premium" },
               { value: "Alsace", label: "Bas-Rhin · 67" },
