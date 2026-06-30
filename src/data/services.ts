@@ -1,0 +1,56 @@
+import type { Service } from '@/types'
+
+export const services: Service[] = [
+  {
+    id: 'ligne-complete',
+    title: 'Ligne complète sur mesure',
+    description: 'Fabrication intégrale d\'une ligne d\'échappement de A à Z, du collecteur au silencieux arrière, entièrement conçue pour votre véhicule.',
+    icon: 'wrench',
+    details: ['Conception personnalisée', 'Inox 304L ou 316L', 'Soudure TIG', 'Coudes cintrés sur mesure', 'Optimisation du flux'],
+    badge: 'Fabrication artisanale',
+  },
+  {
+    id: 'demi-ligne',
+    title: 'Demi-ligne',
+    description: 'Remplacement de la section intermédiaire et/ou du silencieux arrière par des pièces fabriquées sur mesure en inox.',
+    icon: 'zap',
+    details: ['Adaptation au collecteur existant', 'Inox 304L', 'Silencieux sport', 'Double ou simple sortie'],
+  },
+  {
+    id: 'silencieux',
+    title: 'Silencieux personnalisé',
+    description: 'Conception et fabrication d\'un silencieux unique, adapté à votre véhicule et à vos objectifs sonores.',
+    icon: 'volume-2',
+    details: ['Forme sur mesure', 'Inox brossé ou poli', 'Sorties personnalisées', 'Valve optionnelle'],
+  },
+  {
+    id: 'soudure-inox',
+    title: 'Soudure inox · métal · alu',
+    description: 'Soudure TIG professionnelle sur tous types de matériaux : inox 304L/316L, acier, aluminium, titane.',
+    icon: 'flame',
+    details: ['Soudure TIG', 'Inox 304L/316L', 'Aluminium', 'Titane', 'Réparation fissures'],
+    badge: 'Soudure inox',
+  },
+  {
+    id: 'reparation',
+    title: 'Réparation échappement',
+    description: 'Diagnostic, réparation et renfort de votre ligne existante : fissures, rouille, casses, fuites.',
+    icon: 'tool',
+    details: ['Diagnostic complet', 'Réparation fissures', 'Remplacement sections', 'Pose joints', 'Fixations'],
+  },
+  {
+    id: 'modification-sonore',
+    title: 'Modification sonore',
+    description: 'Modification ciblée pour changer le caractère sonore de votre véhicule : plus grave, plus sport, plus discret.',
+    icon: 'music',
+    details: ['Analyse sonore', 'Valve pilotée', 'Bypass silencieux', 'Downpipe sport'],
+  },
+  {
+    id: 'projet-performance',
+    title: 'Projet performance / esthétique',
+    description: 'Projets complets alliant performance moteur et esthétique : sorties personnalisées, poli miroir, titane.',
+    icon: 'star',
+    details: ['Sorties sur mesure', 'Poli miroir', 'Titane', 'Diffuseur', 'Finition premium'],
+    badge: 'Sur devis',
+  },
+]

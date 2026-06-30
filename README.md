@@ -1,6 +1,36 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PERF'EXHAUST — Site web premium
 
-## Getting Started
+Atelier artisanal d'échappements sur mesure — Rountzenheim-Auenheim, Alsace.
+
+**Stack :** Next.js 16 · TypeScript · Tailwind CSS v4 · React Hook Form + Zod · Resend
+
+## Lancement rapide
+
+```bash
+cp .env.example .env.local   # Configurer les variables
+npm install && npm run dev   # http://localhost:3000
+```
+
+## Variables d'environnement
+
+```env
+RESEND_API_KEY=          # Emails via Resend (optionnel — mock si absent)
+BUSINESS_EMAIL=contact@perfexhaust.fr
+INSTAGRAM_ACCESS_TOKEN=  # API Instagram (optionnel)
+TIKTOK_ACCESS_TOKEN=     # API TikTok (optionnel)
+```
+
+## À connecter manuellement
+
+- Numéro de téléphone : chercher `+33 X XX XX XX XX` dans le code
+- Photos des projets : `src/data/projects.ts` (champ `images`)
+- SIRET : `src/app/mentions-legales/page.tsx`
+- APIs Instagram/TikTok : `src/data/social-mock.ts` (fonction `fetchSocialFeed`)
+- Email production : `src/lib/email.ts` + variable `RESEND_API_KEY`
+
+---
+
+## Démarrage Next.js (original)
 
 First, run the development server:
 
