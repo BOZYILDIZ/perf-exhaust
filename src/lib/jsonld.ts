@@ -104,7 +104,7 @@ export const organizationSchema = {
   currenciesAccepted: "EUR",
   paymentAccepted: "Cash, Virement bancaire",
   sameAs: [
-    "https://www.instagram.com/perfexhaust",
+    "https://www.instagram.com/perfexhaust67/",
     "https://www.tiktok.com/@perfexhaust",
   ],
 };

@@ -35,8 +35,8 @@ export default function RealisationsPage() {
         />
         <div className="max-w-7xl mx-auto px-6 relative z-10">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-8 h-0.5 bg-orange-500" />
-            <span className="text-orange-500 text-xs font-bold tracking-widest uppercase">
+            <div className="w-8 h-0.5 bg-brand-500" />
+            <span className="text-brand-500 text-xs font-bold tracking-widest uppercase">
               Portfolio
             </span>
           </div>

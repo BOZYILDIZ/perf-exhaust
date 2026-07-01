@@ -146,7 +146,7 @@ export default function WeldingIntro({ onComplete }: { onComplete: () => void })
           PERF&apos;EXHAUST
         </div>
         <div
-          className="text-orange-500 text-sm tracking-widest uppercase font-medium"
+          className="text-brand-500 text-sm tracking-widest uppercase font-medium"
           style={{ letterSpacing: "0.3em" }}
         >
           Échappements sur mesure · Alsace

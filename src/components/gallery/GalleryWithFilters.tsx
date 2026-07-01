@@ -34,7 +34,7 @@ export default function GalleryWithFilters({ projects }: { projects: Project[] }
             className={[
               "px-4 py-2 text-xs font-bold tracking-widest uppercase transition-all duration-200 border",
               active === f.id
-                ? "bg-orange-500 text-white border-orange-500"
+                ? "bg-brand-500 text-white border-brand-500"
                 : "bg-transparent text-white/50 border-white/20 hover:border-white/40 hover:text-white",
             ].join(" ")}
           >
@@ -70,7 +70,7 @@ export default function GalleryWithFilters({ projects }: { projects: Project[] }
       {filtered.length === 0 && (
         <div className="py-24 text-center">
           <div className="text-white/20 text-lg mb-2">Aucun projet dans cette catégorie.</div>
-          <button onClick={() => setActive("all")} className="text-orange-400 text-sm hover:text-orange-300 transition-colors">
+          <button onClick={() => setActive("all")} className="text-brand-400 text-sm hover:text-brand-300 transition-colors">
             Voir tous les projets →
           </button>
         </div>

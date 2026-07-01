@@ -26,10 +26,10 @@ export default function SocialFeedSection() {
           />
           <div className="flex items-center gap-4 flex-shrink-0">
             <a
-              href="https://www.instagram.com/perfexhaust"
+              href="https://www.instagram.com/perfexhaust67/"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 text-sm font-bold tracking-widest uppercase text-gray-400 hover:text-orange-400 transition-colors"
+              className="flex items-center gap-2 text-sm font-bold tracking-widest uppercase text-gray-400 hover:text-brand-400 transition-colors"
             >
               <InstagramIcon size={14} /> Instagram
             </a>
@@ -37,7 +37,7 @@ export default function SocialFeedSection() {
               href="https://www.tiktok.com/@perfexhaust"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 text-sm font-bold tracking-widest uppercase text-gray-400 hover:text-orange-400 transition-colors"
+              className="flex items-center gap-2 text-sm font-bold tracking-widest uppercase text-gray-400 hover:text-brand-400 transition-colors"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.34 6.34 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.76a4.85 4.85 0 0 1-1.01-.07z"/>
@@ -71,7 +71,7 @@ export default function SocialFeedSection() {
                 <ExternalLink size={16} className="text-white" />
                 {post.likes && (
                   <div className="flex items-center gap-1 text-white text-xs font-medium">
-                    <Heart size={10} fill="currentColor" className="text-orange-400" />
+                    <Heart size={10} fill="currentColor" className="text-brand-400" />
                     {post.likes}
                   </div>
                 )}

@@ -18,7 +18,7 @@ export default function GallerySection() {
           />
           <Link
             href="/realisations"
-            className="inline-flex items-center gap-2 text-sm font-bold tracking-widest uppercase text-orange-400 hover:text-orange-300 transition-colors flex-shrink-0"
+            className="inline-flex items-center gap-2 text-sm font-bold tracking-widest uppercase text-brand-400 hover:text-brand-300 transition-colors flex-shrink-0"
           >
             Voir tout <ArrowRight size={14} />
           </Link>
@@ -33,7 +33,7 @@ export default function GallerySection() {
         <div className="mt-10 text-center">
           <Link
             href="/realisations"
-            className="inline-flex items-center gap-3 px-8 py-4 text-sm font-bold tracking-widest uppercase text-white border border-white/20 hover:border-orange-500 hover:text-orange-400 transition-all hover:-translate-y-0.5"
+            className="inline-flex items-center gap-3 px-8 py-4 text-sm font-bold tracking-widest uppercase text-white border border-white/20 hover:border-brand-500 hover:text-brand-400 transition-all hover:-translate-y-0.5"
           >
             Voir les 15 réalisations <ArrowRight size={14} />
           </Link>

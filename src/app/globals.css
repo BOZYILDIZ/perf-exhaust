@@ -38,31 +38,28 @@
   --warning: #f59e0b;
   --error:   #ef4444;
 
-  /* Legacy alias — kept for backward compat, both point to brand */
-  --accent-orange: var(--brand);
-  --accent-amber:  var(--brand-hover);
-  --accent-red:    var(--error);
+  --accent-red: var(--error);
 }
 
-/* Override Tailwind's orange palette → brand blue
-   This remaps ALL text-orange-* / bg-orange-* / border-orange-* etc.
-   without touching any component file. */
+/* Palette de marque exposée comme échelle Tailwind native.
+   Génère automatiquement text-brand-*, bg-brand-*, border-brand-*,
+   accent-brand-*, hover:text-brand-*, etc. */
 @theme inline {
   --color-background: var(--bg-primary);
   --color-foreground: var(--text-primary);
 
-  /* Orange → Brand blue remapping */
-  --color-orange-50:  #eff6ff;
-  --color-orange-100: #dbeafe;
-  --color-orange-200: #bfdbfe;
-  --color-orange-300: #93c5fd;
-  --color-orange-400: #4d8ef0;
-  --color-orange-500: #1266EA;
-  --color-orange-600: #0d54c8;
-  --color-orange-700: #0a43a0;
-  --color-orange-800: #07317a;
-  --color-orange-900: #052258;
-  --color-orange-950: #031540;
+  --color-brand:     #1266EA;
+  --color-brand-50:  #eff6ff;
+  --color-brand-100: #dbeafe;
+  --color-brand-200: #bfdbfe;
+  --color-brand-300: #93c5fd;
+  --color-brand-400: #4d8ef0;
+  --color-brand-500: #1266EA;
+  --color-brand-600: #0d54c8;
+  --color-brand-700: #0a43a0;
+  --color-brand-800: #07317a;
+  --color-brand-900: #052258;
+  --color-brand-950: #031540;
 }
 
 /* ============================================================
@@ -117,12 +114,6 @@ body {
   50%       { box-shadow: 0 0 0 10px rgba(18, 102, 234, 0); }
 }
 
-/* Legacy alias */
-@keyframes pulse-orange {
-  0%, 100% { box-shadow: 0 0 0 0 var(--brand-glow); }
-  50%       { box-shadow: 0 0 0 10px rgba(18, 102, 234, 0); }
-}
-
 @keyframes spark-fly {
   0%   { opacity: 1; transform: translate(0,0) scale(1); }
   100% { opacity: 0; transform: translate(var(--dx, 40px), var(--dy, -60px)) scale(0.1); }
@@ -169,11 +160,6 @@ h1, h2, h3, h4 { line-height: 1.1; }
 .glow-brand-sm { box-shadow: 0 0 10px var(--brand-glow-sm); }
 .text-glow     { text-shadow: 0 0 20px var(--brand-glow); }
 
-/* Legacy aliases so existing .glow-orange usage still resolves */
-.glow-orange    { box-shadow: 0 0 20px var(--brand-glow), 0 0 40px var(--brand-glow-xs); }
-.glow-orange-sm { box-shadow: 0 0 10px var(--brand-glow-sm); }
-.text-glow-orange { text-shadow: 0 0 20px var(--brand-glow); }
-
 /* ============================================================
    Metal / texture
    ============================================================ */
@@ -201,7 +187,6 @@ h1, h2, h3, h4 { line-height: 1.1; }
 .animate-fade-in       { animation: fadeIn 0.5s ease forwards; }
 .animate-slide-left    { animation: slideInLeft 0.6s ease forwards; }
 .animate-pulse-brand   { animation: pulse-brand 2s ease infinite; }
-.animate-pulse-orange  { animation: pulse-brand 2s ease infinite; }  /* legacy */
 .animate-float         { animation: float 3s ease infinite; }
 .animate-electric      { animation: electric-pulse 3s ease infinite; }
 

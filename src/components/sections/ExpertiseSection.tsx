@@ -48,7 +48,7 @@ export default function ExpertiseSection() {
       <div className="max-w-7xl mx-auto px-6">
         <header className="mb-16 grid md:grid-cols-2 gap-8 items-end">
           <div>
-            <div className="text-xs font-bold tracking-widest uppercase text-orange-400 mb-4">
+            <div className="text-xs font-bold tracking-widest uppercase text-brand-400 mb-4">
               Savoir-faire
             </div>
             <h2
@@ -56,7 +56,7 @@ export default function ExpertiseSection() {
               className="font-oswald text-4xl md:text-5xl font-bold text-white uppercase tracking-wider leading-tight"
             >
               Notre expertise<br />
-              <span className="text-orange-400">en détail</span>
+              <span className="text-brand-400">en détail</span>
             </h2>
           </div>
           <div>
@@ -67,7 +67,7 @@ export default function ExpertiseSection() {
             </p>
             <Link
               href="/services"
-              className="inline-flex items-center gap-2 mt-4 text-sm font-bold tracking-widest uppercase text-orange-400 hover:text-orange-300 transition-colors"
+              className="inline-flex items-center gap-2 mt-4 text-sm font-bold tracking-widest uppercase text-brand-400 hover:text-brand-300 transition-colors"
             >
               Voir tous nos services →
             </Link>
@@ -78,12 +78,12 @@ export default function ExpertiseSection() {
           {EXPERTISES.map((exp, i) => (
             <article key={exp.number} className="group py-8 grid md:grid-cols-4 gap-6 items-start hover:bg-white/[0.02] px-4 -mx-4 transition-colors">
               <div className="md:col-span-1 flex items-start gap-4">
-                <span className="font-oswald text-5xl font-bold text-orange-500/20 group-hover:text-orange-500/40 transition-colors leading-none">
+                <span className="font-oswald text-5xl font-bold text-brand-500/20 group-hover:text-brand-500/40 transition-colors leading-none">
                   {exp.number}
                 </span>
               </div>
               <div className="md:col-span-3">
-                <div className="mb-1 text-xs font-bold tracking-widest uppercase text-orange-400/70">
+                <div className="mb-1 text-xs font-bold tracking-widest uppercase text-brand-400/70">
                   {exp.subtitle}
                 </div>
                 <h3 className="font-oswald text-2xl font-bold text-white uppercase tracking-wide mb-3">
@@ -114,14 +114,14 @@ export default function ExpertiseSection() {
           <div className="flex gap-3">
             <Link
               href="/rendez-vous"
-              className="inline-flex items-center gap-2 px-5 py-3 bg-orange-500 text-white font-bold text-xs tracking-widest uppercase hover:bg-orange-400 transition-colors"
+              className="inline-flex items-center gap-2 px-5 py-3 bg-brand-500 text-white font-bold text-xs tracking-widest uppercase hover:bg-brand-400 transition-colors"
               style={{ clipPath: "polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))" }}
             >
               Demander un devis
             </Link>
             <Link
               href="/realisations"
-              className="inline-flex items-center gap-2 px-5 py-3 border border-white/20 text-white/70 font-bold text-xs tracking-widest uppercase hover:border-orange-500 hover:text-orange-400 transition-colors"
+              className="inline-flex items-center gap-2 px-5 py-3 border border-white/20 text-white/70 font-bold text-xs tracking-widest uppercase hover:border-brand-500 hover:text-brand-400 transition-colors"
             >
               Voir les réalisations
             </Link>

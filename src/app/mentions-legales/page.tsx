@@ -62,7 +62,7 @@ function Section({ title, children, id }: { title: string; children: React.React
   return (
     <section id={id}>
       <div className="flex items-center gap-3 mb-4">
-        <div className="w-6 h-0.5 bg-orange-500" />
+        <div className="w-6 h-0.5 bg-brand-500" />
         <h2 className="text-white font-bold text-lg" style={{ fontFamily: "Oswald, sans-serif" }}>{title}</h2>
       </div>
       <div className="pl-4 sm:pl-9 space-y-2">{children}</div>

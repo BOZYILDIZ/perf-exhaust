@@ -2,13 +2,13 @@ import { cn } from "@/lib/utils";
 
 interface BadgeProps {
   children: React.ReactNode;
-  variant?: "default" | "orange" | "metal" | "green";
+  variant?: "default" | "brand" | "metal" | "green";
   className?: string;
 }
 
 const variants = {
   default: "bg-gray-800 border-gray-700 text-gray-300",
-  orange: "bg-orange-500/15 border-orange-500/30 text-orange-400",
+  brand: "bg-brand-500/15 border-brand-500/30 text-brand-400",
   metal: "bg-gray-700/30 border-gray-600/40 text-gray-300",
   green: "bg-green-500/15 border-green-500/30 text-green-400",
 };

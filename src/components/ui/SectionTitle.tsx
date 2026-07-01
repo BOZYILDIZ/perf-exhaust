@@ -13,8 +13,8 @@ export default function SectionTitle({ label, title, subtitle, centered, classNa
     <div className={cn(centered && "text-center", className)}>
       {label && (
         <div className={cn("flex items-center gap-3 mb-3", centered && "justify-center")}>
-          <div className="w-8 h-0.5 bg-orange-500" />
-          <span className="text-orange-500 text-xs font-bold tracking-widest uppercase">{label}</span>
+          <div className="w-8 h-0.5 bg-brand-500" />
+          <span className="text-brand-500 text-xs font-bold tracking-widest uppercase">{label}</span>
         </div>
       )}
       <h2

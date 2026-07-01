@@ -45,8 +45,8 @@ const sonorities = [
 ];
 
 const labelStyle = "block text-xs font-bold tracking-widest uppercase text-gray-400 mb-2";
-const inputStyle = "w-full bg-transparent border border-gray-800 text-white text-sm px-4 py-3 focus:outline-none focus:border-orange-500 transition-colors placeholder-gray-700";
-const selectStyle = "w-full bg-gray-950 border border-gray-800 text-white text-sm px-4 py-3 focus:outline-none focus:border-orange-500 transition-colors appearance-none";
+const inputStyle = "w-full bg-transparent border border-gray-800 text-white text-sm px-4 py-3 focus:outline-none focus:border-brand-500 transition-colors placeholder-gray-700";
+const selectStyle = "w-full bg-gray-950 border border-gray-800 text-white text-sm px-4 py-3 focus:outline-none focus:border-brand-500 transition-colors appearance-none";
 const errorStyle = "text-red-400 text-xs mt-1 flex items-center gap-1";
 
 export default function AppointmentForm() {
@@ -91,7 +91,7 @@ export default function AppointmentForm() {
         <p className="text-gray-500 text-xs">Un email de confirmation vous a été envoyé.</p>
         <button
           onClick={() => setStatus("idle")}
-          className="mt-8 text-orange-400 text-sm hover:text-orange-300 transition-colors underline"
+          className="mt-8 text-brand-400 text-sm hover:text-brand-300 transition-colors underline"
         >
           Faire une nouvelle demande
         </button>
@@ -201,7 +201,7 @@ export default function AppointmentForm() {
           <div>
             <label className={labelStyle}>Photos du véhicule (optionnel)</label>
             <label
-              className="flex items-center gap-3 border border-gray-800 border-dashed px-4 py-3 cursor-pointer hover:border-orange-500 transition-colors"
+              className="flex items-center gap-3 border border-gray-800 border-dashed px-4 py-3 cursor-pointer hover:border-brand-500 transition-colors"
               htmlFor="photos"
             >
               <Upload size={16} className="text-gray-500" />
@@ -226,15 +226,15 @@ export default function AppointmentForm() {
           type="checkbox"
           id="rgpd"
           {...register("rgpd")}
-          className="mt-0.5 accent-orange-500 w-4 h-4 flex-shrink-0"
+          className="mt-0.5 accent-brand-500 w-4 h-4 flex-shrink-0"
         />
         <label htmlFor="rgpd" className="text-gray-400 text-xs leading-relaxed cursor-pointer">
           J&apos;accepte que PERF&apos;EXHAUST traite mes données personnelles pour répondre à ma demande de devis.
           Ces données ne seront pas partagées avec des tiers sans consentement. Conformément au RGPD,
           vous pouvez exercer vos droits en nous contactant à{" "}
-          <a href="mailto:contact@perfexhaust.fr" className="text-orange-400 hover:underline">contact@perfexhaust.fr</a>.
+          <a href="mailto:contact@perfexhaust.fr" className="text-brand-400 hover:underline">contact@perfexhaust.fr</a>.
           <br />
-          <a href="/mentions-legales#confidentialite" className="text-orange-400 hover:underline">
+          <a href="/mentions-legales#confidentialite" className="text-brand-400 hover:underline">
             Politique de confidentialité
           </a>
         </label>

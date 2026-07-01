@@ -19,7 +19,7 @@ const SONORITY_GRADIENTS: Record<string, string> = {
   "Agressif": "from-red-900/60 to-black",
   "Sportif": "from-blue-900/60 to-black",
   "Discret": "from-gray-800/60 to-black",
-  "Fort": "from-orange-900/60 to-black",
+  "Fort": "from-brand-900/60 to-black",
   "Sur mesure": "from-amber-900/60 to-black",
 };
 
@@ -78,7 +78,7 @@ export default function ProjectCard({ project }: { project: Project }) {
         <div className="p-5">
           <div className="flex flex-wrap items-start justify-between gap-2 mb-3">
             <div className="min-w-0">
-              <h3 className="font-oswald text-lg font-bold text-white uppercase tracking-wide leading-tight group-hover:text-orange-400 transition-colors duration-300">
+              <h3 className="font-oswald text-lg font-bold text-white uppercase tracking-wide leading-tight group-hover:text-brand-400 transition-colors duration-300">
                 {project.vehicule}
               </h3>
               <div className="text-xs text-white/40 mt-0.5">{project.annee}</div>
@@ -109,7 +109,7 @@ export default function ProjectCard({ project }: { project: Project }) {
             </div>
           )}
 
-          <div className="flex items-center gap-1 text-xs font-bold tracking-wider uppercase text-orange-400/70 group-hover:text-orange-400 transition-colors duration-300">
+          <div className="flex items-center gap-1 text-xs font-bold tracking-wider uppercase text-brand-400/70 group-hover:text-brand-400 transition-colors duration-300">
             Voir le projet <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform duration-300" />
           </div>
         </div>

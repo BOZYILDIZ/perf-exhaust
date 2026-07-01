@@ -20,7 +20,7 @@ export default function ServicesSection() {
           />
           <Link
             href="/services"
-            className="inline-flex items-center gap-2 text-sm font-bold tracking-widest uppercase text-orange-400 hover:text-orange-300 transition-colors flex-shrink-0"
+            className="inline-flex items-center gap-2 text-sm font-bold tracking-widest uppercase text-brand-400 hover:text-brand-300 transition-colors flex-shrink-0"
           >
             Tous les services <ArrowRight size={14} />
           </Link>
@@ -55,11 +55,11 @@ export default function ServicesSection() {
                       border: "1px solid rgba(18,102,234,0.2)",
                     }}
                   >
-                    <Icon size={18} className="text-orange-500" />
+                    <Icon size={18} className="text-brand-500" />
                   </div>
                   {service.badge && (
                     <span
-                      className="text-xs font-bold tracking-wider uppercase text-orange-400 px-2 py-0.5"
+                      className="text-xs font-bold tracking-wider uppercase text-brand-400 px-2 py-0.5"
                       style={{ background: "rgba(18,102,234,0.1)", border: "1px solid rgba(18,102,234,0.2)" }}
                     >
                       {service.badge}
@@ -68,7 +68,7 @@ export default function ServicesSection() {
                 </div>
 
                 <h3
-                  className="text-white font-bold text-base mb-2 leading-tight group-hover:text-orange-400 transition-colors"
+                  className="text-white font-bold text-base mb-2 leading-tight group-hover:text-brand-400 transition-colors"
                   style={{ fontFamily: "Oswald, sans-serif" }}
                 >
                   {service.title}
@@ -78,7 +78,7 @@ export default function ServicesSection() {
                 <ul className="space-y-1">
                   {service.details.slice(0, 3).map((d) => (
                     <li key={d} className="flex items-center gap-2 text-xs text-gray-600">
-                      <span className="w-1 h-1 bg-orange-500 rounded-full flex-shrink-0" />
+                      <span className="w-1 h-1 bg-brand-500 rounded-full flex-shrink-0" />
                       {d}
                     </li>
                   ))}

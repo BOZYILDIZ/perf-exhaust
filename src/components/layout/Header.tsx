@@ -47,12 +47,12 @@ export default function Header() {
           </div>
           <div>
             <div
-              className="text-white font-black text-xl leading-none group-hover:text-orange-400 transition-colors"
+              className="text-white font-black text-xl leading-none group-hover:text-brand-400 transition-colors"
               style={{ fontFamily: "Oswald, sans-serif", letterSpacing: "0.05em" }}
             >
               PERF&apos;EXHAUST
             </div>
-            <div className="text-orange-500 text-xs font-medium tracking-widest uppercase">
+            <div className="text-brand-500 text-xs font-medium tracking-widest uppercase">
               Alsace
             </div>
           </div>
@@ -64,10 +64,10 @@ export default function Header() {
             <Link
               key={link.href}
               href={link.href}
-              className="text-sm font-medium tracking-wider uppercase text-gray-300 hover:text-orange-400 transition-colors relative group"
+              className="text-sm font-medium tracking-wider uppercase text-gray-300 hover:text-brand-400 transition-colors relative group"
             >
               {link.label}
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-orange-500 group-hover:w-full transition-all duration-300" />
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-brand-500 group-hover:w-full transition-all duration-300" />
             </Link>
           ))}
         </nav>
@@ -76,7 +76,7 @@ export default function Header() {
         <div className="hidden lg:flex items-center gap-4">
           <a
             href="tel:+33636523058"
-            className="flex items-center gap-2 text-sm text-gray-300 hover:text-orange-400 transition-colors"
+            className="flex items-center gap-2 text-sm text-gray-300 hover:text-brand-400 transition-colors"
           >
             <Phone size={14} />
             <span className="font-medium">Appeler</span>
@@ -95,7 +95,7 @@ export default function Header() {
 
         {/* Mobile menu toggle */}
         <button
-          className="lg:hidden text-gray-300 hover:text-orange-400 transition-colors"
+          className="lg:hidden text-gray-300 hover:text-brand-400 transition-colors"
           onClick={() => setMenuOpen(!menuOpen)}
           aria-label="Menu"
         >
@@ -114,7 +114,7 @@ export default function Header() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-sm font-medium tracking-wider uppercase text-gray-300 hover:text-orange-400 transition-colors py-2 border-b border-gray-800"
+                className="text-sm font-medium tracking-wider uppercase text-gray-300 hover:text-brand-400 transition-colors py-2 border-b border-gray-800"
                 onClick={() => setMenuOpen(false)}
               >
                 {link.label}

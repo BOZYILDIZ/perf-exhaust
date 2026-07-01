@@ -59,10 +59,10 @@ export default function Footer() {
             </p>
             <div className="flex items-center gap-3">
               <a
-                href="https://www.instagram.com/perfexhaust"
+                href="https://www.instagram.com/perfexhaust67/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-9 h-9 flex items-center justify-center rounded-sm border border-gray-700 text-gray-400 hover:text-orange-400 hover:border-orange-400 transition-all"
+                className="w-9 h-9 flex items-center justify-center rounded-sm border border-gray-700 text-gray-400 hover:text-brand-400 hover:border-brand-400 transition-all"
                 aria-label="Instagram PERF'EXHAUST"
               >
                 <InstagramIcon size={16} />
@@ -71,7 +71,7 @@ export default function Footer() {
                 href="https://www.tiktok.com/@perfexhaust"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-9 h-9 flex items-center justify-center rounded-sm border border-gray-700 text-gray-400 hover:text-orange-400 hover:border-orange-400 transition-all"
+                className="w-9 h-9 flex items-center justify-center rounded-sm border border-gray-700 text-gray-400 hover:text-brand-400 hover:border-brand-400 transition-all"
                 aria-label="TikTok PERF'EXHAUST"
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -89,8 +89,8 @@ export default function Footer() {
             <ul className="space-y-2">
               {services.map((s) => (
                 <li key={s}>
-                  <Link href="/services" className="text-gray-400 text-sm hover:text-orange-400 transition-colors flex items-center gap-2">
-                    <span className="w-1 h-1 bg-orange-500 rounded-full flex-shrink-0" />
+                  <Link href="/services" className="text-gray-400 text-sm hover:text-brand-400 transition-colors flex items-center gap-2">
+                    <span className="w-1 h-1 bg-brand-500 rounded-full flex-shrink-0" />
                     {s}
                   </Link>
                 </li>
@@ -106,8 +106,8 @@ export default function Footer() {
             <ul className="space-y-2">
               {pages.map((p) => (
                 <li key={p.href}>
-                  <Link href={p.href} className="text-gray-400 text-sm hover:text-orange-400 transition-colors flex items-center gap-2">
-                    <span className="w-1 h-1 bg-orange-500 rounded-full flex-shrink-0" />
+                  <Link href={p.href} className="text-gray-400 text-sm hover:text-brand-400 transition-colors flex items-center gap-2">
+                    <span className="w-1 h-1 bg-brand-500 rounded-full flex-shrink-0" />
                     {p.label}
                   </Link>
                 </li>
@@ -122,21 +122,21 @@ export default function Footer() {
             </h3>
             <ul className="space-y-4">
               <li className="flex items-start gap-3">
-                <MapPin size={16} className="text-orange-500 mt-0.5 flex-shrink-0" />
+                <MapPin size={16} className="text-brand-500 mt-0.5 flex-shrink-0" />
                 <div>
                   <p className="text-gray-300 text-sm font-medium">Rountzenheim-Auenheim</p>
                   <p className="text-gray-500 text-xs">Alsace, Bas-Rhin (67)</p>
                 </div>
               </li>
               <li className="flex items-center gap-3">
-                <Phone size={16} className="text-orange-500 flex-shrink-0" />
-                <a href="tel:+33636523058" className="text-gray-300 text-sm hover:text-orange-400 transition-colors">
+                <Phone size={16} className="text-brand-500 flex-shrink-0" />
+                <a href="tel:+33636523058" className="text-gray-300 text-sm hover:text-brand-400 transition-colors">
                   +33 6 36 52 30 58
                 </a>
               </li>
               <li className="flex items-center gap-3">
-                <Mail size={16} className="text-orange-500 flex-shrink-0" />
-                <a href="mailto:contact@perfexhaust.fr" className="text-gray-300 text-sm hover:text-orange-400 transition-colors">
+                <Mail size={16} className="text-brand-500 flex-shrink-0" />
+                <a href="mailto:contact@perfexhaust.fr" className="text-gray-300 text-sm hover:text-brand-400 transition-colors">
                   contact@perfexhaust.fr
                 </a>
               </li>
@@ -184,7 +184,7 @@ export default function Footer() {
               href="https://www.bicer.fr/"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-gray-500 hover:text-orange-500 underline-offset-2 hover:underline transition-colors duration-300"
+              className="text-gray-500 hover:text-brand-500 underline-offset-2 hover:underline transition-colors duration-300"
             >
               Nevora
             </a>

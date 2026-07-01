@@ -78,7 +78,7 @@ export default function SoundConfigurator({ onSelect, selected }: SoundConfigura
   return (
     <div className="bg-[#111] border border-white/10 p-6 md:p-8">
       <div className="mb-6">
-        <div className="text-xs font-bold tracking-widest uppercase text-orange-400 mb-2">
+        <div className="text-xs font-bold tracking-widest uppercase text-brand-400 mb-2">
           Configurateur Sonore
         </div>
         <h3 className="font-oswald text-2xl font-bold text-white uppercase tracking-wider mb-1">
@@ -99,7 +99,7 @@ export default function SoundConfigurator({ onSelect, selected }: SoundConfigura
             className={[
               "relative p-4 border text-left transition-all duration-200",
               activeProfile === profile.id
-                ? "border-orange-500 bg-orange-500/10"
+                ? "border-brand-500 bg-brand-500/10"
                 : "border-white/10 bg-white/5 hover:border-white/30",
             ].join(" ")}
             aria-pressed={activeProfile === profile.id}
@@ -131,7 +131,7 @@ export default function SoundConfigurator({ onSelect, selected }: SoundConfigura
               </div>
             )}
             {profile.id === "sur-mesure" && (
-              <div className="text-xs text-orange-400 font-bold tracking-wider uppercase mt-1">
+              <div className="text-xs text-brand-400 font-bold tracking-wider uppercase mt-1">
                 Personnalisé
               </div>
             )}

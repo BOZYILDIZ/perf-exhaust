@@ -41,7 +41,7 @@ export default async function ProjectDetailPage({ params }: Props) {
     <div className="pt-20" style={{ background: "#080808" }}>
       {/* Back */}
       <div className="max-w-7xl mx-auto px-6 py-6">
-        <Link href="/realisations" className="inline-flex items-center gap-2 text-gray-500 hover:text-orange-400 transition-colors text-sm">
+        <Link href="/realisations" className="inline-flex items-center gap-2 text-gray-500 hover:text-brand-400 transition-colors text-sm">
           <ArrowLeft size={14} /> Retour aux réalisations
         </Link>
       </div>
@@ -64,7 +64,7 @@ export default async function ProjectDetailPage({ params }: Props) {
           {/* Info */}
           <div>
             <div className="flex flex-wrap gap-2 mb-4">
-              <span className="text-xs font-bold tracking-wider uppercase text-orange-400 px-3 py-1" style={{ background: "rgba(18,102,234,0.1)", border: "1px solid rgba(18,102,234,0.25)" }}>
+              <span className="text-xs font-bold tracking-wider uppercase text-brand-400 px-3 py-1" style={{ background: "rgba(18,102,234,0.1)", border: "1px solid rgba(18,102,234,0.25)" }}>
                 {project.sonoriteTag}
               </span>
               {project.tags.map((tag) => (
@@ -103,7 +103,7 @@ export default async function ProjectDetailPage({ params }: Props) {
               >
                 Je veux un projet similaire
               </Link>
-              <Link href="/contact" className="flex-1 text-center py-4 text-sm font-bold tracking-widest uppercase text-white border border-white/20 hover:border-orange-500 hover:text-orange-400 transition-all">
+              <Link href="/contact" className="flex-1 text-center py-4 text-sm font-bold tracking-widest uppercase text-white border border-white/20 hover:border-brand-500 hover:text-brand-400 transition-all">
                 Contacter l&apos;atelier
               </Link>
             </div>
@@ -134,7 +134,7 @@ export default async function ProjectDetailPage({ params }: Props) {
       <div style={{ borderTop: "1px solid #141414" }}>
         <div className="max-w-7xl mx-auto px-6 py-8 flex items-center justify-between gap-4">
           {prev ? (
-            <Link href={`/realisations/${prev.slug}`} className="flex items-center gap-3 text-gray-400 hover:text-orange-400 transition-colors group">
+            <Link href={`/realisations/${prev.slug}`} className="flex items-center gap-3 text-gray-400 hover:text-brand-400 transition-colors group">
               <ArrowLeft size={16} />
               <div>
                 <div className="text-xs text-gray-600 uppercase tracking-wider">Précédent</div>
@@ -143,7 +143,7 @@ export default async function ProjectDetailPage({ params }: Props) {
             </Link>
           ) : <div />}
           {next ? (
-            <Link href={`/realisations/${next.slug}`} className="flex items-center gap-3 text-gray-400 hover:text-orange-400 transition-colors text-right group">
+            <Link href={`/realisations/${next.slug}`} className="flex items-center gap-3 text-gray-400 hover:text-brand-400 transition-colors text-right group">
               <div>
                 <div className="text-xs text-gray-600 uppercase tracking-wider">Suivant</div>
                 <div className="text-sm font-bold" style={{ fontFamily: "Oswald, sans-serif" }}>{next.vehicule}</div>

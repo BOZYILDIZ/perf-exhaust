@@ -44,18 +44,18 @@ export default function TestimonialsSection() {
               className="p-6 border relative"
               style={{ background: "#111111", borderColor: "#1e1e1e", borderRadius: "2px" }}
             >
-              <Quote size={32} className="text-orange-500/20 mb-4" />
+              <Quote size={32} className="text-brand-500/20 mb-4" />
               <p className="text-gray-300 text-sm leading-relaxed mb-6 italic">&quot;{t.text}&quot;</p>
 
               <div className="flex items-center gap-1 mb-3">
                 {Array.from({ length: t.rating }).map((_, j) => (
-                  <Star key={j} size={12} className="text-orange-400 fill-orange-400" />
+                  <Star key={j} size={12} className="text-brand-400 fill-brand-400" />
                 ))}
               </div>
 
               <div className="border-t border-gray-800 pt-4">
                 <p className="text-white font-bold text-sm" style={{ fontFamily: "Oswald, sans-serif" }}>{t.name}</p>
-                <p className="text-orange-500 text-xs font-medium">{t.vehicle}</p>
+                <p className="text-brand-500 text-xs font-medium">{t.vehicle}</p>
                 <p className="text-gray-600 text-xs mt-1">{t.prestation}</p>
               </div>
             </div>
@@ -67,7 +67,7 @@ export default function TestimonialsSection() {
             <div className="text-center">
               <div className="text-3xl font-black text-white" style={{ fontFamily: "Oswald, sans-serif" }}>5.0</div>
               <div className="flex items-center gap-0.5 justify-center mt-1">
-                {Array.from({ length: 5 }).map((_, i) => <Star key={i} size={10} className="text-orange-400 fill-orange-400" />)}
+                {Array.from({ length: 5 }).map((_, i) => <Star key={i} size={10} className="text-brand-400 fill-brand-400" />)}
               </div>
               <div className="text-gray-500 text-xs mt-1">Note moyenne</div>
             </div>

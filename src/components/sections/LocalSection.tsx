@@ -19,10 +19,10 @@ export default function LocalSection() {
       <div className="max-w-7xl mx-auto px-6 relative z-10">
         <div className="grid md:grid-cols-2 gap-16 items-center">
           <div>
-            <div className="text-xs font-bold tracking-widest uppercase text-orange-400 mb-4">Localisation</div>
+            <div className="text-xs font-bold tracking-widest uppercase text-brand-400 mb-4">Localisation</div>
             <h2 className="font-oswald text-4xl md:text-5xl font-bold text-white uppercase tracking-wider mb-6 leading-tight">
               Un atelier spécialisé<br />
-              <span className="text-orange-400">en Alsace</span>
+              <span className="text-brand-400">en Alsace</span>
             </h2>
             <p className="text-white/60 leading-relaxed mb-6 text-lg">
               PERF&apos;EXHAUST est implanté à <strong className="text-white">Rountzenheim-Auenheim</strong>, dans le
@@ -36,12 +36,12 @@ export default function LocalSection() {
             <div className="flex flex-wrap gap-3">
               <Link
                 href="/rendez-vous"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-orange-500 text-white font-bold text-sm tracking-widest uppercase hover:bg-orange-400 transition-colors"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-brand-500 text-white font-bold text-sm tracking-widest uppercase hover:bg-brand-400 transition-colors"
                 style={{ clipPath: "polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px))" }}
               >
                 Prendre rendez-vous
               </Link>
-              <a href="tel:+33636523058" className="inline-flex items-center gap-2 px-6 py-3 border border-white/20 text-white font-bold text-sm tracking-wider hover:border-orange-500 hover:text-orange-400 transition-colors">
+              <a href="tel:+33636523058" className="inline-flex items-center gap-2 px-6 py-3 border border-white/20 text-white font-bold text-sm tracking-wider hover:border-brand-500 hover:text-brand-400 transition-colors">
                 +33 6 36 52 30 58
               </a>
             </div>
@@ -51,19 +51,19 @@ export default function LocalSection() {
             <div className="text-xs font-bold tracking-widest uppercase text-white/30 mb-4">Zones desservies</div>
             <div className="grid grid-cols-2 gap-2">
               {ZONES.map((zone) => (
-                <div key={zone.city} className="p-3 border border-white/10 bg-white/5 hover:border-orange-500/30 hover:bg-orange-500/5 transition-all">
+                <div key={zone.city} className="p-3 border border-white/10 bg-white/5 hover:border-brand-500/30 hover:bg-brand-500/5 transition-all">
                   <div className="font-bold text-white text-sm leading-snug">{zone.city}</div>
                   <div className="flex items-center justify-between gap-2 mt-0.5">
                     <div className="text-xs text-white/30">{zone.dept}</div>
-                    <div className="shrink-0 text-xs text-orange-400/70 font-medium">{zone.note}</div>
+                    <div className="shrink-0 text-xs text-brand-400/70 font-medium">{zone.note}</div>
                   </div>
                 </div>
               ))}
             </div>
 
-            <div className="mt-6 p-4 border border-orange-500/20 bg-orange-500/5">
+            <div className="mt-6 p-4 border border-brand-500/20 bg-brand-500/5">
               <div className="flex items-start gap-3">
-                <div className="w-8 h-8 bg-orange-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <div className="w-8 h-8 bg-brand-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1266ea" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                     <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
                     <circle cx="12" cy="9" r="2.5"/>

@@ -49,9 +49,9 @@ export default function PartnersSection() {
                       >
                         {partner.name}
                       </h3>
-                      <Shield size={14} className="text-orange-500" />
+                      <Shield size={14} className="text-brand-500" />
                     </div>
-                    <p className="text-orange-500 text-xs font-bold tracking-widest uppercase">{partner.type}</p>
+                    <p className="text-brand-500 text-xs font-bold tracking-widest uppercase">{partner.type}</p>
                   </div>
                 </div>
                 <p className="text-gray-400 text-sm leading-relaxed mb-4">{partner.description}</p>
@@ -60,7 +60,7 @@ export default function PartnersSection() {
                     href={partner.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 text-xs font-bold tracking-wider uppercase text-orange-400 hover:text-orange-300 transition-colors"
+                    className="inline-flex items-center gap-2 text-xs font-bold tracking-wider uppercase text-brand-400 hover:text-brand-300 transition-colors"
                   >
                     Visiter <ExternalLink size={10} />
                   </a>
@@ -72,7 +72,7 @@ export default function PartnersSection() {
 
         <p className="text-center text-gray-600 text-sm mt-6">
           Vous souhaitez devenir partenaire ?{" "}
-          <a href="/contact" className="text-orange-500 hover:text-orange-400 transition-colors">
+          <a href="/contact" className="text-brand-500 hover:text-brand-400 transition-colors">
             Contactez-nous
           </a>
         </p>

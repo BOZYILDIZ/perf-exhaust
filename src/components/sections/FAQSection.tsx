@@ -29,7 +29,7 @@ export default function FAQSection() {
       />
       <div className="max-w-4xl mx-auto px-6">
         <div className="mb-16 text-center">
-          <div className="text-xs font-bold tracking-widest uppercase text-orange-400 mb-4">FAQ</div>
+          <div className="text-xs font-bold tracking-widest uppercase text-brand-400 mb-4">FAQ</div>
           <h2 className="font-oswald text-4xl md:text-5xl font-bold text-white uppercase tracking-wider mb-4">
             Questions fréquentes
           </h2>
@@ -48,7 +48,7 @@ export default function FAQSection() {
                 aria-controls={"faq-answer-" + i}
               >
                 <span className="font-medium text-white leading-snug pr-4">{faq.q}</span>
-                <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center border border-white/20 text-orange-400">
+                <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center border border-white/20 text-brand-400">
                   {open === i ? <Minus size={12} /> : <Plus size={12} />}
                 </span>
               </button>
@@ -75,7 +75,7 @@ export default function FAQSection() {
 
         <div className="mt-12 text-center">
           <p className="text-white/40 mb-4">Vous ne trouvez pas la réponse à votre question ?</p>
-          <a href="/contact" className="inline-flex items-center gap-2 text-sm font-bold tracking-widest uppercase text-orange-400 hover:text-orange-300 transition-colors">
+          <a href="/contact" className="inline-flex items-center gap-2 text-sm font-bold tracking-widest uppercase text-brand-400 hover:text-brand-300 transition-colors">
             Contactez-nous directement →
           </a>
         </div>

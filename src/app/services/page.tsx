@@ -36,13 +36,13 @@ export default function ServicesPage() {
       <header className="relative py-16" style={{ background: "linear-gradient(135deg, #0a0a0a, #0f0808)" }}>
         <div className="max-w-7xl mx-auto px-6">
           <nav aria-label="Fil d'Ariane" className="flex items-center gap-2 text-xs text-white/30 mb-6">
-            <Link href="/" className="hover:text-orange-400 transition-colors">Accueil</Link>
+            <Link href="/" className="hover:text-brand-400 transition-colors">Accueil</Link>
             <span>/</span>
             <span className="text-white/60">Services</span>
           </nav>
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-8 h-0.5 bg-orange-500" />
-            <span className="text-orange-500 text-xs font-bold tracking-widest uppercase">Prestations</span>
+            <div className="w-8 h-0.5 bg-brand-500" />
+            <span className="text-brand-500 text-xs font-bold tracking-widest uppercase">Prestations</span>
           </div>
           <h1 className="font-oswald font-bold text-white mb-4" style={{ fontSize: "clamp(2rem, 5vw, 4rem)", lineHeight: "1" }}>
             NOS SERVICES
@@ -72,7 +72,7 @@ export default function ServicesPage() {
                 >
                   <div className="text-center">
                     <div className="w-16 h-16 mx-auto mb-4 flex items-center justify-center" style={{ background: "rgba(18,102,234,0.1)", border: "1px solid rgba(18,102,234,0.2)" }}>
-                      <Icon size={28} className="text-orange-500" />
+                      <Icon size={28} className="text-brand-500" />
                     </div>
                     <span className="text-3xl font-bold text-white/10 font-oswald">0{i + 1}</span>
                   </div>
@@ -81,7 +81,7 @@ export default function ServicesPage() {
                   <div className="flex items-start justify-between mb-3">
                     <h2 className="font-oswald text-2xl font-bold text-white">{service.title}</h2>
                     {service.badge && (
-                      <span className="text-xs font-bold tracking-wider uppercase text-orange-400 px-2 py-1" style={{ background: "rgba(18,102,234,0.1)", border: "1px solid rgba(18,102,234,0.2)" }}>
+                      <span className="text-xs font-bold tracking-wider uppercase text-brand-400 px-2 py-1" style={{ background: "rgba(18,102,234,0.1)", border: "1px solid rgba(18,102,234,0.2)" }}>
                         {service.badge}
                       </span>
                     )}
@@ -90,11 +90,11 @@ export default function ServicesPage() {
                   <div className="flex flex-wrap gap-2 mb-5">
                     {service.details.map((d) => (
                       <span key={d} className="flex items-center gap-1.5 text-xs text-gray-400 px-3 py-1" style={{ background: "#1a1a1a", border: "1px solid #222" }}>
-                        <span className="w-1 h-1 bg-orange-500 rounded-full" /> {d}
+                        <span className="w-1 h-1 bg-brand-500 rounded-full" /> {d}
                       </span>
                     ))}
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-orange-500 font-bold">
+                  <div className="flex items-center gap-2 text-sm text-brand-500 font-bold">
                     <span className="text-gray-500 whitespace-nowrap">Tarif :</span> Prix sur devis personnalisé
                   </div>
                 </div>
@@ -144,14 +144,14 @@ export default function ServicesPage() {
               <div className="mt-6 flex flex-wrap gap-3">
                 <Link
                   href="/rendez-vous"
-                  className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-orange-500 text-white font-bold text-xs tracking-widest uppercase hover:bg-orange-400 transition-colors text-center"
+                  className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-brand-500 text-white font-bold text-xs tracking-widest uppercase hover:bg-brand-400 transition-colors text-center"
                   style={{ clipPath: "polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))" }}
                 >
                   Demander un devis
                 </Link>
                 <Link
                   href="/realisations"
-                  className="inline-flex items-center justify-center gap-2 px-5 py-3 border border-white/20 text-white/70 font-bold text-xs tracking-widest uppercase hover:border-orange-500 hover:text-orange-400 transition-colors text-center"
+                  className="inline-flex items-center justify-center gap-2 px-5 py-3 border border-white/20 text-white/70 font-bold text-xs tracking-widest uppercase hover:border-brand-500 hover:text-brand-400 transition-colors text-center"
                 >
                   Voir les réalisations
                 </Link>
@@ -170,7 +170,7 @@ export default function ServicesPage() {
               <Link href="/rendez-vous" className="inline-flex items-center gap-2 px-8 py-4 text-sm font-bold tracking-widest uppercase text-white" style={{ background: "linear-gradient(135deg, #1266ea, #0d54c8)", clipPath: "polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))" }}>
                 Demander un devis <ArrowRight size={14} />
               </Link>
-              <Link href="/a-propos" className="inline-flex items-center gap-2 px-8 py-4 text-sm font-bold tracking-widest uppercase border border-white/20 text-white/70 hover:border-orange-500 hover:text-orange-400 transition-colors">
+              <Link href="/a-propos" className="inline-flex items-center gap-2 px-8 py-4 text-sm font-bold tracking-widest uppercase border border-white/20 text-white/70 hover:border-brand-500 hover:text-brand-400 transition-colors">
                 Notre atelier →
               </Link>
             </div>

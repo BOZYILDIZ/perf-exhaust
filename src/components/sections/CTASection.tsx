@@ -25,9 +25,9 @@ export default function CTASection() {
 
       <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
         <div className="flex items-center justify-center gap-3 mb-6">
-          <div className="w-12 h-px bg-orange-500" />
-          <span className="text-orange-500 text-xs font-bold tracking-widest uppercase">Prêt pour votre projet ?</span>
-          <div className="w-12 h-px bg-orange-500" />
+          <div className="w-12 h-px bg-brand-500" />
+          <span className="text-brand-500 text-xs font-bold tracking-widest uppercase">Prêt pour votre projet ?</span>
+          <div className="w-12 h-px bg-brand-500" />
         </div>
 
         <h2
@@ -51,7 +51,7 @@ export default function CTASection() {
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
           <Link
             href="/rendez-vous"
-            className="inline-flex items-center gap-3 px-10 py-5 text-sm font-bold tracking-widest uppercase text-white transition-all hover:-translate-y-1 hover:shadow-2xl hover:shadow-orange-500/30"
+            className="inline-flex items-center gap-3 px-10 py-5 text-sm font-bold tracking-widest uppercase text-white transition-all hover:-translate-y-1 hover:shadow-2xl hover:shadow-brand-500/30"
             style={{
               background: "linear-gradient(135deg, #1266ea, #0d54c8)",
               clipPath: "polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))",
@@ -61,7 +61,7 @@ export default function CTASection() {
           </Link>
           <a
             href="tel:+33636523058"
-            className="inline-flex items-center gap-3 px-10 py-5 text-sm font-bold tracking-widest uppercase text-white border border-white/20 hover:border-orange-500 hover:text-orange-400 transition-all hover:-translate-y-0.5"
+            className="inline-flex items-center gap-3 px-10 py-5 text-sm font-bold tracking-widest uppercase text-white border border-white/20 hover:border-brand-500 hover:text-brand-400 transition-all hover:-translate-y-0.5"
           >
             <Phone size={14} /> Appeler l&apos;atelier
           </a>
@@ -70,7 +70,7 @@ export default function CTASection() {
         <div className="flex flex-wrap items-center justify-center gap-8 text-sm text-gray-500">
           {["Prix sur devis", "Fabrication artisanale", "Inox garanti", "Partenaire SHIFTECH"].map((b) => (
             <div key={b} className="flex items-center gap-2">
-              <div className="w-1.5 h-1.5 bg-orange-500 rounded-full" />
+              <div className="w-1.5 h-1.5 bg-brand-500 rounded-full" />
               {b}
             </div>
           ))}

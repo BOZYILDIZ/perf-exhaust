@@ -141,7 +141,7 @@ export default function Hero() {
             className="inline-flex items-center gap-2 mb-8"
           >
             <span
-              className="px-3 py-1 text-xs font-bold tracking-widest uppercase text-orange-400 border border-orange-500/40 bg-orange-500/10"
+              className="px-3 py-1 text-xs font-bold tracking-widest uppercase text-brand-400 border border-brand-500/40 bg-brand-500/10"
               style={{ clipPath: "polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))" }}
             >
               Atelier Alsace · Rountzenheim-Auenheim
@@ -173,8 +173,8 @@ export default function Hero() {
             style={{ transformOrigin: "left" }}
             transition={{ duration: 0.6, delay: 0.6 }}
           >
-            <div className="h-0.5 w-16 bg-orange-500" />
-            <span className="text-orange-400 font-bold text-sm tracking-widest uppercase">
+            <div className="h-0.5 w-16 bg-brand-500" />
+            <span className="text-brand-400 font-bold text-sm tracking-widest uppercase">
               Fabrication artisanale · Soudure inox · Alsace
             </span>
           </motion.div>
@@ -199,7 +199,7 @@ export default function Hero() {
           >
             <Link
               href="/rendez-vous"
-              className="group inline-flex items-center gap-3 px-7 py-4 bg-orange-500 text-white font-bold text-sm tracking-widest uppercase hover:bg-orange-400 transition-all hover:-translate-y-0.5"
+              className="group inline-flex items-center gap-3 px-7 py-4 bg-brand-500 text-white font-bold text-sm tracking-widest uppercase hover:bg-brand-400 transition-all hover:-translate-y-0.5"
               style={{ clipPath: "polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px))" }}
             >
               Devis gratuit
@@ -207,7 +207,7 @@ export default function Hero() {
             </Link>
             <a
               href="tel:+33636523058"
-              className="inline-flex items-center gap-3 px-7 py-4 border border-white/20 text-white font-bold text-sm tracking-wider hover:border-orange-500 hover:text-orange-400 transition-all hover:-translate-y-0.5"
+              className="inline-flex items-center gap-3 px-7 py-4 border border-white/20 text-white font-bold text-sm tracking-wider hover:border-brand-500 hover:text-brand-400 transition-all hover:-translate-y-0.5"
             >
               <Phone size={16} />
               +33 6 36 52 30 58
@@ -235,7 +235,7 @@ export default function Hero() {
               { value: "Alsace", label: "Bas-Rhin · 67" },
             ].map((stat) => (
               <div key={stat.label} className="flex flex-col gap-1">
-                <span className="font-oswald text-2xl font-bold text-orange-400">{stat.value}</span>
+                <span className="font-oswald text-2xl font-bold text-brand-400">{stat.value}</span>
                 <span className="text-xs text-white/40 font-medium tracking-wider uppercase">{stat.label}</span>
               </div>
             ))}

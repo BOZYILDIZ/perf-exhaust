@@ -37,13 +37,13 @@ export default function AProposPage() {
       <header className="relative py-16" style={{ background: "linear-gradient(135deg, #0a0a0a, #0f0808)" }}>
         <div className="max-w-7xl mx-auto px-6">
           <nav aria-label="Fil d'Ariane" className="flex items-center gap-2 text-xs text-white/30 mb-6">
-            <Link href="/" className="hover:text-orange-400 transition-colors">Accueil</Link>
+            <Link href="/" className="hover:text-brand-400 transition-colors">Accueil</Link>
             <span>/</span>
             <span className="text-white/60">À propos</span>
           </nav>
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-8 h-0.5 bg-orange-500" />
-            <span className="text-orange-500 text-xs font-bold tracking-widest uppercase">Notre atelier</span>
+            <div className="w-8 h-0.5 bg-brand-500" />
+            <span className="text-brand-500 text-xs font-bold tracking-widest uppercase">Notre atelier</span>
           </div>
           <h1 className="font-oswald font-bold text-white mb-4" style={{ fontSize: "clamp(2rem, 5vw, 4rem)", lineHeight: "1" }}>
             À PROPOS
@@ -87,14 +87,14 @@ export default function AProposPage() {
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
                 href="/services"
-                className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-orange-500 text-white font-bold text-xs tracking-widest uppercase hover:bg-orange-400 transition-colors whitespace-nowrap"
+                className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-brand-500 text-white font-bold text-xs tracking-widest uppercase hover:bg-brand-400 transition-colors whitespace-nowrap"
                 style={{ clipPath: "polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))" }}
               >
                 Nos services
               </Link>
               <Link
                 href="/realisations"
-                className="inline-flex items-center justify-center gap-2 px-5 py-3 border border-white/20 text-white/70 font-bold text-xs tracking-widest uppercase hover:border-orange-500 hover:text-orange-400 transition-colors whitespace-nowrap"
+                className="inline-flex items-center justify-center gap-2 px-5 py-3 border border-white/20 text-white/70 font-bold text-xs tracking-widest uppercase hover:border-brand-500 hover:text-brand-400 transition-colors whitespace-nowrap"
               >
                 Nos réalisations
               </Link>
@@ -103,7 +103,7 @@ export default function AProposPage() {
           <div className="grid grid-cols-2 gap-4">
             {EXPERTISE_CARDS.map((item, i) => (
               <div key={i} className="p-5 border" style={{ background: "#0f0f0f", borderColor: "#1e1e1e" }}>
-                <item.icon size={20} className="text-orange-500 mb-3" />
+                <item.icon size={20} className="text-brand-500 mb-3" />
                 <h3 className="font-oswald text-white font-bold text-sm uppercase mb-1">{item.title}</h3>
                 <p className="text-gray-500 text-xs leading-relaxed">{item.desc}</p>
               </div>
@@ -155,7 +155,7 @@ export default function AProposPage() {
                 </div>
                 <div>
                   <h3 className="font-oswald text-white font-bold text-xl uppercase">{p.name}</h3>
-                  <p className="text-orange-500 text-xs font-bold tracking-widest uppercase">{p.type}</p>
+                  <p className="text-brand-500 text-xs font-bold tracking-widest uppercase">{p.type}</p>
                 </div>
               </div>
               <p className="text-gray-400 text-sm leading-relaxed mb-4">{p.description}</p>
@@ -178,7 +178,7 @@ export default function AProposPage() {
             <Link href="/rendez-vous" className="inline-flex items-center gap-2 px-8 py-4 text-sm font-bold tracking-widest uppercase text-white" style={{ background: "linear-gradient(135deg, #1266ea, #0d54c8)", clipPath: "polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))" }}>
               Demander un devis <ArrowRight size={14} />
             </Link>
-            <Link href="/contact" className="inline-flex items-center gap-2 px-8 py-4 text-sm font-bold tracking-widest uppercase border border-white/20 text-white/70 hover:border-orange-500 hover:text-orange-400 transition-colors">
+            <Link href="/contact" className="inline-flex items-center gap-2 px-8 py-4 text-sm font-bold tracking-widest uppercase border border-white/20 text-white/70 hover:border-brand-500 hover:text-brand-400 transition-colors">
               Nous contacter &rarr;
             </Link>
           </div>

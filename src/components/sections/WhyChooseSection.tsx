@@ -48,7 +48,7 @@ export default function WhyChooseSection() {
     >
       <div className="max-w-7xl mx-auto px-6">
         <header className="mb-16">
-          <div className="text-xs font-bold tracking-widest uppercase text-orange-400 mb-4">
+          <div className="text-xs font-bold tracking-widest uppercase text-brand-400 mb-4">
             Notre différence
           </div>
           <h2
@@ -56,7 +56,7 @@ export default function WhyChooseSection() {
             className="font-oswald text-4xl md:text-5xl font-bold text-white uppercase tracking-wider mb-4"
           >
             Pourquoi choisir<br />
-            <span className="text-orange-400">PERF&apos;EXHAUST ?</span>
+            <span className="text-brand-400">PERF&apos;EXHAUST ?</span>
           </h2>
           <p className="text-white/60 max-w-2xl text-lg leading-relaxed">
             En Alsace, peu d&apos;ateliers maîtrisent réellement la fabrication d&apos;échappements sur mesure.
@@ -69,9 +69,9 @@ export default function WhyChooseSection() {
           {REASONS.map((reason) => (
             <article
               key={reason.title}
-              className="group p-6 border border-white/10 bg-[#0f0f0f] hover:border-orange-500/30 hover:bg-orange-500/5 transition-all duration-300"
+              className="group p-6 border border-white/10 bg-[#0f0f0f] hover:border-brand-500/30 hover:bg-brand-500/5 transition-all duration-300"
             >
-              <div className="w-10 h-10 flex items-center justify-center bg-orange-500/10 border border-orange-500/20 mb-4 text-orange-400 group-hover:bg-orange-500/20 transition-colors">
+              <div className="w-10 h-10 flex items-center justify-center bg-brand-500/10 border border-brand-500/20 mb-4 text-brand-400 group-hover:bg-brand-500/20 transition-colors">
                 <reason.Icon size={20} />
               </div>
               <h3 className="font-oswald text-lg font-bold text-white uppercase tracking-wide mb-3">
@@ -83,7 +83,7 @@ export default function WhyChooseSection() {
               {reason.link && (
                 <Link
                   href={reason.link.href}
-                  className="inline-flex items-center gap-1 text-xs font-bold tracking-widest uppercase text-orange-400/70 hover:text-orange-400 transition-colors"
+                  className="inline-flex items-center gap-1 text-xs font-bold tracking-widest uppercase text-brand-400/70 hover:text-brand-400 transition-colors"
                 >
                   {reason.link.label} →
                 </Link>
@@ -92,11 +92,11 @@ export default function WhyChooseSection() {
           ))}
         </div>
 
-        <aside className="mt-12 p-6 border border-orange-500/20 bg-orange-500/5">
+        <aside className="mt-12 p-6 border border-brand-500/20 bg-brand-500/5">
           <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-8">
             <div className="flex-1">
               <p className="text-white font-medium leading-relaxed">
-                <strong className="text-orange-400">Vous cherchez un fabricant d&apos;échappements sur mesure en Alsace ?</strong>{" "}
+                <strong className="text-brand-400">Vous cherchez un fabricant d&apos;échappements sur mesure en Alsace ?</strong>{" "}
                 PERF&apos;EXHAUST est l&apos;atelier de référence du Bas-Rhin pour la fabrication inox, la soudure TIG
                 et la personnalisation sonore. Devis gratuit, réponse sous 48h.
               </p>
@@ -104,14 +104,14 @@ export default function WhyChooseSection() {
             <div className="flex gap-3 flex-shrink-0">
               <Link
                 href="/rendez-vous"
-                className="inline-flex items-center gap-2 px-5 py-3 bg-orange-500 text-white font-bold text-xs tracking-widest uppercase hover:bg-orange-400 transition-colors"
+                className="inline-flex items-center gap-2 px-5 py-3 bg-brand-500 text-white font-bold text-xs tracking-widest uppercase hover:bg-brand-400 transition-colors"
                 style={{ clipPath: "polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))" }}
               >
                 Devis gratuit
               </Link>
               <Link
                 href="/realisations"
-                className="inline-flex items-center gap-2 px-5 py-3 border border-white/20 text-white font-bold text-xs tracking-widest uppercase hover:border-orange-500 hover:text-orange-400 transition-colors"
+                className="inline-flex items-center gap-2 px-5 py-3 border border-white/20 text-white font-bold text-xs tracking-widest uppercase hover:border-brand-500 hover:text-brand-400 transition-colors"
               >
                 Nos projets
               </Link>

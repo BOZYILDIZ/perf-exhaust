@@ -15,7 +15,7 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
-const inputStyle = "w-full bg-transparent border border-gray-800 text-white text-sm px-4 py-3 focus:outline-none focus:border-orange-500 transition-colors placeholder-gray-700";
+const inputStyle = "w-full bg-transparent border border-gray-800 text-white text-sm px-4 py-3 focus:outline-none focus:border-brand-500 transition-colors placeholder-gray-700";
 const labelStyle = "block text-xs font-bold tracking-widest uppercase text-gray-400 mb-2";
 
 export default function ContactForm() {
@@ -40,7 +40,7 @@ export default function ContactForm() {
         <CheckCircle size={40} className="text-green-400 mx-auto mb-4" />
         <h3 className="text-xl font-black text-white mb-2" style={{ fontFamily: "Oswald, sans-serif" }}>Message envoyé !</h3>
         <p className="text-gray-400 text-sm">Nous vous répondrons dans les 24-48h.</p>
-        <button onClick={() => setStatus("idle")} className="mt-6 text-orange-400 text-sm hover:underline">Envoyer un autre message</button>
+        <button onClick={() => setStatus("idle")} className="mt-6 text-brand-400 text-sm hover:underline">Envoyer un autre message</button>
       </div>
     );
   }

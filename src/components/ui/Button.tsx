@@ -15,9 +15,9 @@ interface ButtonProps {
 }
 
 const variants = {
-  primary: "bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold hover:from-orange-400 hover:to-orange-500 hover:-translate-y-0.5 shadow-lg hover:shadow-orange-500/30",
-  outline: "bg-transparent text-white font-bold border border-white/20 hover:border-orange-500 hover:text-orange-400 hover:-translate-y-0.5",
-  ghost: "bg-transparent text-gray-400 font-medium hover:text-orange-400",
+  primary: "bg-gradient-to-r from-brand-500 to-brand-600 text-white font-bold hover:from-brand-400 hover:to-brand-500 hover:-translate-y-0.5 shadow-lg hover:shadow-brand-500/30",
+  outline: "bg-transparent text-white font-bold border border-white/20 hover:border-brand-500 hover:text-brand-400 hover:-translate-y-0.5",
+  ghost: "bg-transparent text-gray-400 font-medium hover:text-brand-400",
 };
 
 const sizes = {
