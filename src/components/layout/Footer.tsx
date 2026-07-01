@@ -174,6 +174,23 @@ export default function Footer() {
           </div>
         </div>
       </div>
+
+      {/* Signature */}
+      <div style={{ borderTop: "1px solid #141414" }}>
+        <div className="max-w-7xl mx-auto px-6 py-4 text-center">
+          <p className="text-[11px] text-gray-600">
+            Site conçu et développé par{" "}
+            <a
+              href="https://www.bicer.fr/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-gray-500 hover:text-orange-500 underline-offset-2 hover:underline transition-colors duration-300"
+            >
+              Nevora
+            </a>
+          </p>
+        </div>
+      </div>
     </footer>
   );
 }
