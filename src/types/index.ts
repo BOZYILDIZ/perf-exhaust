@@ -8,6 +8,8 @@ export interface Project {
   prestation: string
   tags: string[]
   sonoriteTag: string
+  /** Valeurs stables utilisées par les filtres de la galerie (ex: "ligne-complete", "grave"). */
+  filterTags: string[]
   description: string
   descriptionComplete: string
   objectifsClient: string

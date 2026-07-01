@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import Link from "next/link";
 import { projects, getProjectBySlug } from "@/data/projects";
 import { ArrowLeft, ArrowRight, Car, Calendar, Wrench } from "lucide-react";
@@ -14,9 +14,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const project = getProjectBySlug(slug);
   if (!project) return { title: "Projet introuvable" };
+  const url = `https://perfexhaust.vercel.app/realisations/${project.slug}`;
   return {
     title: `${project.vehicule} — ${project.prestation}`,
     description: project.description,
+    alternates: { canonical: url },
+    openGraph: { url, title: `${project.vehicule} — ${project.prestation}`, description: project.description },
   };
 }
 
@@ -25,7 +28,12 @@ export default async function ProjectDetailPage({ params }: Props) {
   const project = getProjectBySlug(slug);
   if (!project) notFound();
 
-  const currentIndex = projects.findIndex((p) => p.slug === slug);
+  // Ancien lien accentué/mal encodé → redirection permanente vers l'URL canonique
+  if (slug !== project.slug) {
+    permanentRedirect(`/realisations/${project.slug}`);
+  }
+
+  const currentIndex = projects.findIndex((p) => p.slug === project.slug);
   const prev = currentIndex > 0 ? projects[currentIndex - 1] : null;
   const next = currentIndex < projects.length - 1 ? projects[currentIndex + 1] : null;
 

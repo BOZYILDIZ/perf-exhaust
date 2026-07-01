@@ -19,14 +19,7 @@ export default function GalleryWithFilters({ projects }: { projects: Project[] }
 
   const filtered = active === "all"
     ? projects
-    : projects.filter((p) => {
-        if (active === "ligne-complete") return p.prestation === "Ligne complète";
-        if (active === "demi-ligne") return p.prestation === "Demi-ligne";
-        if (active === "silencieux") return p.prestation === "Silencieux";
-        if (active === "grave") return p.sonoriteTag === "Grave";
-        if (active === "sportif") return p.sonoriteTag === "Sportif";
-        return true;
-      });
+    : projects.filter((p) => p.filterTags.includes(active));
 
   return (
     <div>

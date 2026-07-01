@@ -1,4 +1,5 @@
 import type { Project } from '@/types'
+import { slugify } from '@/lib/utils'
 
 export const projects: Project[] = [
   {
@@ -11,6 +12,7 @@ export const projects: Project[] = [
     prestation: 'Ligne complète inox',
     tags: ['Ligne complète', 'Inox 304L', 'Sport'],
     sonoriteTag: 'Son sportif',
+    filterTags: ['ligne-complete', 'sportif'],
     description: 'Fabrication d\'une ligne complète en inox 304L sur mesure, du collecteur au silencieux arrière avec double sortie.',
     descriptionComplete: 'Ce projet Golf GTI Mk8 a nécessité la conception et la fabrication intégrale d\'une ligne d\'échappement en inox 304L. Chaque coude a été calculé pour optimiser le flux des gaz d\'échappement tout en offrant une sonorité sportive et distinctive.',
     objectifsClient: 'Le client souhaitait une sonorité sportive affirmée sans agressivité excessive, tout en gagnant quelques chevaux grâce à une meilleure évacuation des gaz.',
@@ -27,7 +29,7 @@ export const projects: Project[] = [
   },
   {
     id: '2',
-    slug: 'bmw-serie-3-sonorité-grave',
+    slug: 'bmw-serie-3-sonorite-grave',
     vehicule: 'BMW Série 3',
     marque: 'BMW',
     modele: 'Série 3 320d',
@@ -35,6 +37,7 @@ export const projects: Project[] = [
     prestation: 'Demi-ligne sur mesure',
     tags: ['Demi-ligne', 'Inox', 'Grave'],
     sonoriteTag: 'Son grave',
+    filterTags: ['demi-ligne', 'grave'],
     description: 'Demi-ligne inox sur mesure pour une sonorité grave et profonde, avec silencieux sport double sortie.',
     descriptionComplete: 'Transformation du caractère sonore de cette BMW Série 3 320d avec la fabrication d\'une demi-ligne en inox. Le travail a porté sur la section intermédiaire et le silencieux arrière pour maximiser le son grave caractéristique.',
     objectifsClient: 'Obtenir une sonorité grave, profonde, digne d\'une vraie BMW M sans être trop agressif au quotidien.',
@@ -58,6 +61,7 @@ export const projects: Project[] = [
     prestation: 'Demi-ligne inox',
     tags: ['Demi-ligne', 'Inox 304L', 'Sport'],
     sonoriteTag: 'Son sportif',
+    filterTags: ['demi-ligne', 'sportif'],
     description: 'Demi-ligne inox 304L pour Audi S3, optimisation flux et sonorité sportive avec valve electronique.',
     descriptionComplete: 'Projet haut de gamme sur cette Audi S3 de dernière génération. La demi-ligne comprend une valve pilotée électroniquement permettant de switcher entre mode discret (confort) et mode sport à volonté.',
     objectifsClient: 'Pouvoir profiter d\'une sonorité sportive sur circuit et rester discret en ville, avec une valve commandée depuis l\'habitacle.',
@@ -81,6 +85,7 @@ export const projects: Project[] = [
     prestation: 'Modification sonore',
     tags: ['Silencieux', 'Sport', 'AMG'],
     sonoriteTag: 'Son grave',
+    filterTags: ['silencieux', 'grave'],
     description: 'Remplacement silencieux arrière AMG par pièce artisanale inox avec son V6 biturbo sublimé.',
     descriptionComplete: 'Sur cette Mercedes AMG C43 au V6 biturbo, le travail a consisté à remplacer le silencieux arrière d\'origine par une pièce entièrement fabriquée en atelier. Le résultat met en valeur le caractère sonore unique du moteur AMG.',
     objectifsClient: 'Amplifier le son AMG existant, obtenir des pops et craquements à la décélération, garder le confort sur route.',
@@ -104,6 +109,7 @@ export const projects: Project[] = [
     prestation: 'Ligne complète inox',
     tags: ['Ligne complète', 'Inox', 'Compact'],
     sonoriteTag: 'Son sportif',
+    filterTags: ['ligne-complete', 'sportif'],
     description: 'Ligne complète inox sur mesure pour Mini Cooper S, son sportif pétillant caractéristique.',
     descriptionComplete: 'La Mini Cooper S est connue pour son caractère moteur pétillant. Ce projet a consisté à concevoir une ligne complète qui amplifie exactement ce tempérament tout en améliorant les performances.',
     objectifsClient: 'Un son pétillant, vif, avec crackling à la décélération — dans l\'esprit Go-Kart Feeling de Mini.',
@@ -127,6 +133,7 @@ export const projects: Project[] = [
     prestation: 'Soudure inox',
     tags: ['Réparation', 'Soudure', 'Inox'],
     sonoriteTag: 'Son sportif',
+    filterTags: ['sportif'],
     description: 'Réparation et renfort soudure inox sur ligne d\'origine endommagée, avec optimisation de section.',
     descriptionComplete: 'La ligne d\'origine de cette 308 GTI présentait des fissures et une section abîmée. Plutôt que de la remplacer entièrement, un travail de soudure précis en TIG inox a permis de la consolider et d\'optimiser la section.',
     objectifsClient: 'Réparer la ligne endommagée, gagner en longévité avec de l\'inox, améliorer légèrement le son.',
@@ -150,6 +157,7 @@ export const projects: Project[] = [
     prestation: 'Ligne complète performance',
     tags: ['Ligne complète', 'Performance', 'Inox'],
     sonoriteTag: 'Son aigu',
+    filterTags: ['ligne-complete'],
     description: 'Ligne complète haute performance en inox 304L pour Mégane RS, orientée circuit.',
     descriptionComplete: 'Projet dédié à la piste pour cette Mégane RS Trophy-R. La ligne a été entièrement repensée pour maximiser l\'évacuation des gaz et offrir le son caractéristique du 4 cylindres Renault Sport à haut régime.',
     objectifsClient: 'Maximiser les performances moteur sur circuit, son Renault Sport acéré, gain de poids.',
@@ -165,7 +173,7 @@ export const projects: Project[] = [
   },
   {
     id: '8',
-    slug: 'audi-rs3-sonorité-agressive',
+    slug: 'audi-rs3-sonorite-agressive',
     vehicule: 'Audi RS3',
     marque: 'Audi',
     modele: 'RS3 Berline',
@@ -173,6 +181,7 @@ export const projects: Project[] = [
     prestation: 'Ligne complète inox + valve',
     tags: ['Ligne complète', '5 cylindres', 'Agressif'],
     sonoriteTag: 'Son agressif',
+    filterTags: ['ligne-complete'],
     description: 'Ligne complète inox sur Audi RS3 5 cylindres, son iconique amplifié avec valve pilotée.',
     descriptionComplete: 'Le 5 cylindres Audi RS3 est l\'un des sons les plus reconnaissables de l\'automobile. Ce projet a poussé ce son à son maximum avec une ligne complète inox et une valve électronique pour gérer l\'intensité.',
     objectifsClient: 'Pousser le son 5 cylindres à son maximum, avoir le contrôle total sur l\'intensité sonore.',
@@ -196,6 +205,7 @@ export const projects: Project[] = [
     prestation: 'Silencieux personnalisé',
     tags: ['Silencieux', 'Sport', 'Inox poli'],
     sonoriteTag: 'Son grave',
+    filterTags: ['silencieux', 'grave'],
     description: 'Silencieux arrière en inox poli miroir sur mesure pour BMW M2 Competition, double sortie ronde.',
     descriptionComplete: 'La BMW M2 Competition mérite un traitement de faveur. Ce silencieux fabriqué entièrement en inox poli miroir offre non seulement un son de qualité mais aussi une finition esthétique exceptionnelle visible sous le véhicule.',
     objectifsClient: 'Silencieux haut de gamme esthétiquement, son grave BMW M amplifié, finition parfaite.',
@@ -219,6 +229,7 @@ export const projects: Project[] = [
     prestation: 'Ligne arrière V8',
     tags: ['V8', 'Ligne arrière', 'Américain'],
     sonoriteTag: 'Son grave',
+    filterTags: ['demi-ligne', 'grave'],
     description: 'Ligne arrière sur mesure pour Mustang GT V8 5.0, son américain profond et signature muscle car.',
     descriptionComplete: 'La Ford Mustang GT V8 possède déjà un son fantastique, mais ce projet a poussé le V8 5.0 Coyote à exprimer tout son potentiel sonore avec une ligne arrière sur mesure à grand diamètre.',
     objectifsClient: 'Son muscle car américain profond et imposant, garder le côté iconique du V8, volume impressionnant.',
@@ -242,6 +253,7 @@ export const projects: Project[] = [
     prestation: 'Demi-ligne inox',
     tags: ['Demi-ligne', 'Cupra', 'Inox'],
     sonoriteTag: 'Son sportif',
+    filterTags: ['demi-ligne', 'sportif'],
     description: 'Demi-ligne inox sur Seat Leon Cupra 300, sonorité sportive cohérente avec le caractère du véhicule.',
     descriptionComplete: 'Le Cupra 300 est un véhicule sportif qui méritait un son à la hauteur de ses performances. La demi-ligne inox fabriquée sur mesure complète parfaitement le caractère explosif du moteur EA888.',
     objectifsClient: 'Sonorité sportive affirmée, cohérente avec les performances, sans excès.',
@@ -265,6 +277,7 @@ export const projects: Project[] = [
     prestation: 'Silencieux sport premium',
     tags: ['Premium', 'Silencieux', 'Porsche'],
     sonoriteTag: 'Son sportif',
+    filterTags: ['silencieux', 'sportif'],
     description: 'Silencieux sport titane/inox haut de gamme pour Porsche 718 Cayman S, finition premium.',
     descriptionComplete: 'Projet prestige sur cette Porsche 718 Cayman S. Fabrication d\'un silencieux sport en alliage titane/inox avec finition parfaite pour correspondre au niveau de la voiture.',
     objectifsClient: 'Silencieux haut de gamme à la hauteur du standing Porsche, son plus ouvert et sportif, finition premium.',
@@ -288,6 +301,7 @@ export const projects: Project[] = [
     prestation: 'Modification discrète',
     tags: ['Discret', 'Silencieux', 'Quotidien'],
     sonoriteTag: 'Discret',
+    filterTags: ['silencieux'],
     description: 'Modification légère sur Polo GTI pour un son légèrement sportif mais restant discret au quotidien.',
     descriptionComplete: 'Pour ce propriétaire de Polo GTI souhaitant une touche sportive sans excès, nous avons réalisé un silencieux sur mesure permettant d\'entendre légèrement le moteur tout en restant acceptable dans toutes les situations.',
     objectifsClient: 'Légère amélioration sonore, rester discret, garder le confort habituel.',
@@ -311,6 +325,7 @@ export const projects: Project[] = [
     prestation: 'Ligne complète circuit',
     tags: ['Circuit', 'Drift', 'V6'],
     sonoriteTag: 'Son agressif',
+    filterTags: ['ligne-complete'],
     description: 'Ligne complète circuit sur Nissan 350Z dédiée au drift, V6 VQ35 exprimé à son maximum.',
     descriptionComplete: 'Projet orienté 100% piste/drift sur cette Nissan 350Z. La ligne complète a été conçue pour maximiser les performances et le son du V6 VQ35 sur circuit, sans compromis.',
     objectifsClient: 'Son circuit brutal pour le drift, maximiser les performances moteur, son V6 à son maximum.',
@@ -334,6 +349,7 @@ export const projects: Project[] = [
     prestation: 'Ligne complète inox + valve',
     tags: ['Ligne complète', 'B58', 'Premium'],
     sonoriteTag: 'Son sportif',
+    filterTags: ['ligne-complete', 'sportif'],
     description: 'Ligne complète inox sur Toyota GR Supra A90, moteur B58 sublimé avec valve pilotée.',
     descriptionComplete: 'La Toyota GR Supra A90 et son moteur BMW B58 offrent une base exceptionnelle. Ce projet a créé une ligne complète inox avec valve pilotée pour profiter pleinement du potentiel sonore de ce moteur d\'exception.',
     objectifsClient: 'Ligne complète premium, son B58 amplifié et caractéristique, valve pour moduler l\'intensité.',
@@ -349,5 +365,37 @@ export const projects: Project[] = [
   },
 ]
 
-export const getProjectBySlug = (slug: string) => projects.find(p => p.slug === slug)
+// Garde-fou : chaque slug doit déjà être sous sa forme canonique (minuscules,
+// sans accent, sans caractère spécial). Si un projet est ajouté avec un slug
+// mal formé (ex: avec un accent), le build échoue immédiatement plutôt que de
+// déployer un lien cassé en production.
+projects.forEach((p) => {
+  const canonical = slugify(p.slug)
+  if (p.slug !== canonical) {
+    throw new Error(
+      `Slug invalide pour le projet "${p.vehicule}" (id: ${p.id}) : "${p.slug}" n'est pas au format canonique. ` +
+      `Utiliser "${canonical}" à la place.`
+    )
+  }
+})
+
+function safeDecode(value: string): string {
+  try {
+    return decodeURIComponent(value)
+  } catch {
+    return value
+  }
+}
+
+/**
+ * Retrouve un projet par son slug. Accepte aussi bien le slug canonique que
+ * d'anciennes variantes (accentuées, encodées, en majuscules...) en les
+ * normalisant avant comparaison — voir `src/app/realisations/[slug]/page.tsx`
+ * pour la redirection vers l'URL canonique.
+ */
+export const getProjectBySlug = (slug: string) => {
+  const canonical = slugify(safeDecode(slug))
+  return projects.find((p) => p.slug === canonical)
+}
+
 export const getFeaturedProjects = () => projects.filter(p => p.featured)

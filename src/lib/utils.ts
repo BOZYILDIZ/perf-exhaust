@@ -9,7 +9,7 @@ export function slugify(str: string): string {
   return str
     .toLowerCase()
     .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
+    .replace(/[̀-ͯ]/g, '') // supprime les diacritiques (é→e, è→e, ç→c, ...)
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/(^-|-$)/g, '')
 }
