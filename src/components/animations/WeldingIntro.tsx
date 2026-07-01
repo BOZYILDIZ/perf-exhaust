@@ -52,7 +52,7 @@ export default function WeldingIntro({ onComplete }: { onComplete: () => void })
       }
     };
 
-    let startTime = Date.now();
+    const startTime = Date.now();
     let weldX = 0;
     const weldY = canvas.height / 2;
     const WELD_DURATION = 2000;
@@ -130,13 +130,13 @@ export default function WeldingIntro({ onComplete }: { onComplete: () => void })
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center"
+      className="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden"
       style={{ background: "#080808" }}
     >
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
-      <div className="relative z-10 text-center pointer-events-none">
+      <div className="relative z-10 text-center pointer-events-none px-4">
         <div
-          className="text-5xl md:text-7xl font-black text-white mb-2"
+          className="text-4xl sm:text-5xl md:text-7xl font-black text-white mb-2"
           style={{
             fontFamily: "Oswald, sans-serif",
             letterSpacing: "0.08em",

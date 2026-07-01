@@ -158,7 +158,7 @@ export default function Footer() {
       <div style={{ borderTop: "1px solid #1a1a1a" }}>
         <div className="max-w-7xl mx-auto px-6 py-5 flex flex-col md:flex-row items-center justify-between gap-3">
           <p className="text-gray-600 text-xs">
-            © {new Date().getFullYear()} PERF&apos;EXHAUST — Tous droits réservés.
+            © {new Date().getFullYear()}{" "}PERF&apos;EXHAUST — Tous droits réservés.
           </p>
           <div className="flex items-center gap-6">
             <Link href="/mentions-legales" className="text-gray-600 text-xs hover:text-gray-400 transition-colors">

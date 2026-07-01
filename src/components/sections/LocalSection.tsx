@@ -26,12 +26,12 @@ export default function LocalSection() {
             </h2>
             <p className="text-white/60 leading-relaxed mb-6 text-lg">
               PERF&apos;EXHAUST est implanté à <strong className="text-white">Rountzenheim-Auenheim</strong>, dans le
-              Bas-Rhin (67), en Alsace. Nous accueillons des clients de tout le <strong className="text-white">Grand Est</strong> —
-              Strasbourg, Haguenau, Saverne, Sélestat, Colmar — pour des projets d&apos;échappements sur mesure uniques.
+              Bas-Rhin (67), en Alsace. Nous accueillons des clients de tout le <strong className="text-white">Grand Est</strong>{" "}
+              — Strasbourg, Haguenau, Saverne, Sélestat, Colmar — pour des projets d&apos;échappements sur mesure uniques.
             </p>
             <p className="text-white/60 leading-relaxed mb-8">
-              Notre atelier spécialisé en <strong className="text-white">soudure TIG inox</strong> est l&apos;un des rares
-              en Alsace à proposer une fabrication 100% sur mesure, de la conception à la pose.
+              Notre atelier spécialisé en <strong className="text-white">soudure TIG inox</strong>{" "}
+              est l&apos;un des rares en Alsace à proposer une fabrication 100% sur mesure, de la conception à la pose.
             </p>
             <div className="flex flex-wrap gap-3">
               <Link
@@ -51,12 +51,12 @@ export default function LocalSection() {
             <div className="text-xs font-bold tracking-widest uppercase text-white/30 mb-4">Zones desservies</div>
             <div className="grid grid-cols-2 gap-2">
               {ZONES.map((zone) => (
-                <div key={zone.city} className="flex items-center justify-between p-3 border border-white/10 bg-white/5 hover:border-orange-500/30 hover:bg-orange-500/5 transition-all">
-                  <div>
-                    <div className="font-bold text-white text-sm">{zone.city}</div>
+                <div key={zone.city} className="p-3 border border-white/10 bg-white/5 hover:border-orange-500/30 hover:bg-orange-500/5 transition-all">
+                  <div className="font-bold text-white text-sm leading-snug">{zone.city}</div>
+                  <div className="flex items-center justify-between gap-2 mt-0.5">
                     <div className="text-xs text-white/30">{zone.dept}</div>
+                    <div className="shrink-0 text-xs text-orange-400/70 font-medium">{zone.note}</div>
                   </div>
-                  <div className="text-xs text-orange-400/70 font-medium">{zone.note}</div>
                 </div>
               ))}
             </div>

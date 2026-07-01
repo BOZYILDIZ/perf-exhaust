@@ -51,7 +51,7 @@ export default function RendezVousPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
           {/* Form */}
           <div className="lg:col-span-2">
-            <div className="p-8 border" style={{ background: "#0f0f0f", borderColor: "#1e1e1e", borderRadius: "2px" }}>
+            <div className="p-4 sm:p-8 border" style={{ background: "#0f0f0f", borderColor: "#1e1e1e", borderRadius: "2px" }}>
               <AppointmentForm />
             </div>
           </div>

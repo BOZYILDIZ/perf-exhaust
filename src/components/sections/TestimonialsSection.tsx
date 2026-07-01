@@ -62,8 +62,8 @@ export default function TestimonialsSection() {
           ))}
         </div>
 
-        <div className="mt-12 text-center">
-          <div className="inline-flex items-center gap-6 px-8 py-4 border border-gray-800">
+        <div className="mt-12 text-center px-4">
+          <div className="inline-flex flex-wrap items-center justify-center gap-4 sm:gap-6 px-4 sm:px-8 py-4 border border-gray-800 max-w-full">
             <div className="text-center">
               <div className="text-3xl font-black text-white" style={{ fontFamily: "Oswald, sans-serif" }}>5.0</div>
               <div className="flex items-center gap-0.5 justify-center mt-1">
@@ -71,12 +71,12 @@ export default function TestimonialsSection() {
               </div>
               <div className="text-gray-500 text-xs mt-1">Note moyenne</div>
             </div>
-            <div className="w-px h-12 bg-gray-800" />
+            <div className="hidden sm:block w-px h-12 bg-gray-800" />
             <div className="text-center">
               <div className="text-3xl font-black text-white" style={{ fontFamily: "Oswald, sans-serif" }}>15+</div>
               <div className="text-gray-500 text-xs mt-1">Projets réalisés</div>
             </div>
-            <div className="w-px h-12 bg-gray-800" />
+            <div className="hidden sm:block w-px h-12 bg-gray-800" />
             <div className="text-center">
               <div className="text-3xl font-black text-white" style={{ fontFamily: "Oswald, sans-serif" }}>100%</div>
               <div className="text-gray-500 text-xs mt-1">Clients satisfaits</div>

@@ -106,7 +106,7 @@ export default async function ProjectDetailPage({ params }: Props) {
         {project.images.length > 0 && (
           <div className="mt-12">
             <h2 className="text-xl font-black text-white mb-6" style={{ fontFamily: "Oswald, sans-serif" }}>Galerie</h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {project.images.map((img, i) => (
                 <div
                   key={i}

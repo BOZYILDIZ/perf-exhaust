@@ -59,7 +59,7 @@ export default function Header() {
         </Link>
 
         {/* Desktop nav */}
-        <nav className="hidden md:flex items-center gap-8">
+        <nav className="hidden lg:flex items-center gap-6">
           {navLinks.map((link) => (
             <Link
               key={link.href}
@@ -73,7 +73,7 @@ export default function Header() {
         </nav>
 
         {/* CTA */}
-        <div className="hidden md:flex items-center gap-4">
+        <div className="hidden lg:flex items-center gap-4">
           <a
             href="tel:+33636523058"
             className="flex items-center gap-2 text-sm text-gray-300 hover:text-orange-400 transition-colors"
@@ -95,7 +95,7 @@ export default function Header() {
 
         {/* Mobile menu toggle */}
         <button
-          className="md:hidden text-gray-300 hover:text-orange-400 transition-colors"
+          className="lg:hidden text-gray-300 hover:text-orange-400 transition-colors"
           onClick={() => setMenuOpen(!menuOpen)}
           aria-label="Menu"
         >
@@ -106,7 +106,7 @@ export default function Header() {
       {/* Mobile menu */}
       {menuOpen && (
         <div
-          className="md:hidden"
+          className="lg:hidden"
           style={{ background: "rgba(8,8,8,0.98)", borderTop: "1px solid rgba(18,102,234,0.2)" }}
         >
           <nav className="flex flex-col px-6 py-4 gap-4">

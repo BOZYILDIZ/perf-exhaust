@@ -95,7 +95,7 @@ export default function ServicesPage() {
                     ))}
                   </div>
                   <div className="flex items-center gap-2 text-sm text-orange-500 font-bold">
-                    <span className="text-gray-500">Tarif :</span> Prix sur devis personnalisé
+                    <span className="text-gray-500 whitespace-nowrap">Tarif :</span> Prix sur devis personnalisé
                   </div>
                 </div>
               </article>
@@ -141,17 +141,17 @@ export default function ServicesPage() {
                 Après analyse de votre véhicule, nous vous proposons une solution adaptée avec
                 un devis détaillé — matériaux, temps de travail, options. Aucune mauvaise surprise.
               </p>
-              <div className="mt-6 flex gap-3">
+              <div className="mt-6 flex flex-wrap gap-3">
                 <Link
                   href="/rendez-vous"
-                  className="inline-flex items-center gap-2 px-5 py-3 bg-orange-500 text-white font-bold text-xs tracking-widest uppercase hover:bg-orange-400 transition-colors"
+                  className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-orange-500 text-white font-bold text-xs tracking-widest uppercase hover:bg-orange-400 transition-colors text-center"
                   style={{ clipPath: "polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))" }}
                 >
                   Demander un devis
                 </Link>
                 <Link
                   href="/realisations"
-                  className="inline-flex items-center gap-2 px-5 py-3 border border-white/20 text-white/70 font-bold text-xs tracking-widest uppercase hover:border-orange-500 hover:text-orange-400 transition-colors"
+                  className="inline-flex items-center justify-center gap-2 px-5 py-3 border border-white/20 text-white/70 font-bold text-xs tracking-widest uppercase hover:border-orange-500 hover:text-orange-400 transition-colors text-center"
                 >
                   Voir les réalisations
                 </Link>

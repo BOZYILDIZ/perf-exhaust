@@ -58,7 +58,7 @@ export default function AProposPage() {
       <main className="max-w-7xl mx-auto px-6 py-16">
         <section aria-label="Présentation de l'atelier" className="grid grid-cols-1 lg:grid-cols-2 gap-16 mb-20">
           <div>
-            <h2 className="font-oswald text-3xl font-bold text-white uppercase mb-6">
+            <h2 className="font-oswald text-2xl sm:text-3xl font-bold text-white uppercase mb-6">
               L&apos;atelier PERF&apos;EXHAUST
             </h2>
             <div className="space-y-4 text-gray-400 leading-relaxed">
@@ -84,17 +84,17 @@ export default function AProposPage() {
                 reprogrammation moteur, pour des projets de performance automobile cohérents et maîtrisés.
               </p>
             </div>
-            <div className="mt-8 flex gap-3">
+            <div className="mt-8 flex flex-wrap gap-3">
               <Link
                 href="/services"
-                className="inline-flex items-center gap-2 px-5 py-3 bg-orange-500 text-white font-bold text-xs tracking-widest uppercase hover:bg-orange-400 transition-colors"
+                className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-orange-500 text-white font-bold text-xs tracking-widest uppercase hover:bg-orange-400 transition-colors whitespace-nowrap"
                 style={{ clipPath: "polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))" }}
               >
                 Nos services
               </Link>
               <Link
                 href="/realisations"
-                className="inline-flex items-center gap-2 px-5 py-3 border border-white/20 text-white/70 font-bold text-xs tracking-widest uppercase hover:border-orange-500 hover:text-orange-400 transition-colors"
+                className="inline-flex items-center justify-center gap-2 px-5 py-3 border border-white/20 text-white/70 font-bold text-xs tracking-widest uppercase hover:border-orange-500 hover:text-orange-400 transition-colors whitespace-nowrap"
               >
                 Nos réalisations
               </Link>
@@ -112,20 +112,20 @@ export default function AProposPage() {
         </section>
 
         <section aria-label="Qui fabrique les échappements en Alsace" className="mb-20 p-8 border border-white/10 bg-[#0a0a0a]">
-          <h2 className="font-oswald text-3xl font-bold text-white uppercase mb-6">
+          <h2 className="font-oswald text-2xl sm:text-3xl font-bold text-white uppercase mb-6">
             Qui fabrique les échappements sur mesure en Alsace ?
           </h2>
           <div className="grid md:grid-cols-2 gap-8 text-gray-400 leading-relaxed">
             <div className="space-y-3">
               <p>
                 La fabrication artisanale d&apos;échappements sur mesure est un métier rare. En Alsace,
-                peu d&apos;ateliers maîtrisent réellement la <strong className="text-white">soudure TIG inox</strong>
+                peu d&apos;ateliers maîtrisent réellement la <strong className="text-white">soudure TIG inox</strong>{" "}
                 et la conception de lignes personnalisées. PERF&apos;EXHAUST est l&apos;un des rares
                 spécialistes du Grand Est entièrement dédié à cette discipline.
               </p>
               <p>
-                Notre atelier de <strong className="text-white">Rountzenheim-Auenheim</strong> accueille
-                des clients de Strasbourg, Haguenau, Saverne, Sélestat, Colmar — et même au-delà.
+                Notre atelier de <strong className="text-white">Rountzenheim-Auenheim</strong>{" "}
+                accueille des clients de Strasbourg, Haguenau, Saverne, Sélestat, Colmar — et même au-delà.
                 La distance se justifie par un résultat unique qu&apos;on ne trouve pas chez un
                 préparateur généraliste.
               </p>
@@ -138,7 +138,7 @@ export default function AProposPage() {
               </p>
               <p>
                 Si vous cherchez un <strong className="text-white">atelier spécialisé en échappements
-                inox près de Strasbourg</strong> ou dans le Bas-Rhin, PERF&apos;EXHAUST est votre
+                inox près de Strasbourg</strong>{" "}ou dans le Bas-Rhin, PERF&apos;EXHAUST est votre
                 référence. Contactez-nous pour un premier échange gratuit.
               </p>
             </div>
@@ -146,7 +146,7 @@ export default function AProposPage() {
         </section>
 
         <section aria-label="Partenaire performance" className="mb-16">
-          <h2 className="font-oswald text-2xl font-bold text-white uppercase mb-8">Partenaire performance</h2>
+          <h2 className="font-oswald text-xl sm:text-2xl font-bold text-white uppercase mb-8">Partenaire performance</h2>
           {partners.map((p) => (
             <div key={p.id} className="p-8 border" style={{ background: "#0f0f0f", borderColor: "#1e1e1e" }}>
               <div className="flex items-center gap-4 mb-4">
@@ -160,7 +160,7 @@ export default function AProposPage() {
               </div>
               <p className="text-gray-400 text-sm leading-relaxed mb-4">{p.description}</p>
               <p className="text-white/40 text-xs">
-                Notre partenariat avec {p.name} nous permet de proposer des projets complets :
+                Notre partenariat avec {p.name}{" "}nous permet de proposer des projets complets :
                 fabrication d&apos;échappements sur mesure + reprogrammation moteur, pour une
                 cohérence totale entre les performances mécaniques et la sonorité.
               </p>

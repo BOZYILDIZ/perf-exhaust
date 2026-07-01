@@ -103,7 +103,7 @@ export default function ServicesSection() {
           </div>
           <Link
             href="/rendez-vous"
-            className="flex-shrink-0 inline-flex items-center gap-2 px-6 py-3 text-sm font-bold tracking-widest uppercase text-white"
+            className="w-full sm:w-auto flex-shrink-0 inline-flex items-center justify-center gap-2 px-6 py-3 text-sm font-bold tracking-widest uppercase text-white text-center"
             style={{
               background: "linear-gradient(135deg, #1266ea, #0d54c8)",
               clipPath: "polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))",

@@ -150,7 +150,7 @@ export default function Hero() {
 
           {/* Title */}
           <motion.h1
-            className="font-oswald text-6xl md:text-7xl lg:text-8xl font-bold text-white uppercase leading-none tracking-wider mb-4"
+            className="font-oswald text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-bold text-white uppercase leading-none tracking-wider mb-4"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.3, ease: [0.21, 0.47, 0.32, 0.98] }}

@@ -9,8 +9,8 @@ export const metadata: Metadata = {
 export default function MentionsLegalesPage() {
   return (
     <div className="pt-20" style={{ background: "#080808" }}>
-      <div className="max-w-4xl mx-auto px-6 py-16">
-        <h1 className="text-3xl font-black text-white mb-12" style={{ fontFamily: "Oswald, sans-serif" }}>
+      <div className="max-w-4xl mx-auto px-6 py-10 sm:py-16">
+        <h1 className="text-3xl md:text-4xl lg:text-5xl font-black text-white mb-8 sm:mb-12" style={{ fontFamily: "Oswald, sans-serif" }}>
           Mentions légales &amp; Confidentialité
         </h1>
 
@@ -37,15 +37,15 @@ export default function MentionsLegalesPage() {
           </Section>
 
           <Section title="Politique de confidentialité" id="confidentialite">
-            <h3 className="text-white font-bold mb-2">Données collectées</h3>
+            <h3 className="text-white font-bold text-base mb-2">Données collectées</h3>
             <p>Lors de vos demandes de devis ou messages de contact, nous collectons : nom, prénom, email, téléphone, informations sur votre véhicule et projet.</p>
-            <h3 className="text-white font-bold mb-2 mt-4">Utilisation des données</h3>
+            <h3 className="text-white font-bold text-base mb-2 mt-4">Utilisation des données</h3>
             <p>Ces données sont utilisées exclusivement pour répondre à vos demandes et établir vos devis. Elles ne sont jamais vendues ou partagées avec des tiers commerciaux.</p>
-            <h3 className="text-white font-bold mb-2 mt-4">Conservation</h3>
+            <h3 className="text-white font-bold text-base mb-2 mt-4">Conservation</h3>
             <p>Vos données sont conservées pendant la durée nécessaire au traitement de votre demande, et au maximum 3 ans.</p>
-            <h3 className="text-white font-bold mb-2 mt-4">Vos droits</h3>
+            <h3 className="text-white font-bold text-base mb-2 mt-4">Vos droits</h3>
             <p>Conformément au RGPD (Règlement 2016/679), vous disposez d&apos;un droit d&apos;accès, de rectification, d&apos;effacement et de portabilité de vos données. Pour exercer ces droits : contact@perfexhaust.fr</p>
-            <h3 className="text-white font-bold mb-2 mt-4">Cookies</h3>
+            <h3 className="text-white font-bold text-base mb-2 mt-4">Cookies</h3>
             <p>Ce site utilise uniquement des cookies techniques nécessaires à son fonctionnement. Aucun cookie publicitaire ou de tracking tiers n&apos;est utilisé.</p>
           </Section>
 
@@ -65,7 +65,7 @@ function Section({ title, children, id }: { title: string; children: React.React
         <div className="w-6 h-0.5 bg-orange-500" />
         <h2 className="text-white font-bold text-lg" style={{ fontFamily: "Oswald, sans-serif" }}>{title}</h2>
       </div>
-      <div className="pl-9 space-y-2">{children}</div>
+      <div className="pl-4 sm:pl-9 space-y-2">{children}</div>
     </section>
   );
 }

@@ -76,15 +76,15 @@ export default function ProjectCard({ project }: { project: Project }) {
 
         {/* Content */}
         <div className="p-5">
-          <div className="flex items-start justify-between gap-2 mb-3">
-            <div>
+          <div className="flex flex-wrap items-start justify-between gap-2 mb-3">
+            <div className="min-w-0">
               <h3 className="font-oswald text-lg font-bold text-white uppercase tracking-wide leading-tight group-hover:text-orange-400 transition-colors duration-300">
                 {project.vehicule}
               </h3>
               <div className="text-xs text-white/40 mt-0.5">{project.annee}</div>
             </div>
             <div
-              className="flex-shrink-0 px-2 py-1 text-xs font-bold tracking-wider uppercase border"
+              className="shrink-0 px-2 py-1 text-xs font-bold tracking-wider uppercase border whitespace-nowrap"
               style={{ color: prestColor, borderColor: prestColor + "40", background: prestColor + "15" }}
             >
               {project.prestation}
