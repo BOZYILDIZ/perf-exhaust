@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowRight, Shield, Wrench, Award, MapPin } from "lucide-react";
 import { partners } from "@/data/partners";
 import { breadcrumbSchema } from "@/lib/jsonld";
@@ -150,9 +151,13 @@ export default function AProposPage() {
           {partners.map((p) => (
             <div key={p.id} className="p-8 border" style={{ background: "#0f0f0f", borderColor: "#1e1e1e" }}>
               <div className="flex items-center gap-4 mb-4">
-                <div className="w-14 h-14 flex items-center justify-center" style={{ background: "#1a1a1a", border: "1px solid #2a2a2a" }}>
-                  <span className="text-white font-bold font-oswald">{p.name.substring(0, 2)}</span>
-                </div>
+                {p.logo ? (
+                  <Image src={p.logo} alt={`Logo ${p.name}`} width={56} height={56} className="w-14 h-14 flex-shrink-0" style={{ borderRadius: "2px" }} />
+                ) : (
+                  <div className="w-14 h-14 flex items-center justify-center" style={{ background: "#1a1a1a", border: "1px solid #2a2a2a" }}>
+                    <span className="text-white font-bold font-oswald">{p.name.substring(0, 2)}</span>
+                  </div>
+                )}
                 <div>
                   <h3 className="font-oswald text-white font-bold text-xl uppercase">{p.name}</h3>
                   <p className="text-brand-500 text-xs font-bold tracking-widest uppercase">{p.type}</p>

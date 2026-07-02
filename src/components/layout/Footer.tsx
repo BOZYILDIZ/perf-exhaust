@@ -142,13 +142,26 @@ export default function Footer() {
             </ul>
 
             {/* Partner badge */}
-            <div className="mt-6 p-3 border border-gray-800 rounded-sm">
-              <p className="text-gray-500 text-xs uppercase tracking-wider mb-1">Partenaire officiel</p>
-              <div className="flex items-center gap-2">
+            <a
+              href="https://www.shiftech.eu"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-6 p-3 border border-gray-800 rounded-sm block hover:border-gray-600 transition-colors"
+            >
+              <p className="text-gray-500 text-xs uppercase tracking-wider mb-2">Partenaire officiel</p>
+              <div className="flex items-center gap-2.5">
+                <Image
+                  src="/partners/shiftech/shiftech-icon.png"
+                  alt="Logo SHIFTECH"
+                  width={24}
+                  height={24}
+                  className="w-6 h-6 flex-shrink-0"
+                  style={{ borderRadius: "2px" }}
+                />
                 <span className="text-white font-bold text-sm" style={{ fontFamily: "Oswald, sans-serif" }}>SHIFTECH</span>
                 <ExternalLink size={12} className="text-gray-500" />
               </div>
-            </div>
+            </a>
           </div>
         </div>
       </div>

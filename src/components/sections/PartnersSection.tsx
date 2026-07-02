@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { partners } from "@/data/partners";
 import SectionTitle from "@/components/ui/SectionTitle";
 import { ExternalLink, Shield } from "lucide-react";
@@ -27,20 +28,31 @@ export default function PartnersSection() {
               />
               <div className="relative z-10">
                 <div className="flex items-center gap-4 mb-4">
-                  <div
-                    className="w-14 h-14 flex items-center justify-center"
-                    style={{
-                      background: "linear-gradient(135deg, #1a1a1a, #222)",
-                      border: "1px solid #2a2a2a",
-                    }}
-                  >
-                    <span
-                      className="text-white font-black text-lg"
-                      style={{ fontFamily: "Oswald, sans-serif", letterSpacing: "0.05em" }}
+                  {partner.logo ? (
+                    <Image
+                      src={partner.logo}
+                      alt={`Logo ${partner.name}`}
+                      width={56}
+                      height={56}
+                      className="w-14 h-14 flex-shrink-0"
+                      style={{ borderRadius: "2px" }}
+                    />
+                  ) : (
+                    <div
+                      className="w-14 h-14 flex items-center justify-center"
+                      style={{
+                        background: "linear-gradient(135deg, #1a1a1a, #222)",
+                        border: "1px solid #2a2a2a",
+                      }}
                     >
-                      {partner.name.substring(0, 2)}
-                    </span>
-                  </div>
+                      <span
+                        className="text-white font-black text-lg"
+                        style={{ fontFamily: "Oswald, sans-serif", letterSpacing: "0.05em" }}
+                      >
+                        {partner.name.substring(0, 2)}
+                      </span>
+                    </div>
+                  )}
                   <div>
                     <div className="flex items-center gap-2">
                       <h3
