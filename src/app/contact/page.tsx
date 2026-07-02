@@ -43,7 +43,7 @@ export default function ContactPage() {
                 <div className="flex items-start gap-3">
                   <MapPin size={16} className="text-brand-500 mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="text-white text-sm font-medium">Rountzenheim-Auenheim</p>
+                    <p className="text-white text-sm font-medium">30 Rue de Soufflenheim<br />67480 Rountzenheim-Auenheim</p>
                     <p className="text-gray-500 text-xs">Alsace, Bas-Rhin (67)</p>
                   </div>
                 </div>

@@ -73,7 +73,7 @@ export default function LocalSection() {
                   <div className="text-sm font-bold text-white mb-1">Atelier sur rendez-vous</div>
                   <div className="text-xs text-white/50">
                     Lundi — Vendredi, 8h00–18h00<br />
-                    Rountzenheim-Auenheim, Bas-Rhin 67480
+                    30 Rue de Soufflenheim, 67480 Rountzenheim-Auenheim
                   </div>
                 </div>
               </div>

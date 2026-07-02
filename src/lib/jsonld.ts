@@ -13,7 +13,7 @@ export const organizationSchema = {
   email: "contact@perfexhaust.fr",
   address: {
     "@type": "PostalAddress",
-    streetAddress: "Rountzenheim-Auenheim",
+    streetAddress: "30 Rue de Soufflenheim",
     addressLocality: "Rountzenheim-Auenheim",
     postalCode: "67480",
     addressRegion: "Bas-Rhin",

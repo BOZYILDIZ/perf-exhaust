@@ -39,13 +39,3 @@ export interface Partner {
   url?: string
   type: string
 }
-
-export interface SocialPost {
-  id: string
-  platform: 'instagram' | 'tiktok'
-  thumbnail: string
-  url: string
-  caption: string
-  likes?: number
-  date: string
-}

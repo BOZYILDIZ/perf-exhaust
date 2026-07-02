@@ -18,11 +18,11 @@ export default function MentionsLegalesPage() {
         <div className="space-y-10 text-gray-400 text-sm leading-relaxed">
           <Section title="Éditeur du site">
             <p><strong className="text-white">PERF&apos;EXHAUST</strong></p>
-            <p>Adresse : Rountzenheim-Auenheim, Bas-Rhin (67), France</p>
+            <p>Adresse : 30 Rue de Soufflenheim, 67480 Rountzenheim-Auenheim, France</p>
             <p>Email : contact@perfexhaust.fr</p>
             <p>Téléphone : +33 6 36 52 30 58</p>
-            <p>Forme juridique : [À compléter — SARL / Auto-entrepreneur / etc.]</p>
-            <p>SIRET : [À compléter]</p>
+            <p>Forme juridique : à compléter</p>
+            <p>SIRET : 882 838 667 00021</p>
           </Section>
 
           <Section title="Hébergement">

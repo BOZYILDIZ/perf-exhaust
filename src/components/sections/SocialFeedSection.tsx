@@ -1,8 +1,8 @@
-import { mockSocialPosts } from "@/data/social-mock";
 import SectionTitle from "@/components/ui/SectionTitle";
-import { ExternalLink } from "lucide-react";
+import { SOCIAL_LINKS, featuredPosts } from "@/data/social";
+import { ExternalLink, ArrowRight } from "lucide-react";
 
-function InstagramIcon({ size = 14 }: { size?: number }) {
+function InstagramIcon({ size = 20 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
@@ -12,86 +12,107 @@ function InstagramIcon({ size = 14 }: { size?: number }) {
   );
 }
 
-export default function SocialFeedSection() {
-  const posts = mockSocialPosts.slice(0, 6);
-
+function TikTokIcon({ size = 20 }: { size?: number }) {
   return (
-    <section className="py-24" style={{ background: "#0a0a0a" }}>
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.34 6.34 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.76a4.85 4.85 0 0 1-1.01-.07z"/>
+    </svg>
+  );
+}
+
+const NETWORKS = [
+  {
+    key: "instagram" as const,
+    name: "Instagram",
+    handle: "@perfexhaust67",
+    description: "Photos des réalisations, avant/après, coulisses de l'atelier et finitions en détail.",
+    cta: "Voir Instagram",
+    url: SOCIAL_LINKS.instagram,
+    icon: InstagramIcon,
+  },
+  {
+    key: "tiktok" as const,
+    name: "TikTok",
+    handle: "@perfexhaust",
+    description: "Sonorités en vidéo : démarrages, accélérations et soudure TIG en action.",
+    cta: "Voir TikTok",
+    url: SOCIAL_LINKS.tiktok,
+    icon: TikTokIcon,
+  },
+];
+
+export default function SocialFeedSection() {
+  return (
+    <section className="py-24" style={{ background: "#0a0a0a" }} aria-label="Réseaux sociaux">
       <div className="max-w-7xl mx-auto px-6">
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-12">
+        <div className="mb-12">
           <SectionTitle
             label="Réseaux sociaux"
-            title="Dernières<br/>réalisations"
-            subtitle="Suivez notre actualité en direct depuis l'atelier."
+            title="Suivez les réalisations<br/>en direct"
+            subtitle="Les projets récents, les sonorités en vidéo et les coulisses de l'atelier sont publiés sur nos comptes officiels."
           />
-          <div className="flex items-center gap-4 flex-shrink-0">
-            <a
-              href="https://www.instagram.com/perfexhaust67/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 text-sm font-bold tracking-widest uppercase text-gray-400 hover:text-brand-400 transition-colors"
-            >
-              <InstagramIcon size={14} /> Instagram
-            </a>
-            <a
-              href="https://www.tiktok.com/@perfexhaust"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 text-sm font-bold tracking-widest uppercase text-gray-400 hover:text-brand-400 transition-colors"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.34 6.34 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.76a4.85 4.85 0 0 1-1.01-.07z"/>
-              </svg>
-              TikTok
-            </a>
-          </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-          {posts.map((post) => (
+        {/* Cartes profils */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {NETWORKS.map((network) => (
             <a
-              key={post.id}
-              href={post.url}
+              key={network.key}
+              href={network.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="group relative overflow-hidden aspect-square block"
-              style={{ background: "linear-gradient(135deg, #141414, #1a1a1a)", borderRadius: "2px" }}
+              className="group relative p-8 border border-white/10 bg-white/[0.02] hover:border-brand-500/40 hover:bg-brand-500/[0.04] transition-all duration-300"
             >
-              <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-gray-700">
-                {post.platform === "instagram" ? <InstagramIcon size={24} /> : (
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.34 6.34 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.76a4.85 4.85 0 0 1-1.01-.07z"/>
-                  </svg>
-                )}
-                <span className="text-xs">{post.platform}</span>
+              <div className="flex items-start justify-between mb-5">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 flex items-center justify-center border border-white/15 text-white group-hover:text-brand-400 group-hover:border-brand-500/50 transition-colors">
+                    <network.icon size={22} />
+                  </div>
+                  <div>
+                    <h3 className="font-oswald text-white font-bold text-xl uppercase tracking-wide">{network.name}</h3>
+                    <p className="text-brand-400 text-sm font-medium">{network.handle}</p>
+                  </div>
+                </div>
+                <ExternalLink size={16} className="text-gray-600 group-hover:text-brand-400 transition-colors" aria-hidden="true" />
               </div>
-
-              {/* Hover overlay */}
-              <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col items-center justify-center gap-2 p-3">
-                <ExternalLink size={16} className="text-white" />
-                <p className="text-white text-xs text-center leading-tight line-clamp-3">{post.caption}</p>
-              </div>
-
-              {/* Platform badge */}
-              <div className="absolute top-2 left-2">
-                <span
-                  className="text-xs font-bold uppercase px-1.5 py-0.5"
-                  style={{
-                    background: post.platform === "instagram" ? "rgba(225,48,108,0.9)" : "rgba(0,0,0,0.8)",
-                    color: "white",
-                    borderRadius: "2px",
-                  }}
-                >
-                  {post.platform === "instagram" ? "IG" : "TT"}
-                </span>
-              </div>
+              <p className="text-gray-400 text-sm leading-relaxed mb-6">{network.description}</p>
+              <span className="inline-flex items-center gap-2 text-xs font-bold tracking-widest uppercase text-white/70 group-hover:text-brand-400 transition-colors">
+                {network.cta}
+                <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+              </span>
+              {/* Ligne accent bas de carte */}
+              <div
+                className="absolute bottom-0 left-0 right-0 h-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                style={{ background: "linear-gradient(90deg, transparent, #1266ea, transparent)" }}
+                aria-hidden="true"
+              />
             </a>
           ))}
         </div>
 
-        <p className="text-center text-gray-500 text-xs mt-4">
-          Retrouvez toutes nos réalisations en vidéo sur Instagram et TikTok.
-        </p>
+        {/* Posts mis en avant (ajoutés manuellement dans src/data/social.ts) */}
+        {featuredPosts.length > 0 && (
+          <div className="mt-10">
+            <h3 className="text-white/40 text-xs font-bold tracking-widest uppercase mb-4">À la une</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {featuredPosts.map((post) => (
+                <a
+                  key={post.url}
+                  href={post.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex items-center gap-4 p-4 border border-white/10 bg-white/[0.02] hover:border-brand-500/40 transition-all"
+                >
+                  <div className="w-9 h-9 flex items-center justify-center border border-white/15 text-gray-400 group-hover:text-brand-400 transition-colors flex-shrink-0">
+                    {post.platform === "instagram" ? <InstagramIcon size={16} /> : <TikTokIcon size={16} />}
+                  </div>
+                  <span className="text-gray-300 text-sm leading-snug group-hover:text-white transition-colors">{post.caption}</span>
+                  <ExternalLink size={12} className="text-gray-600 ml-auto flex-shrink-0" aria-hidden="true" />
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </section>
   );

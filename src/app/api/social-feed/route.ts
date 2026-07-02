@@ -1,13 +1,18 @@
 import { NextResponse } from "next/server";
-import { fetchSocialFeed } from "@/data/social-mock";
+import { SOCIAL_LINKS, featuredPosts } from "@/data/social";
 
 export const revalidate = 3600;
 
+/**
+ * Expose la configuration sociale manuelle (aucun scraping, aucune API tierce).
+ * `featuredPosts` est alimenté à la main dans src/data/social.ts.
+ * Point d'extension futur : brancher ici les APIs officielles Instagram/TikTok
+ * (voir docs/PRODUCTION_CHECKLIST.md).
+ */
 export async function GET() {
-  try {
-    const posts = await fetchSocialFeed();
-    return NextResponse.json({ posts, source: "mock" });
-  } catch {
-    return NextResponse.json({ posts: [], error: "Feed unavailable" }, { status: 200 });
-  }
+  return NextResponse.json({
+    profiles: SOCIAL_LINKS,
+    posts: featuredPosts,
+    source: "manual",
+  });
 }

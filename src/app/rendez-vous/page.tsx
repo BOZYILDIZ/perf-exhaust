@@ -4,7 +4,7 @@ import { CheckCircle, Clock, Phone } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Demande de devis gratuit — Échappement sur mesure Alsace",
-  description: "Demandez votre devis gratuit pour un échappement sur mesure en Alsace. Remplissez le formulaire et PERF'EXHAUST vous répond sous 24-48h. Soudure inox, sonorité personnalisée.",
+  description: "Demandez votre devis gratuit pour un échappement sur mesure en Alsace. Remplissez le formulaire et PERF'EXHAUST revient vers vous rapidement. Soudure inox, sonorité personnalisée.",
   keywords: ["devis échappement Alsace", "devis gratuit inox Bas-Rhin", "rendez-vous atelier Rountzenheim", "projet échappement sur mesure"],
   openGraph: {
     title: "Devis gratuit — Échappement sur mesure PERF'EXHAUST Alsace",
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 
 const advantages = [
   { icon: CheckCircle, text: "Devis gratuit et sans engagement" },
-  { icon: Clock, text: "Réponse sous 24 à 48h" },
+  { icon: Clock, text: "Réponse rapide de l'atelier" },
   { icon: Phone, text: "Accompagnement personnalisé" },
 ];
 

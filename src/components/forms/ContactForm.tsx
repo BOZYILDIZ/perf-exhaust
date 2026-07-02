@@ -39,7 +39,7 @@ export default function ContactForm() {
       <div className="text-center py-12">
         <CheckCircle size={40} className="text-green-400 mx-auto mb-4" />
         <h3 className="text-xl font-black text-white mb-2" style={{ fontFamily: "Oswald, sans-serif" }}>Message envoyé !</h3>
-        <p className="text-gray-400 text-sm">Nous vous répondrons dans les 24-48h.</p>
+        <p className="text-gray-400 text-sm">Votre message a bien été enregistré. L&apos;atelier reviendra vers vous dès que possible.</p>
         <button onClick={() => setStatus("idle")} className="mt-6 text-brand-400 text-sm hover:underline">Envoyer un autre message</button>
       </div>
     );

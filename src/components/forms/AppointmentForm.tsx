@@ -84,9 +84,9 @@ export default function AppointmentForm() {
           Demande envoyée !
         </h3>
         <p className="text-gray-400 text-sm max-w-md mx-auto mb-2">
-          Votre demande de devis a bien été reçue. Notre équipe va analyser votre projet et vous contactera dans les <strong className="text-white">24 à 48h</strong>.
+          Votre demande a bien été enregistrée. L&apos;atelier reviendra vers vous dès que possible.
         </p>
-        <p className="text-gray-500 text-xs">Nous vous répondrons à l&apos;adresse email indiquée.</p>
+        <p className="text-gray-500 text-xs">Nous vous recontacterons aux coordonnées indiquées.</p>
         <button
           onClick={() => setStatus("idle")}
           className="mt-8 text-brand-400 text-sm hover:text-brand-300 transition-colors underline"
@@ -254,7 +254,7 @@ export default function AppointmentForm() {
       </button>
 
       <p className="text-center text-gray-600 text-xs">
-        Réponse garantie sous 24-48h · Devis gratuit et sans engagement
+        Devis gratuit et sans engagement
       </p>
     </form>
   );

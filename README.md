@@ -152,7 +152,7 @@ Palette de marque `#1266EA` unifiée via Tailwind `@theme`, identité premium no
 <td width="33%" valign="top">
 
 ### 📧 Emails transactionnels
-Envoi via `Resend` avec repli automatique en mode "mock console" si aucune clé API n'est configurée — jamais de blocage.
+Envoi via `Resend` (en attente de la vérification du domaine) avec repli automatique en mode "mock console" — jamais de blocage, erreurs d'envoi détectées.
 
 </td>
 </tr>
@@ -160,7 +160,7 @@ Envoi via `Resend` avec repli automatique en mode "mock console" si aucune clé 
 <td width="33%" valign="top">
 
 ### 📷 Réseaux sociaux
-Section flux social (`SocialFeedSection`) prête à être connectée aux API Instagram et TikTok.
+Section sociale honnête **sans API ni scraping** : cartes profils Instagram/TikTok + mise en avant manuelle de posts via `src/data/social.ts`.
 
 </td>
 <td width="33%" valign="top">
@@ -243,7 +243,7 @@ perfexhaust/
 │   │   ├── projects.ts            # 15 réalisations
 │   │   ├── services.ts            # 7 prestations
 │   │   ├── partners.ts             # Partenaires (SHIFTECH)
-│   │   └── social-mock.ts          # Mock du flux social
+│   │   └── social.ts               # Liens sociaux, posts manuels, URL avis Google
 │   │
 │   ├── lib/
 │   │   ├── email.ts                # Envoi d'emails (Resend + mock)
@@ -252,7 +252,10 @@ perfexhaust/
 │   │
 │   └── types/                       # Types TypeScript partagés
 │
-├── public/                          # Assets statiques
+├── docs/
+│   ├── PRODUCTION_CHECKLIST.md      # Checklist de mise en ligne finale
+│   └── MAINTENANCE.md               # Guide de maintenance pratique
+├── public/                          # Assets statiques (og-image, logo)
 ├── .env.example                     # Variables d'environnement documentées
 └── package.json
 ```
@@ -428,11 +431,14 @@ Déploiement continu, automatisé à chaque push sur `main` :
 - [x] Stratégie GEO (contenu, maillage, zones desservies)
 - [x] Formulaires devis & contact avec validation Zod
 - [x] Fallback email automatique (mock si `RESEND_API_KEY` absente)
-- [ ] Connexion API Instagram (flux réel)
-- [ ] Connexion API TikTok (flux réel)
+- [x] Intégration sociale sans API (cartes profils + posts manuels, zéro scraping)
+- [x] Section avis Google honnête (lien fiche Business, aucun avis inventé)
+- [x] SIRET intégré dans les mentions légales
+- [x] Documentation de livraison (`docs/PRODUCTION_CHECKLIST.md`, `docs/MAINTENANCE.md`)
+- [ ] Passage de l'envoi d'emails en production (Resend — après vérification du domaine)
 - [ ] Intégration des photos réelles des réalisations
-- [ ] Passage de l'envoi d'emails en production (clé Resend active)
-- [ ] Numéro SIRET définitif dans les mentions légales
+- [ ] URL de la fiche Google Business (`GOOGLE_REVIEWS_URL`)
+- [ ] Connexion API officielles Instagram/TikTok (optionnel, plus tard)
 
 <br />
 
