@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState, useEffect } from "react";
 import { Menu, X, Phone } from "lucide-react";
 
@@ -36,15 +37,14 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-3 group">
-          <div
-            className="w-10 h-10 flex items-center justify-center"
-            style={{
-              background: "linear-gradient(135deg, #1266ea, #0d54c8)",
-              clipPath: "polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))",
-            }}
-          >
-            <span className="text-white font-black text-sm" style={{ fontFamily: "Oswald, sans-serif" }}>PE</span>
-          </div>
+          <Image
+            src="/brand/logo-icon.png"
+            alt="Logo PERF'EXHAUST"
+            width={58}
+            height={40}
+            priority
+            className="h-10 w-auto"
+          />
           <div>
             <div
               className="text-white font-black text-xl leading-none group-hover:text-brand-400 transition-colors"

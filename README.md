@@ -255,7 +255,9 @@ perfexhaust/
 ├── docs/
 │   ├── PRODUCTION_CHECKLIST.md      # Checklist de mise en ligne finale
 │   └── MAINTENANCE.md               # Guide de maintenance pratique
-├── public/                          # Assets statiques (og-image, logo)
+├── public/
+│   ├── brand/                       # Kit de marque officiel (logos, favicons, OG)
+│   └── site.webmanifest             # Manifest PWA
 ├── .env.example                     # Variables d'environnement documentées
 └── package.json
 ```

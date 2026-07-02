@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Phone, Mail, MapPin, ExternalLink } from "lucide-react";
 
 function InstagramIcon({ size = 16 }: { size?: number }) {
@@ -38,15 +39,13 @@ export default function Footer() {
           {/* Brand */}
           <div className="lg:col-span-1">
             <div className="flex items-center gap-3 mb-5">
-              <div
-                className="w-10 h-10 flex items-center justify-center"
-                style={{
-                  background: "linear-gradient(135deg, #1266ea, #0d54c8)",
-                  clipPath: "polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))",
-                }}
-              >
-                <span className="text-white font-black text-sm" style={{ fontFamily: "Oswald, sans-serif" }}>PE</span>
-              </div>
+              <Image
+                src="/brand/logo-icon.png"
+                alt="Logo PERF'EXHAUST"
+                width={58}
+                height={40}
+                className="h-10 w-auto"
+              />
               <div
                 className="text-white font-black text-xl"
                 style={{ fontFamily: "Oswald, sans-serif", letterSpacing: "0.05em" }}

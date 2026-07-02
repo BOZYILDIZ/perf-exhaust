@@ -46,14 +46,26 @@ export const metadata: Metadata = {
     siteName: "PERF'EXHAUST",
     title: "PERF'EXHAUST — Échappements sur mesure en Alsace",
     description: "Fabrication artisanale d'échappements sur mesure en Alsace. Soudure inox, modification sonore, projets personnalisés. Devis gratuit.",
-    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "PERF'EXHAUST — Atelier échappements sur mesure Alsace" }],
+    images: [{ url: "/brand/og-image.jpg", width: 1200, height: 630, alt: "PERF'EXHAUST — Atelier échappements sur mesure Alsace" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "PERF'EXHAUST — Échappements sur mesure en Alsace",
     description: "Fabrication artisanale, soudure inox, sonorité personnalisée en Alsace.",
-    images: ["/og-image.jpg"],
+    images: ["/brand/og-image.jpg"],
   },
+  icons: {
+    icon: [
+      { url: "/brand/favicon-16.png", sizes: "16x16", type: "image/png" },
+      { url: "/brand/favicon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/brand/favicon-48.png", sizes: "48x48", type: "image/png" },
+      { url: "/brand/favicon-64.png", sizes: "64x64", type: "image/png" },
+      { url: "/brand/favicon-128.png", sizes: "128x128", type: "image/png" },
+      { url: "/brand/favicon-256.png", sizes: "256x256", type: "image/png" },
+    ],
+    apple: [{ url: "/brand/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+  },
+  manifest: "/site.webmanifest",
   alternates: { canonical: SITE_URL },
 };
 

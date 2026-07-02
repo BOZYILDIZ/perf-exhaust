@@ -50,6 +50,7 @@ export async function sendAppointmentToShop(data: AppointmentData) {
     subject: `Nouvelle demande de devis — ${data.prenom} ${data.nom} — ${data.marque} ${data.modele}`,
     html: `
       <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
+        <img src="https://perfexhaust.vercel.app/brand/logo-horizontal.png" alt="PERF'EXHAUST" width="220" style="display:block;margin-bottom:16px" />
         <h2 style="color:#1266ea;border-bottom:2px solid #1266ea;padding-bottom:8px">Nouvelle demande de devis</h2>
         <h3>Informations client</h3>
         <p><strong>Nom:</strong> ${e.prenom} ${e.nom}</p>
@@ -82,6 +83,7 @@ export async function sendConfirmationToClient(data: AppointmentData) {
     subject: 'Votre demande de devis PERF\'EXHAUST — Confirmation',
     html: `
       <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#0a0a0a;color:#ffffff;padding:32px">
+        <img src="https://perfexhaust.vercel.app/brand/logo-light.png" alt="PERF'EXHAUST" width="160" style="display:block;margin-bottom:20px" />
         <h2 style="color:#1266ea">Demande reçue ✓</h2>
         <p>Bonjour ${escapeHtml(data.prenom)},</p>
         <p>Votre demande de devis pour votre <strong>${escapeHtml(data.marque)} ${escapeHtml(data.modele)}</strong> a bien été reçue.</p>

@@ -1,0 +1,21 @@
+{
+  "name": "PERF'EXHAUST — Échappements sur mesure en Alsace",
+  "short_name": "PERF'EXHAUST",
+  "description": "Fabrication artisanale d'échappements sur mesure à Rountzenheim-Auenheim, Alsace.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#060606",
+  "theme_color": "#1266EA",
+  "icons": [
+    {
+      "src": "/brand/app-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/brand/app-icon-1024.png",
+      "sizes": "1024x1024",
+      "type": "image/png"
+    }
+  ]
+}
