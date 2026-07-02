@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import MobileCTA from "@/components/ui/MobileCTA";
 import { organizationSchema, websiteSchema } from "@/lib/jsonld";
 
 const inter = Inter({
@@ -70,6 +71,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <Header />
         <main className="flex-1">{children}</main>
         <Footer />
+        <MobileCTA />
       </body>
     </html>
   );

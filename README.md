@@ -106,7 +106,7 @@ Canvas animé (particules d'étincelles avec physique réaliste), intro de soudu
 <td width="33%" valign="top">
 
 ### 🚗 Galerie immersive
-16 réalisations filtrables par prestation et sonorité, cartes animées avec `Framer Motion` et badges dynamiques.
+15 réalisations filtrables par prestation et sonorité, cartes animées avec `Framer Motion` et badges dynamiques.
 
 </td>
 <td width="33%" valign="top">
@@ -120,7 +120,7 @@ Composant interactif (`SoundConfigurator`) permettant d'explorer les différents
 <td width="33%" valign="top">
 
 ### 📅 Devis & rendez-vous
-Formulaire complet (véhicule, motorisation, préférence sonore, upload photo, consentement RGPD) validé avec `Zod`.
+Formulaire complet (véhicule, motorisation, préférence sonore, consentement RGPD) validé avec `Zod`, avec états de chargement et de succès.
 
 </td>
 <td width="33%" valign="top">
@@ -240,7 +240,7 @@ perfexhaust/
 │   │   └── ui/                     # Button, Badge, ProjectCard, SectionTitle
 │   │
 │   ├── data/                      # Données statiques typées
-│   │   ├── projects.ts            # 16 réalisations
+│   │   ├── projects.ts            # 15 réalisations
 │   │   ├── services.ts            # 7 prestations
 │   │   ├── partners.ts             # Partenaires (SHIFTECH)
 │   │   └── social-mock.ts          # Mock du flux social
@@ -319,7 +319,7 @@ Le site est accessible sur **[http://localhost:3000](http://localhost:3000)**.
 Le site applique une stratégie SEO technique complète, entièrement gérée côté code :
 
 - **Metadata dynamique** — `title` templatisé, `description`, `keywords`, `canonical` sur chaque route via l'API `Metadata` de Next.js
-- **`sitemap.xml`** — généré dynamiquement (`src/app/sitemap.ts`), couvrant les 7 pages statiques + les 16 pages de réalisations
+- **`sitemap.xml`** — généré dynamiquement (`src/app/sitemap.ts`), couvrant les 6 pages statiques indexables + les 15 pages de réalisations
 - **`robots.txt`** — autorise l'indexation complète du site, exclut `/api/` et `/_next/`
 - **Open Graph & Twitter Cards** — image sociale dédiée, titres et descriptions optimisés au partage
 - **Données structurées `schema.org`** (JSON-LD), injectées dans `<head>` ou en ligne selon le contexte :
@@ -383,7 +383,7 @@ Le site a fait l'objet d'un **audit responsive complet**, automatisé via Playwr
 - ✅ **0 overflow horizontal** détecté sur l'ensemble des combinaisons
 - ✅ Header adaptatif — la navigation desktop ne s'active qu'à partir de `1024px`, évitant tout chevauchement en tablette portrait
 - ✅ Grilles et cartes repassent proprement en une colonne sur mobile
-- ✅ Formulaires entièrement utilisables au doigt (champs, selects, upload, case RGPD)
+- ✅ Formulaires entièrement utilisables au doigt (champs, selects avec chevrons, case RGPD)
 - ✅ Typographie fluide (`clamp()` / breakpoints `text-*`) — aucun titre tronqué
 
 <br />

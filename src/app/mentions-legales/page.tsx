@@ -4,6 +4,7 @@ export const metadata: Metadata = {
   title: "Mentions légales & Confidentialité",
   description: "Mentions légales et politique de confidentialité de PERF'EXHAUST.",
   robots: { index: false, follow: false },
+  alternates: { canonical: "https://perfexhaust.vercel.app/mentions-legales" },
 };
 
 export default function MentionsLegalesPage() {
@@ -19,7 +20,7 @@ export default function MentionsLegalesPage() {
             <p><strong className="text-white">PERF&apos;EXHAUST</strong></p>
             <p>Adresse : Rountzenheim-Auenheim, Bas-Rhin (67), France</p>
             <p>Email : contact@perfexhaust.fr</p>
-            <p>Téléphone : +33 X XX XX XX XX</p>
+            <p>Téléphone : +33 6 36 52 30 58</p>
             <p>Forme juridique : [À compléter — SARL / Auto-entrepreneur / etc.]</p>
             <p>SIRET : [À compléter]</p>
           </Section>

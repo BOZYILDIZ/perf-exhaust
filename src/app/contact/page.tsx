@@ -38,7 +38,7 @@ export default function ContactPage() {
           </div>
           <div className="space-y-5">
             <div className="p-6 border" style={{ background: "#0f0f0f", borderColor: "#1e1e1e" }}>
-              <h3 className="text-white font-bold text-sm tracking-widest uppercase mb-4" style={{ fontFamily: "Oswald, sans-serif" }}>Informations</h3>
+              <h2 className="text-white font-bold text-sm tracking-widest uppercase mb-4" style={{ fontFamily: "Oswald, sans-serif" }}>Informations</h2>
               <div className="space-y-4">
                 <div className="flex items-start gap-3">
                   <MapPin size={16} className="text-brand-500 mt-0.5 flex-shrink-0" />

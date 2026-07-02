@@ -47,40 +47,40 @@ export default function ContactForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-      <h3 className="text-white font-bold text-sm tracking-widest uppercase pb-3" style={{ borderBottom: "1px solid #1e1e1e", fontFamily: "Oswald, sans-serif" }}>
+      <h2 className="text-white font-bold text-sm tracking-widest uppercase pb-3" style={{ borderBottom: "1px solid #1e1e1e", fontFamily: "Oswald, sans-serif" }}>
         Envoyer un message
-      </h3>
+      </h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className={labelStyle}>Nom *</label>
-          <input {...register("nom")} className={inputStyle} placeholder="Votre nom" />
+          <label htmlFor="ct-nom" className={labelStyle}>Nom *</label>
+          <input id="ct-nom" {...register("nom")} className={inputStyle} placeholder="Votre nom" />
           {errors.nom && <p className="text-red-400 text-xs mt-1 flex items-center gap-1"><AlertCircle size={10} />{errors.nom.message}</p>}
         </div>
         <div>
-          <label className={labelStyle}>Email *</label>
-          <input {...register("email")} type="email" className={inputStyle} placeholder="votre@email.fr" />
+          <label htmlFor="ct-email" className={labelStyle}>Email *</label>
+          <input id="ct-email" {...register("email")} type="email" className={inputStyle} placeholder="votre@email.fr" />
           {errors.email && <p className="text-red-400 text-xs mt-1 flex items-center gap-1"><AlertCircle size={10} />{errors.email.message}</p>}
         </div>
       </div>
       <div>
-        <label className={labelStyle}>Sujet *</label>
-        <input {...register("sujet")} className={inputStyle} placeholder="Objet de votre message" />
+        <label htmlFor="ct-sujet" className={labelStyle}>Sujet *</label>
+        <input id="ct-sujet" {...register("sujet")} className={inputStyle} placeholder="Objet de votre message" />
         {errors.sujet && <p className="text-red-400 text-xs mt-1 flex items-center gap-1"><AlertCircle size={10} />{errors.sujet.message}</p>}
       </div>
       <div>
-        <label className={labelStyle}>Message *</label>
-        <textarea {...register("message")} className={inputStyle} rows={5} placeholder="Votre message..." />
+        <label htmlFor="ct-message" className={labelStyle}>Message *</label>
+        <textarea id="ct-message" {...register("message")} className={inputStyle} rows={5} placeholder="Votre message..." />
         {errors.message && <p className="text-red-400 text-xs mt-1 flex items-center gap-1"><AlertCircle size={10} />{errors.message.message}</p>}
       </div>
       {status === "error" && (
-        <div className="p-3 border border-red-500/20 bg-red-500/05">
+        <div className="p-3 border border-red-500/20 bg-red-500/5">
           <p className="text-red-400 text-sm">Erreur lors de l&apos;envoi. Réessayez ou contactez-nous directement.</p>
         </div>
       )}
       <button
         type="submit"
         disabled={status === "loading"}
-        className="w-full flex items-center justify-center gap-2 py-4 text-sm font-bold tracking-widest uppercase text-white"
+        className="w-full flex items-center justify-center gap-2 py-4 text-sm font-bold tracking-widest uppercase text-white disabled:opacity-60 disabled:cursor-not-allowed"
         style={{
           background: "linear-gradient(135deg, #1266ea, #0d54c8)",
           clipPath: "polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))",

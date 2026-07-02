@@ -5,28 +5,29 @@ import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import type { Project } from "@/types";
 
-const PRESTATION_COLORS: Record<string, string> = {
-  "Ligne complète": "#1266ea",
-  "Demi-ligne": "#3b82f6",
-  "Silencieux": "#8b5cf6",
-  "Réparation": "#10b981",
-  "Modification sonore": "#1266ea",
-  "default": "#6b7280",
-};
+// Correspondance par préfixe : les prestations réelles sont des libellés longs
+// ("Ligne complète inox", "Demi-ligne sur mesure"...) — on matche sur le début.
+const PRESTATION_COLORS: [string, string][] = [
+  ["Ligne complète", "#1266ea"],
+  ["Ligne arrière", "#1266ea"],
+  ["Demi-ligne", "#3b82f6"],
+  ["Silencieux", "#8b5cf6"],
+  ["Réparation", "#10b981"],
+  ["Soudure", "#10b981"],
+  ["Modification", "#4d8ef0"],
+];
 
 const SONORITY_GRADIENTS: Record<string, string> = {
-  "Grave": "from-purple-900/60 to-black",
-  "Agressif": "from-red-900/60 to-black",
-  "Sportif": "from-blue-900/60 to-black",
+  "Son grave": "from-purple-900/60 to-black",
+  "Son agressif": "from-red-900/60 to-black",
+  "Son sportif": "from-blue-900/60 to-black",
+  "Son aigu": "from-brand-900/60 to-black",
   "Discret": "from-gray-800/60 to-black",
-  "Fort": "from-brand-900/60 to-black",
-  "Sur mesure": "from-amber-900/60 to-black",
 };
 
 export default function ProjectCard({ project }: { project: Project }) {
-  const prestColor = PRESTATION_COLORS[project.prestation] || PRESTATION_COLORS.default;
-  const gradKey = project.sonoriteTag || "default";
-  const grad = SONORITY_GRADIENTS[gradKey] || "from-gray-900/60 to-black";
+  const prestColor = PRESTATION_COLORS.find(([prefix]) => project.prestation.startsWith(prefix))?.[1] ?? "#6b7280";
+  const grad = SONORITY_GRADIENTS[project.sonoriteTag] || "from-gray-900/60 to-black";
 
   return (
     <motion.article

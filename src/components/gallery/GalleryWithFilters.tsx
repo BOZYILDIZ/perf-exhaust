@@ -23,16 +23,15 @@ export default function GalleryWithFilters({ projects }: { projects: Project[] }
 
   return (
     <div>
-      {/* Filter tabs */}
-      <div className="flex flex-wrap gap-2 mb-10" role="tablist" aria-label="Filtrer les réalisations">
+      {/* Filter buttons */}
+      <div className="flex flex-wrap gap-2 mb-10" role="group" aria-label="Filtrer les réalisations">
         {FILTERS.map((f) => (
           <button
             key={f.id}
             onClick={() => setActive(f.id)}
-            role="tab"
-            aria-selected={active === f.id}
+            aria-pressed={active === f.id}
             className={[
-              "px-4 py-2 text-xs font-bold tracking-widest uppercase transition-all duration-200 border",
+              "px-4 py-2.5 text-xs font-bold tracking-widest uppercase transition-all duration-200 border",
               active === f.id
                 ? "bg-brand-500 text-white border-brand-500"
                 : "bg-transparent text-white/50 border-white/20 hover:border-white/40 hover:text-white",

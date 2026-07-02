@@ -1,6 +1,6 @@
 import { mockSocialPosts } from "@/data/social-mock";
 import SectionTitle from "@/components/ui/SectionTitle";
-import { ExternalLink, Heart } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 
 function InstagramIcon({ size = 14 }: { size?: number }) {
   return (
@@ -69,12 +69,6 @@ export default function SocialFeedSection() {
               {/* Hover overlay */}
               <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col items-center justify-center gap-2 p-3">
                 <ExternalLink size={16} className="text-white" />
-                {post.likes && (
-                  <div className="flex items-center gap-1 text-white text-xs font-medium">
-                    <Heart size={10} fill="currentColor" className="text-brand-400" />
-                    {post.likes}
-                  </div>
-                )}
                 <p className="text-white text-xs text-center leading-tight line-clamp-3">{post.caption}</p>
               </div>
 
@@ -95,8 +89,8 @@ export default function SocialFeedSection() {
           ))}
         </div>
 
-        <p className="text-center text-gray-600 text-xs mt-4">
-          * Aperçu simulé — connectez les APIs Instagram/TikTok pour afficher vos vraies publications
+        <p className="text-center text-gray-500 text-xs mt-4">
+          Retrouvez toutes nos réalisations en vidéo sur Instagram et TikTok.
         </p>
       </div>
     </section>

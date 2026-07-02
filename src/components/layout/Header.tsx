@@ -95,9 +95,11 @@ export default function Header() {
 
         {/* Mobile menu toggle */}
         <button
-          className="lg:hidden text-gray-300 hover:text-brand-400 transition-colors"
+          className="lg:hidden p-2 -mr-2 text-gray-300 hover:text-brand-400 transition-colors"
           onClick={() => setMenuOpen(!menuOpen)}
-          aria-label="Menu"
+          aria-label={menuOpen ? "Fermer le menu" : "Ouvrir le menu"}
+          aria-expanded={menuOpen}
+          aria-controls="mobile-nav"
         >
           {menuOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
@@ -106,6 +108,7 @@ export default function Header() {
       {/* Mobile menu */}
       {menuOpen && (
         <div
+          id="mobile-nav"
           className="lg:hidden"
           style={{ background: "rgba(8,8,8,0.98)", borderTop: "1px solid rgba(18,102,234,0.2)" }}
         >

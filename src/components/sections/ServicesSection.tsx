@@ -27,7 +27,7 @@ export default function ServicesSection() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {services.map((service, i) => {
+          {services.map((service) => {
             const Icon = iconMap[service.icon] || Wrench;
             return (
               <div

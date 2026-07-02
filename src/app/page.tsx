@@ -21,10 +21,11 @@ export default function HomePage() {
   const [showIntro, setShowIntro] = useState(false);
 
   useEffect(() => {
-    const seen = sessionStorage.getItem("pe-intro-seen");
-    if (!seen) {
-      setShowIntro(true);
-    }
+    if (sessionStorage.getItem("pe-intro-seen")) return;
+    // Différé d'une frame : évite un re-render en cascade au montage
+    // (l'intro s'affiche sur fond noir, le décalage est imperceptible).
+    const id = requestAnimationFrame(() => setShowIntro(true));
+    return () => cancelAnimationFrame(id);
   }, []);
 
   const handleIntroComplete = () => {

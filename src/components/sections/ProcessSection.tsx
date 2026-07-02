@@ -30,7 +30,7 @@ export default function ProcessSection() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {steps.map((step, i) => (
+          {steps.map((step) => (
             <div
               key={step.num}
               className="p-6 border relative overflow-hidden"

@@ -1,15 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { sendAppointmentToShop, sendConfirmationToClient } from "@/lib/email";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 const schema = z.object({
   nom: z.string().min(2),
   prenom: z.string().min(2),
-  telephone: z.string().min(10),
+  telephone: z.string().regex(/^[+0-9 .()-]{10,20}$/, "Téléphone invalide"),
   email: z.string().email(),
   marque: z.string().min(2),
   modele: z.string().min(1),
-  annee: z.string().min(4),
+  annee: z.string().regex(/^(19|20)\d{2}$/, "Année invalide"),
   motorisation: z.string().optional(),
   typeProjet: z.string().min(1),
   sonoritePreference: z.string().min(1),
@@ -18,31 +19,16 @@ const schema = z.object({
   rgpd: z.boolean(),
 });
 
-const RATE_LIMIT = new Map<string, { count: number; resetAt: number }>();
-
-function checkRateLimit(ip: string): boolean {
-  const now = Date.now();
-  const entry = RATE_LIMIT.get(ip);
-  if (!entry || now > entry.resetAt) {
-    RATE_LIMIT.set(ip, { count: 1, resetAt: now + 60_000 });
-    return true;
-  }
-  if (entry.count >= 3) return false;
-  entry.count++;
-  return true;
-}
-
 export async function POST(req: NextRequest) {
   try {
-    const ip = req.headers.get("x-forwarded-for") ?? req.headers.get("x-real-ip") ?? "unknown";
-    if (!checkRateLimit(ip)) {
+    if (!checkRateLimit(getClientIp(req))) {
       return NextResponse.json({ error: "Trop de requêtes. Attendez une minute." }, { status: 429 });
     }
 
     const body = await req.json();
     const parsed = schema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json({ error: "Données invalides", details: parsed.error.issues }, { status: 400 });
+      return NextResponse.json({ error: "Données invalides" }, { status: 400 });
     }
 
     const data = parsed.data;

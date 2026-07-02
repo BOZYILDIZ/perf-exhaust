@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
 import Link from "next/link";
 import { projects, getProjectBySlug } from "@/data/projects";
+import { projectSchema, breadcrumbSchema } from "@/lib/jsonld";
 import { ArrowLeft, ArrowRight, Car, Calendar, Wrench } from "lucide-react";
 
 interface Props { params: Promise<{ slug: string }> }
@@ -37,8 +38,16 @@ export default async function ProjectDetailPage({ params }: Props) {
   const prev = currentIndex > 0 ? projects[currentIndex - 1] : null;
   const next = currentIndex < projects.length - 1 ? projects[currentIndex + 1] : null;
 
+  const breadcrumb = breadcrumbSchema([
+    { name: "Accueil", url: "https://perfexhaust.vercel.app" },
+    { name: "Réalisations", url: "https://perfexhaust.vercel.app/realisations" },
+    { name: project.vehicule, url: `https://perfexhaust.vercel.app/realisations/${project.slug}` },
+  ]);
+
   return (
     <div className="pt-20" style={{ background: "#080808" }}>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(projectSchema(project)) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
       {/* Back */}
       <div className="max-w-7xl mx-auto px-6 py-6">
         <Link href="/realisations" className="inline-flex items-center gap-2 text-gray-500 hover:text-brand-400 transition-colors text-sm">

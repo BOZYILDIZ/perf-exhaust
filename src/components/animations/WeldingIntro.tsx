@@ -56,7 +56,6 @@ export default function WeldingIntro({ onComplete }: { onComplete: () => void })
     let weldX = 0;
     const weldY = canvas.height / 2;
     const WELD_DURATION = 2000;
-    const FADE_START = 2500;
     const TOTAL_DURATION = 3200;
 
     const draw = () => {

@@ -75,7 +75,7 @@ export default function ExpertiseSection() {
         </header>
 
         <div className="space-y-0 divide-y divide-white/5">
-          {EXPERTISES.map((exp, i) => (
+          {EXPERTISES.map((exp) => (
             <article key={exp.number} className="group py-8 grid md:grid-cols-4 gap-6 items-start hover:bg-white/[0.02] px-4 -mx-4 transition-colors">
               <div className="md:col-span-1 flex items-start gap-4">
                 <span className="font-oswald text-5xl font-bold text-brand-500/20 group-hover:text-brand-500/40 transition-colors leading-none">

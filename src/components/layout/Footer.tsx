@@ -161,10 +161,10 @@ export default function Footer() {
             © {new Date().getFullYear()}{" "}PERF&apos;EXHAUST — Tous droits réservés.
           </p>
           <div className="flex items-center gap-6">
-            <Link href="/mentions-legales" className="text-gray-600 text-xs hover:text-gray-400 transition-colors">
+            <Link href="/mentions-legales" className="text-gray-500 text-xs hover:text-gray-300 transition-colors">
               Mentions légales
             </Link>
-            <Link href="/mentions-legales#confidentialite" className="text-gray-600 text-xs hover:text-gray-400 transition-colors">
+            <Link href="/mentions-legales#confidentialite" className="text-gray-500 text-xs hover:text-gray-300 transition-colors">
               Confidentialité
             </Link>
           </div>
