@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { ArrowRight, CheckCircle, AlertCircle, Loader2, ChevronDown } from "lucide-react";
+import VehicleSelector from "./VehicleSelector";
 
 const schema = z.object({
   nom: z.string().min(2, "Nom requis"),
@@ -53,8 +54,9 @@ export default function AppointmentForm() {
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
 
-  const { register, handleSubmit, formState: { errors }, reset } = useForm<FormData>({
+  const { register, handleSubmit, setValue, formState: { errors, isSubmitted }, reset } = useForm<FormData>({
     resolver: zodResolver(schema),
+    defaultValues: { marque: "", modele: "", annee: "", motorisation: "" },
   });
 
   const onSubmit = async (data: FormData) => {
@@ -133,27 +135,21 @@ export default function AppointmentForm() {
         <h2 className="text-white font-bold text-sm tracking-widest uppercase mb-4 pb-2" style={{ borderBottom: "1px solid #1e1e1e" }}>
           02 — Votre véhicule
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div>
-            <label htmlFor="rv-marque" className={labelStyle}>Marque *</label>
-            <input id="rv-marque" {...register("marque")} className={inputStyle} placeholder="ex : BMW, Audi..." />
-            {errors.marque && <p className={errorStyle}><AlertCircle size={10} />{errors.marque.message}</p>}
-          </div>
-          <div>
-            <label htmlFor="rv-modele" className={labelStyle}>Modèle *</label>
-            <input id="rv-modele" {...register("modele")} className={inputStyle} placeholder="ex : Série 3, A4..." />
-            {errors.modele && <p className={errorStyle}><AlertCircle size={10} />{errors.modele.message}</p>}
-          </div>
-          <div>
-            <label htmlFor="rv-annee" className={labelStyle}>Année *</label>
-            <input id="rv-annee" {...register("annee")} className={inputStyle} placeholder="ex : 2021" maxLength={4} />
-            {errors.annee && <p className={errorStyle}><AlertCircle size={10} />{errors.annee.message}</p>}
-          </div>
-          <div className="sm:col-span-3">
-            <label htmlFor="rv-motorisation" className={labelStyle}>Motorisation (optionnel)</label>
-            <input id="rv-motorisation" {...register("motorisation")} className={inputStyle} placeholder="ex : 2.0 TDI 150ch, 2.0 TSI 300ch..." />
-          </div>
-        </div>
+        <VehicleSelector
+          onChange={(v) => {
+            const opts = { shouldValidate: isSubmitted };
+            setValue("marque", v.marque, opts);
+            setValue("modele", v.modele, opts);
+            setValue("annee", v.annee, opts);
+            setValue("motorisation", v.motorisation, opts);
+          }}
+          errors={{
+            marque: errors.marque?.message,
+            modele: errors.modele?.message,
+            annee: errors.annee?.message,
+            motorisation: errors.motorisation?.message,
+          }}
+        />
       </div>
 
       {/* Section projet */}
