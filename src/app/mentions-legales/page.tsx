@@ -29,6 +29,22 @@ export default function MentionsLegalesPage() {
             <p>Ce site est hébergé par Vercel Inc., 440 N Barranca Avenue, Covina, CA 91723, USA.</p>
           </Section>
 
+          <Section title="Conception et développement">
+            <p>
+              Ce site a été conçu et développé par{" "}
+              <a
+                href="https://www.bicer.fr/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Nevora — conception et développement web (nouvel onglet)"
+                className="text-white font-bold hover:text-brand-500 underline-offset-2 hover:underline transition-colors duration-300"
+              >
+                Nevora
+              </a>
+              .
+            </p>
+          </Section>
+
           <Section title="Propriété intellectuelle">
             <p>L&apos;ensemble des contenus (textes, images, logos, vidéos) présents sur ce site sont la propriété exclusive de PERF&apos;EXHAUST. Toute reproduction, même partielle, est interdite sans autorisation écrite préalable.</p>
           </Section>
