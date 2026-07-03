@@ -30,6 +30,62 @@ puis contrôler https://perfexhaust.vercel.app.
 
 ---
 
+
+## 🛠️ Panel admin & base de données
+
+### Accéder à l'admin
+
+L'admin vit sur **`/admin`** (login : `/admin/login`). Trois variables l'activent :
+
+```env
+ADMIN_EMAIL=vous@perfexhaust.fr
+ADMIN_PASSWORD=un-mot-de-passe-fort
+ADMIN_SECRET=$(openssl rand -hex 32)   # signature des sessions (cookie httpOnly)
+```
+
+Sans ces variables, `/admin` redirige vers le login qui explique la configuration.
+Le mot de passe ne transite jamais côté client ; les sessions durent 12 h ;
+le login est limité à 5 tentatives/minute/IP.
+
+### Activer la base de données (réalisations dynamiques)
+
+1. Créer une base **PostgreSQL** — [Neon](https://neon.tech) (gratuit) ou Vercel Postgres.
+2. Renseigner `DATABASE_URL` (local : `.env.local` ; prod : variables Vercel).
+3. Appliquer le schéma : `npx prisma migrate deploy`
+4. Importer les 15 réalisations historiques : `npm run db:seed`
+   (idempotent — les slugs déjà présents sont ignorés, aucune perte SEO).
+
+**Sans `DATABASE_URL`**, le site public lit `src/data/projects.ts` comme avant :
+rien ne casse, l'admin affiche simplement la marche à suivre.
+
+### Gérer les réalisations
+
+- **Ajouter** : `/admin/realisations/new` — le slug se génère depuis le titre
+  (modifiable, format vérifié : minuscules-tirets).
+- **Modifier** : bouton crayon dans la liste. **Prévisualiser** ouvre la page
+  publique (les brouillons s'ouvrent avec `?preview=1`, réservé à la session admin).
+- **Publier / brouillon** : boutons de statut en haut du formulaire. Un
+  brouillon est invisible du public, absent du sitemap et non indexable.
+- **Supprimer** : corbeille + confirmation. Irréversible.
+- Les pages publiques se mettent à jour en ≤ 60 s (ISR) après chaque action.
+
+### Upload d'images (Vercel Blob)
+
+1. Vercel → Storage → **Blob** → créer un store.
+2. Copier `BLOB_READ_WRITE_TOKEN` dans les variables (local + Vercel).
+3. Les boutons d'upload de l'admin deviennent actifs (JPEG/PNG/WebP, 5 Mo max,
+   alt obligatoire pour la galerie).
+
+Sans token : message clair en admin, et les champs acceptent des URLs manuelles.
+
+### Commandes utiles
+
+```bash
+npm run db:migrate   # applique les migrations (prod : à lancer après déploiement)
+npm run db:seed      # importe les projets historiques (idempotent)
+npm run db:studio    # explorer la base (Prisma Studio)
+```
+
 ## 📞 Modifier le téléphone
 
 Le numéro apparaît à plusieurs endroits. Rechercher l'ancien numéro et remplacer partout :
@@ -73,7 +129,9 @@ Fichiers concernés : `Header.tsx`, `Footer.tsx`, `Hero.tsx`, `LocalSection.tsx`
 },
 ```
 
-## 🚗 Ajouter une réalisation
+## 🚗 Ajouter une réalisation (mode statique, sans base)
+
+> Si `DATABASE_URL` est configurée, utilisez plutôt le **panel admin** (`/admin`) — voir section ci-dessus.
 
 `src/data/projects.ts` — ajouter une entrée au tableau `projects` :
 

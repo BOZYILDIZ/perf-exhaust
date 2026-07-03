@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { services } from "@/data/services";
 import SectionTitle from "@/components/ui/SectionTitle";

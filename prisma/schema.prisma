@@ -1,0 +1,61 @@
+// Schéma Prisma — PERF'EXHAUST
+// Base : PostgreSQL (Neon / Vercel Postgres en production, instance locale en dev).
+// Voir docs/MAINTENANCE.md § "Panel admin & base de données".
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Project {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  status    String   @default("draft") // "draft" | "published"
+
+  // Informations principales
+  vehicule    String
+  marque      String
+  modele      String
+  annee       String
+  prestation  String
+  categorie   String?
+  tags        Json     @default("[]") // string[]
+  sonoriteTag String
+  filterTags  Json     @default("[]") // string[] — pilote les filtres de la galerie
+
+  // Contenu
+  description             String
+  descriptionComplete     String
+  objectifsClient         String  @default("")
+  modificationsRealisees  String  @default("")
+  materiaux               String  @default("")
+  resultatSonore          String  @default("")
+  dureeProjet             String?
+  difficulte              String?
+  ctaCustom               String?
+
+  // Médias
+  imagePrincipale String?
+  imageAlt        String?
+  galerie         Json    @default("[]") // { src, alt, type: "avant"|"apres"|"detail" }[]
+  videoUrl        String?
+
+  // SEO
+  seoTitle       String?
+  seoDescription String?
+  ogImage        String?
+
+  // Divers
+  featured  Boolean @default(false)
+  date      String  @default("") // AAAA-MM-JJ (affichage + sitemap)
+  sortOrder Int     @default(0)
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  publishedAt DateTime?
+
+  @@index([status, sortOrder])
+}

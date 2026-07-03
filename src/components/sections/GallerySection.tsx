@@ -1,12 +1,11 @@
 import Link from "next/link";
-import { projects } from "@/data/projects";
+import { getFeaturedProjects } from "@/lib/projects-repo";
 import SectionTitle from "@/components/ui/SectionTitle";
 import ProjectCard from "@/components/ui/ProjectCard";
 import { ArrowRight } from "lucide-react";
 
-const featured = projects.filter((p) => p.featured).slice(0, 6);
-
-export default function GallerySection() {
+export default async function GallerySection() {
+  const featured = (await getFeaturedProjects()).slice(0, 6);
   return (
     <section className="py-24" style={{ background: "#080808" }}>
       <div className="max-w-7xl mx-auto px-6">

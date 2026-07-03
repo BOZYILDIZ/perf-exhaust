@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Prisma + pg utilisent les APIs Node natives : à laisser hors bundle serveur
+  serverExternalPackages: ["@prisma/client", "@prisma/adapter-pg", "pg"],
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "graph.instagram.com" },

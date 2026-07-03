@@ -1,9 +1,10 @@
 import { MetadataRoute } from "next";
-import { projects } from "@/data/projects";
+import { getPublishedProjects } from "@/lib/projects-repo";
 
 const BASE_URL = "https://perfexhaust.vercel.app";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const projects = await getPublishedProjects();
   const projectUrls = projects.map((p) => ({
     url: `${BASE_URL}/realisations/${p.slug}`,
     lastModified: new Date(p.date),

@@ -28,7 +28,21 @@ Les cases cochées `[x]` correspondent à ce qui est **réellement fait et véri
 - [ ] `RESEND_API_KEY` — après connexion du domaine (voir section Resend)
 - [ ] `BUSINESS_EMAIL` — adresse de réception des demandes (ex : `contact@perfexhaust.fr`)
 - [ ] `NEXT_PUBLIC_SITE_URL` — URL canonique finale
-- [x] Le site fonctionne **sans** ces variables (mode mock email, aucun blocage)
+- [ ] `ADMIN_EMAIL` / `ADMIN_PASSWORD` / `ADMIN_SECRET` — active le panel `/admin`
+- [ ] `DATABASE_URL` — PostgreSQL (Neon/Vercel Postgres) pour les réalisations dynamiques
+- [ ] `BLOB_READ_WRITE_TOKEN` — Vercel Blob pour l'upload d'images admin
+- [x] Le site fonctionne **sans** ces variables (mock email, données statiques, aucun blocage)
+
+## 🗄️ Base de données & panel admin
+
+- [x] Schéma Prisma + migration initiale (`prisma/migrations`)
+- [x] Fallback statique automatique sans `DATABASE_URL` (production non cassée)
+- [x] Seed idempotent des 15 réalisations (`npm run db:seed`)
+- [ ] Créer la base PostgreSQL de production (Neon / Vercel Postgres)
+- [ ] Poser `DATABASE_URL` sur Vercel puis lancer `npx prisma migrate deploy`
+- [ ] Lancer le seed en production
+- [ ] Créer le store Vercel Blob + poser `BLOB_READ_WRITE_TOKEN`
+- [ ] Définir des identifiants admin FORTS (`ADMIN_*`) — jamais les valeurs d'exemple
 
 ## 📧 Resend (emails)
 

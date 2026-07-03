@@ -1,42 +1,67 @@
 import { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
 import Link from "next/link";
-import { projects, getProjectBySlug } from "@/data/projects";
+import { projects as staticProjects } from "@/data/projects";
+import { getPublishedProjects, getPublishedProjectBySlug } from "@/lib/projects-repo";
+import { isAdminAuthenticated } from "@/lib/admin-auth";
 import { projectSchema, breadcrumbSchema } from "@/lib/jsonld";
+import { slugify } from "@/lib/utils";
 import { ArrowLeft, ArrowRight, Car, Calendar, Wrench } from "lucide-react";
 
-interface Props { params: Promise<{ slug: string }> }
+interface Props { params: Promise<{ slug: string }>; searchParams: Promise<{ preview?: string }> }
+
+// ISR : le contenu édité en admin apparaît sans redéploiement.
+export const revalidate = 60;
+export const dynamicParams = true;
 
 export async function generateStaticParams() {
-  return projects.map((p) => ({ slug: p.slug }));
+  // Slugs historiques (build sans base) ; les nouveaux slugs sont servis via dynamicParams.
+  return staticProjects.map((p) => ({ slug: p.slug }));
+}
+
+function safeDecode(value: string): string {
+  try { return decodeURIComponent(value); } catch { return value; }
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const project = getProjectBySlug(slug);
-  if (!project) return { title: "Projet introuvable" };
+  const found = await getPublishedProjectBySlug(slugify(safeDecode(slug)), { includeDrafts: true });
+  if (!found) return { title: "Projet introuvable" };
+  const { project, isDraft } = found;
   const url = `https://perfexhaust.vercel.app/realisations/${project.slug}`;
   return {
     title: `${project.vehicule} — ${project.prestation}`,
     description: project.description,
     alternates: { canonical: url },
     openGraph: { url, title: `${project.vehicule} — ${project.prestation}`, description: project.description },
+    // Un brouillon prévisualisé ne doit jamais être indexé
+    ...(isDraft ? { robots: { index: false, follow: false } } : {}),
   };
 }
 
-export default async function ProjectDetailPage({ params }: Props) {
+export default async function ProjectDetailPage({ params, searchParams }: Props) {
   const { slug } = await params;
-  const project = getProjectBySlug(slug);
-  if (!project) notFound();
+  const { preview } = await searchParams;
+  const canonical = slugify(safeDecode(slug));
+
+  const found = await getPublishedProjectBySlug(canonical, { includeDrafts: true });
+  if (!found) notFound();
+
+  // Brouillon : visible uniquement en prévisualisation admin authentifiée
+  if (found.isDraft && !(preview === "1" && (await isAdminAuthenticated()))) {
+    notFound();
+  }
+  const project = found.project;
 
   // Ancien lien accentué/mal encodé → redirection permanente vers l'URL canonique
   if (slug !== project.slug) {
     permanentRedirect(`/realisations/${project.slug}`);
   }
 
-  const currentIndex = projects.findIndex((p) => p.slug === project.slug);
-  const prev = currentIndex > 0 ? projects[currentIndex - 1] : null;
-  const next = currentIndex < projects.length - 1 ? projects[currentIndex + 1] : null;
+  const published = await getPublishedProjects();
+  const currentIndex = published.findIndex((p) => p.slug === project.slug);
+  const prev = currentIndex > 0 ? published[currentIndex - 1] : null;
+  const next = currentIndex >= 0 && currentIndex < published.length - 1 ? published[currentIndex + 1] : null;
 
   const breadcrumb = breadcrumbSchema([
     { name: "Accueil", url: "https://perfexhaust.vercel.app" },

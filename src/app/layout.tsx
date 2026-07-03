@@ -4,6 +4,7 @@ import "./globals.css";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import MobileCTA from "@/components/ui/MobileCTA";
+import HideOnAdmin from "@/components/layout/HideOnAdmin";
 import { organizationSchema, websiteSchema } from "@/lib/jsonld";
 
 const inter = Inter({
@@ -80,10 +81,12 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }} />
       </head>
       <body className="min-h-screen flex flex-col">
-        <Header />
+        <HideOnAdmin><Header /></HideOnAdmin>
         <main className="flex-1">{children}</main>
-        <Footer />
-        <MobileCTA />
+        <HideOnAdmin>
+          <Footer />
+          <MobileCTA />
+        </HideOnAdmin>
       </body>
     </html>
   );

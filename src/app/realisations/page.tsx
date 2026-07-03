@@ -1,8 +1,10 @@
 import { Metadata } from "next";
 import Link from "next/link";
-import { projects } from "@/data/projects";
+import { getPublishedProjects } from "@/lib/projects-repo";
 import GalleryWithFilters from "@/components/gallery/GalleryWithFilters";
 import { ArrowRight } from "lucide-react";
+
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "Réalisations — Projets échappements inox sur mesure en Alsace",
@@ -17,7 +19,8 @@ export const metadata: Metadata = {
   alternates: { canonical: "https://perfexhaust.vercel.app/realisations" },
 };
 
-export default function RealisationsPage() {
+export default async function RealisationsPage() {
+  const projects = await getPublishedProjects();
   return (
     <div className="pt-20" style={{ background: "#080808" }}>
       {/* Header */}
