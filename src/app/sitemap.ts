@@ -1,7 +1,7 @@
 import { MetadataRoute } from "next";
 import { getPublishedProjects } from "@/lib/projects-repo";
 
-const BASE_URL = "https://perfexhaust.vercel.app";
+const BASE_URL = "https://perfexhaust.fr";
 
 // Le sitemap est « cached by default » (doc Next : metadata routes) et ignore
 // revalidate/revalidatePath — force-dynamic garantit qu'il reflète toujours les

@@ -12,15 +12,15 @@ export const metadata: Metadata = {
   openGraph: {
     title: "À propos — PERF'EXHAUST Atelier Alsace Rountzenheim-Auenheim",
     description: "Qui sommes-nous ? PERF'EXHAUST, atelier artisanal spécialisé en fabrication d'échappements sur mesure en Alsace. Soudure TIG, inox, partenaire SHIFTECH.",
-    url: "https://perfexhaust.vercel.app/a-propos",
+    url: "https://perfexhaust.fr/a-propos",
     type: "website",
   },
-  alternates: { canonical: "https://perfexhaust.vercel.app/a-propos" },
+  alternates: { canonical: "https://perfexhaust.fr/a-propos" },
 };
 
 const BREADCRUMB = [
-  { name: "Accueil", url: "https://perfexhaust.vercel.app" },
-  { name: "À propos", url: "https://perfexhaust.vercel.app/a-propos" },
+  { name: "Accueil", url: "https://perfexhaust.fr" },
+  { name: "À propos", url: "https://perfexhaust.fr/a-propos" },
 ];
 
 const EXPERTISE_CARDS = [

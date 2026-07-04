@@ -13,10 +13,10 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Nos réalisations — PERF'EXHAUST Échappements sur mesure Alsace",
     description: "15 projets réalisés dans notre atelier alsacien. Chaque véhicule, une sonorité unique.",
-    url: "https://perfexhaust.vercel.app/realisations",
+    url: "https://perfexhaust.fr/realisations",
     type: "website",
   },
-  alternates: { canonical: "https://perfexhaust.vercel.app/realisations" },
+  alternates: { canonical: "https://perfexhaust.fr/realisations" },
 };
 
 export default async function RealisationsPage() {

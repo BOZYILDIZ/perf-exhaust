@@ -9,10 +9,10 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Devis gratuit — Échappement sur mesure PERF'EXHAUST Alsace",
     description: "Votre projet d'échappement sur mesure en Alsace. Devis gratuit, réponse sous 48h.",
-    url: "https://perfexhaust.vercel.app/rendez-vous",
+    url: "https://perfexhaust.fr/rendez-vous",
     type: "website",
   },
-  alternates: { canonical: "https://perfexhaust.vercel.app/rendez-vous" },
+  alternates: { canonical: "https://perfexhaust.fr/rendez-vous" },
 };
 
 const advantages = [

@@ -26,7 +26,7 @@ git push origin main
 ```
 
 Vérifier ensuite sur https://vercel.com (projet `perfexhaust`) que le statut est **Ready**,
-puis contrôler https://perfexhaust.vercel.app.
+puis contrôler https://perfexhaust.fr.
 
 ---
 
@@ -275,8 +275,8 @@ Après tout ajout/modification, redéployer pour prise en compte
 ## 🗺️ Vérifier sitemap / robots
 
 ```bash
-curl https://perfexhaust.vercel.app/sitemap.xml   # 6 pages + 15 réalisations
-curl https://perfexhaust.vercel.app/robots.txt
+curl https://perfexhaust.fr/sitemap.xml   # 6 pages + 15 réalisations
+curl https://perfexhaust.fr/robots.txt
 ```
 
 Le sitemap est généré par `src/app/sitemap.ts` (les projets y sont ajoutés
@@ -321,7 +321,7 @@ curl -X POST http://localhost:3000/api/rendez-vous \
 Les anciennes URLs accentuées doivent rediriger vers les slugs propres :
 
 ```bash
-curl -sI "https://perfexhaust.vercel.app/realisations/bmw-serie-3-sonorit%C3%A9-grave" | head -2
+curl -sI "https://perfexhaust.fr/realisations/bmw-serie-3-sonorit%C3%A9-grave" | head -2
 # HTTP/2 308
 # location: /realisations/bmw-serie-3-sonorite-grave
 ```

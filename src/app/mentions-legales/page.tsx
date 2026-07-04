@@ -4,7 +4,7 @@ export const metadata: Metadata = {
   title: "Mentions légales & Confidentialité",
   description: "Mentions légales et politique de confidentialité de PERF'EXHAUST.",
   robots: { index: false, follow: false },
-  alternates: { canonical: "https://perfexhaust.vercel.app/mentions-legales" },
+  alternates: { canonical: "https://perfexhaust.fr/mentions-legales" },
 };
 
 export default function MentionsLegalesPage() {

@@ -11,7 +11,7 @@ Les cases cochées `[x]` correspondent à ce qui est **réellement fait et véri
 - [ ] Ajouter le domaine dans Vercel (Settings → Domains)
 - [ ] Configurer les enregistrements DNS (A / CNAME selon Vercel)
 - [ ] Vérifier le certificat SSL automatique Vercel
-- [ ] Remplacer `https://perfexhaust.vercel.app` par le domaine final dans le code
+- [ ] Remplacer `https://perfexhaust.fr` par le domaine final dans le code
       (rechercher la chaîne dans `src/` — présente dans `layout.tsx`, `sitemap.ts`, `robots.ts`, `jsonld.ts` et les pages)
 
 ## ▲ Vercel

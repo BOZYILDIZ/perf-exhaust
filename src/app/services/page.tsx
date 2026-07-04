@@ -11,10 +11,10 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Services — Fabrication échappements sur mesure PERF'EXHAUST Alsace",
     description: "Ligne complète, demi-ligne, silencieux, soudure inox TIG, modification sonore. Fabrication artisanale à Rountzenheim-Auenheim.",
-    url: "https://perfexhaust.vercel.app/services",
+    url: "https://perfexhaust.fr/services",
     type: "website",
   },
-  alternates: { canonical: "https://perfexhaust.vercel.app/services" },
+  alternates: { canonical: "https://perfexhaust.fr/services" },
 };
 
 const iconMap: Record<string, React.ElementType> = {
@@ -23,8 +23,8 @@ const iconMap: Record<string, React.ElementType> = {
 };
 
 const BREADCRUMB = [
-  { name: "Accueil", url: "https://perfexhaust.vercel.app" },
-  { name: "Services", url: "https://perfexhaust.vercel.app/services" },
+  { name: "Accueil", url: "https://perfexhaust.fr" },
+  { name: "Services", url: "https://perfexhaust.fr/services" },
 ];
 
 export default function ServicesPage() {

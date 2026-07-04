@@ -1,4 +1,4 @@
-const SITE_URL = "https://perfexhaust.vercel.app";
+const SITE_URL = "https://perfexhaust.fr";
 
 export const organizationSchema = {
   "@context": "https://schema.org",

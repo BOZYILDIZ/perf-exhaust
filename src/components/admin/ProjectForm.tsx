@@ -426,13 +426,13 @@ export default function ProjectForm({
             <textarea id="pf-seodesc" value={v.seoDescription} onChange={(e) => set("seoDescription", e.target.value)} className={area} rows={2} maxLength={300} />
           </Field>
         </div>
-        <p className="text-gray-600 text-xs mt-2">Canonical : https://perfexhaust.vercel.app/realisations/{v.slug || "..."} (automatique)</p>
+        <p className="text-gray-600 text-xs mt-2">Canonical : https://perfexhaust.fr/realisations/{v.slug || "..."} (automatique)</p>
 
         {/* Aperçu résultat Google */}
         <div className="mt-4 p-4 border border-white/10 bg-white/[0.02]">
           <p className="text-xs font-bold tracking-widest uppercase text-gray-500 mb-3">Aperçu Google</p>
           <div className="max-w-xl">
-            <p className="text-xs text-gray-500 truncate">perfexhaust.vercel.app › realisations › {v.slug || "votre-slug"}</p>
+            <p className="text-xs text-gray-500 truncate">perfexhaust.fr › realisations › {v.slug || "votre-slug"}</p>
             <p className="text-[#8ab4f8] text-lg leading-snug truncate" style={{ fontFamily: "arial, sans-serif" }}>
               {(v.seoTitle || `${v.vehicule || "Titre du projet"} — ${v.prestation || "Prestation"}`).slice(0, 60)}
               {(v.seoTitle || `${v.vehicule} — ${v.prestation}`).length > 60 ? "…" : ""}

@@ -9,10 +9,10 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Contact — PERF'EXHAUST Rountzenheim-Auenheim",
     description: "Contactez notre atelier à Rountzenheim-Auenheim. Tél: +33 6 36 52 30 58.",
-    url: "https://perfexhaust.vercel.app/contact",
+    url: "https://perfexhaust.fr/contact",
     type: "website",
   },
-  alternates: { canonical: "https://perfexhaust.vercel.app/contact" },
+  alternates: { canonical: "https://perfexhaust.fr/contact" },
 };
 
 export default function ContactPage() {

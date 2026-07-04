@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const found = await getPublishedProjectBySlug(slugify(safeDecode(slug)), { includeDrafts: true });
   if (!found) return { title: "Projet introuvable" };
   const { project, isDraft } = found;
-  const url = `https://perfexhaust.vercel.app/realisations/${project.slug}`;
+  const url = `https://perfexhaust.fr/realisations/${project.slug}`;
   const title = project.seoTitle || `${project.vehicule} — ${project.prestation}`;
   const description = project.seoDescription || project.description;
   const ogImage = isRealImage(project.ogImage)
@@ -71,9 +71,9 @@ export default async function ProjectDetailPage({ params, searchParams }: Props)
   const next = currentIndex >= 0 && currentIndex < published.length - 1 ? published[currentIndex + 1] : null;
 
   const breadcrumb = breadcrumbSchema([
-    { name: "Accueil", url: "https://perfexhaust.vercel.app" },
-    { name: "Réalisations", url: "https://perfexhaust.vercel.app/realisations" },
-    { name: project.vehicule, url: `https://perfexhaust.vercel.app/realisations/${project.slug}` },
+    { name: "Accueil", url: "https://perfexhaust.fr" },
+    { name: "Réalisations", url: "https://perfexhaust.fr/realisations" },
+    { name: project.vehicule, url: `https://perfexhaust.fr/realisations/${project.slug}` },
   ]);
 
   return (

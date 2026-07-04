@@ -9,7 +9,7 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/api/"],
       },
     ],
-    sitemap: "https://perfexhaust.vercel.app/sitemap.xml",
-    host: "https://perfexhaust.vercel.app",
+    sitemap: "https://perfexhaust.fr/sitemap.xml",
+    host: "https://perfexhaust.fr",
   };
 }

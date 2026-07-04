@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "**.public.blob.vercel-storage.com" },
-      { protocol: "https", hostname: "perfexhaust.vercel.app" },
+      { protocol: "https", hostname: "perfexhaust.fr" },
       { protocol: "https", hostname: "graph.instagram.com" },
       { protocol: "https", hostname: "**.fbcdn.net" },
       { protocol: "https", hostname: "open.tiktokapis.com" },

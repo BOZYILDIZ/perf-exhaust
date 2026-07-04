@@ -13,7 +13,7 @@
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
 [![Framer Motion](https://img.shields.io/badge/Framer_Motion-12-0055FF?style=for-the-badge&logo=framer&logoColor=white)](https://www.framer.com/motion/)
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed_on-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://perfexhaust.vercel.app)
+[![Deployed on Vercel](https://img.shields.io/badge/Deployed_on-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://perfexhaust.fr)
 [![Responsive](https://img.shields.io/badge/Responsive-320px_to_4K-1266EA?style=for-the-badge)](#-responsive)
 [![SEO](https://img.shields.io/badge/SEO-Optimized-1266EA?style=for-the-badge)](#-seo)
 [![GEO](https://img.shields.io/badge/GEO-AI_Ready-1266EA?style=for-the-badge)](#-geo--référencement-génératif)
@@ -21,7 +21,7 @@
 
 <br />
 
-[**🌐 Voir le site en ligne**](https://perfexhaust.vercel.app) · [**🐛 Signaler un bug**](https://github.com/BOZYILDIZ/perf-exhaust/issues) · [**📋 Roadmap**](#️-roadmap)
+[**🌐 Voir le site en ligne**](https://perfexhaust.fr) · [**🐛 Signaler un bug**](https://github.com/BOZYILDIZ/perf-exhaust/issues) · [**📋 Roadmap**](#️-roadmap)
 
 </div>
 
@@ -414,7 +414,7 @@ Déploiement continu, automatisé à chaque push sur `main` :
 ```
 ┌─────────────┐        ┌──────────────┐        ┌──────────────────────────┐
 │   GitHub    │  push  │    Vercel    │ build  │        Production        │
-│    main     │ ─────▶ │   Pipeline   │ ─────▶ │ perfexhaust.vercel.app   │
+│    main     │ ─────▶ │   Pipeline   │ ─────▶ │    perfexhaust.fr        │
 └─────────────┘        └──────────────┘        └──────────────────────────┘
 ```
 
@@ -424,7 +424,7 @@ Déploiement continu, automatisé à chaque push sur `main` :
 | **Plateforme** | [Vercel](https://vercel.com) |
 | **Déclencheur** | Push sur la branche `main` |
 | **Build** | `next build` (Turbopack) |
-| **URL de production** | [perfexhaust.vercel.app](https://perfexhaust.vercel.app) |
+| **URL de production** | [perfexhaust.fr](https://perfexhaust.fr) |
 
 <br />
 
@@ -484,7 +484,7 @@ Ce projet est un logiciel **propriétaire**. Le code source est mis à dispositi
 
 📍 Rountzenheim-Auenheim · Bas-Rhin · Alsace · France
 📞 [+33 6 36 52 30 58](tel:+33636523058)
-🌐 [perfexhaust.vercel.app](https://perfexhaust.vercel.app)
+🌐 [perfexhaust.fr](https://perfexhaust.fr)
 
 <br />
 
