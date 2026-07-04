@@ -5,7 +5,9 @@ import { projects as staticProjects } from "@/data/projects";
 import { getPublishedProjects, getPublishedProjectBySlug } from "@/lib/projects-repo";
 import { isAdminAuthenticated } from "@/lib/admin-auth";
 import { projectSchema, breadcrumbSchema } from "@/lib/jsonld";
-import { slugify } from "@/lib/utils";
+import { slugify, isRealImage, projectCoverImage } from "@/lib/utils";
+import Image from "next/image";
+import ProjectLightbox from "@/components/gallery/ProjectLightbox";
 import { ArrowLeft, ArrowRight, Car, Calendar, Wrench } from "lucide-react";
 
 interface Props { params: Promise<{ slug: string }>; searchParams: Promise<{ preview?: string }> }
@@ -29,11 +31,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!found) return { title: "Projet introuvable" };
   const { project, isDraft } = found;
   const url = `https://perfexhaust.vercel.app/realisations/${project.slug}`;
+  const title = project.seoTitle || `${project.vehicule} — ${project.prestation}`;
+  const description = project.seoDescription || project.description;
+  const ogImage = isRealImage(project.ogImage)
+    ? project.ogImage
+    : projectCoverImage(project)?.src ?? "/brand/og-image.jpg";
   return {
-    title: `${project.vehicule} — ${project.prestation}`,
-    description: project.description,
+    title,
+    description,
     alternates: { canonical: url },
-    openGraph: { url, title: `${project.vehicule} — ${project.prestation}`, description: project.description },
+    openGraph: { url, title, description, images: [{ url: ogImage }] },
     // Un brouillon prévisualisé ne doit jamais être indexé
     ...(isDraft ? { robots: { index: false, follow: false } } : {}),
   };
@@ -83,17 +90,33 @@ export default async function ProjectDetailPage({ params, searchParams }: Props)
       {/* Hero */}
       <div className="max-w-7xl mx-auto px-6 pb-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-          {/* Image */}
-          <div
-            className="aspect-video flex items-center justify-center"
-            style={{ background: "linear-gradient(135deg, #141414, #1a1a1a)", border: "1px solid #1e1e1e" }}
-          >
-            <div className="flex flex-col items-center gap-3 text-gray-600">
-              <Car size={64} />
-              <span className="text-sm font-medium">{project.vehicule}</span>
-              <span className="text-xs text-gray-700">Photo à venir</span>
-            </div>
-          </div>
+          {/* Visuel principal : photo réelle si disponible */}
+          {(() => {
+            const cover = projectCoverImage(project);
+            return cover ? (
+              <div className="relative aspect-video overflow-hidden border" style={{ borderColor: "#1e1e1e" }}>
+                <Image
+                  src={cover.src}
+                  alt={cover.alt}
+                  fill
+                  priority
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  className="object-cover"
+                />
+              </div>
+            ) : (
+              <div
+                className="aspect-video flex items-center justify-center"
+                style={{ background: "linear-gradient(135deg, #141414, #1a1a1a)", border: "1px solid #1e1e1e" }}
+              >
+                <div className="flex flex-col items-center gap-3 text-gray-600">
+                  <Car size={64} />
+                  <span className="text-sm font-medium">{project.vehicule}</span>
+                  <span className="text-xs text-gray-700">Photo à venir</span>
+                </div>
+              </div>
+            );
+          })()}
 
           {/* Info */}
           <div>
@@ -108,7 +131,7 @@ export default async function ProjectDetailPage({ params, searchParams }: Props)
               ))}
             </div>
 
-            <h1 className="font-black text-white mb-2" style={{ fontFamily: "Oswald, sans-serif", fontSize: "clamp(2rem, 5vw, 3.5rem)", lineHeight: "1" }}>
+            <h1 className="font-black text-white mb-2" style={{ fontFamily: "var(--font-oswald), sans-serif", fontSize: "clamp(2rem, 5vw, 3.5rem)", lineHeight: "1" }}>
               {project.vehicule}
             </h1>
 
@@ -144,24 +167,38 @@ export default async function ProjectDetailPage({ params, searchParams }: Props)
           </div>
         </div>
 
-        {/* Gallery avant/apres */}
-        {project.images.length > 0 && (
-          <div className="mt-12">
-            <h2 className="text-xl font-black text-white mb-6" style={{ fontFamily: "Oswald, sans-serif" }}>Galerie</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {project.images.map((img, i) => (
-                <div
-                  key={i}
-                  className="aspect-video flex flex-col items-center justify-center gap-2"
-                  style={{ background: "linear-gradient(135deg, #141414, #1a1a1a)", border: "1px solid #1e1e1e" }}
-                >
-                  <Car size={32} className="text-gray-700" />
-                  <span className="text-xs text-gray-600 capitalize">{img.type}</span>
+        {/* Galerie avant/après — lightbox sur les photos réelles */}
+        {(() => {
+          const real = project.images.filter((img) => isRealImage(img.src));
+          if (real.length > 0) {
+            return (
+              <div className="mt-12">
+                <h2 className="text-xl font-black text-white mb-6" style={{ fontFamily: "var(--font-oswald), sans-serif" }}>Galerie</h2>
+                <ProjectLightbox images={real} />
+              </div>
+            );
+          }
+          if (project.images.length > 0) {
+            return (
+              <div className="mt-12">
+                <h2 className="text-xl font-black text-white mb-6" style={{ fontFamily: "var(--font-oswald), sans-serif" }}>Galerie</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  {project.images.map((img, i) => (
+                    <div
+                      key={i}
+                      className="aspect-video flex flex-col items-center justify-center gap-2"
+                      style={{ background: "linear-gradient(135deg, #141414, #1a1a1a)", border: "1px solid #1e1e1e" }}
+                    >
+                      <Car size={32} className="text-gray-700" />
+                      <span className="text-xs text-gray-600 capitalize">{img.type}</span>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
+              </div>
+            );
+          }
+          return null;
+        })()}
       </div>
 
       {/* Navigation entre projets */}
@@ -172,7 +209,7 @@ export default async function ProjectDetailPage({ params, searchParams }: Props)
               <ArrowLeft size={16} />
               <div>
                 <div className="text-xs text-gray-600 uppercase tracking-wider">Précédent</div>
-                <div className="text-sm font-bold" style={{ fontFamily: "Oswald, sans-serif" }}>{prev.vehicule}</div>
+                <div className="text-sm font-bold" style={{ fontFamily: "var(--font-oswald), sans-serif" }}>{prev.vehicule}</div>
               </div>
             </Link>
           ) : <div />}
@@ -180,7 +217,7 @@ export default async function ProjectDetailPage({ params, searchParams }: Props)
             <Link href={`/realisations/${next.slug}`} className="flex items-center gap-3 text-gray-400 hover:text-brand-400 transition-colors text-right group">
               <div>
                 <div className="text-xs text-gray-600 uppercase tracking-wider">Suivant</div>
-                <div className="text-sm font-bold" style={{ fontFamily: "Oswald, sans-serif" }}>{next.vehicule}</div>
+                <div className="text-sm font-bold" style={{ fontFamily: "var(--font-oswald), sans-serif" }}>{next.vehicule}</div>
               </div>
               <ArrowRight size={16} />
             </Link>

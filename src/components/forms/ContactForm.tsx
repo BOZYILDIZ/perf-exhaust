@@ -38,7 +38,7 @@ export default function ContactForm() {
     return (
       <div className="text-center py-12">
         <CheckCircle size={40} className="text-green-400 mx-auto mb-4" />
-        <h3 className="text-xl font-black text-white mb-2" style={{ fontFamily: "Oswald, sans-serif" }}>Message envoyé !</h3>
+        <h3 className="text-xl font-black text-white mb-2" style={{ fontFamily: "var(--font-oswald), sans-serif" }}>Message envoyé !</h3>
         <p className="text-gray-400 text-sm">Votre message a bien été enregistré. L&apos;atelier reviendra vers vous dès que possible.</p>
         <button onClick={() => setStatus("idle")} className="mt-6 text-brand-400 text-sm hover:underline">Envoyer un autre message</button>
       </div>
@@ -47,7 +47,7 @@ export default function ContactForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-      <h2 className="text-white font-bold text-sm tracking-widest uppercase pb-3" style={{ borderBottom: "1px solid #1e1e1e", fontFamily: "Oswald, sans-serif" }}>
+      <h2 className="text-white font-bold text-sm tracking-widest uppercase pb-3" style={{ borderBottom: "1px solid #1e1e1e", fontFamily: "var(--font-oswald), sans-serif" }}>
         Envoyer un message
       </h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

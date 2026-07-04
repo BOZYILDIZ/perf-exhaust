@@ -58,6 +58,20 @@ le login est limité à 5 tentatives/minute/IP.
 **Sans `DATABASE_URL`**, le site public lit `src/data/projects.ts` comme avant :
 rien ne casse, l'admin affiche simplement la marche à suivre.
 
+### Images des réalisations — comportement
+
+Une image est affichée sur le site public **uniquement si son URL est en
+`http(s)`** (upload Vercel Blob ou URL externe). Les chemins relatifs
+historiques (`/images/projects/...`) gardent le placeholder premium.
+Dès qu'un projet a une image principale ou des images de galerie réelles :
+- la carte de la galerie publique affiche la photo de couverture ;
+- la page projet affiche le visuel principal + une **lightbox**
+  (clic, flèches clavier, swipe mobile, Échap) ;
+- l'image Open Graph du projet devient sa photo (partages sociaux).
+Les champs SEO du formulaire admin (meta title/description, OG image)
+sont directement utilisés par la page publique — l'aperçu Google du
+formulaire montre le rendu.
+
 ### Gérer les réalisations
 
 - **Ajouter** : `/admin/realisations/new` — le slug se génère depuis le titre
@@ -66,6 +80,8 @@ rien ne casse, l'admin affiche simplement la marche à suivre.
   publique (les brouillons s'ouvrent avec `?preview=1`, réservé à la session admin).
 - **Publier / brouillon** : boutons de statut en haut du formulaire. Un
   brouillon est invisible du public, absent du sitemap et non indexable.
+- **Dupliquer** : icône copie dans la liste — crée un **brouillon**
+  (`slug-copie`) pré-rempli et ouvre son édition. Idéal pour les projets similaires.
 - **Supprimer** : corbeille + confirmation. Irréversible.
 - Les pages publiques se mettent à jour en ≤ 60 s (ISR) après chaque action.
 
@@ -312,6 +328,18 @@ curl -sI "https://perfexhaust.vercel.app/realisations/bmw-serie-3-sonorit%C3%A9-
 
 Cette logique vit dans `src/app/realisations/[slug]/page.tsx` (`permanentRedirect`)
 et `src/data/projects.ts` (`getProjectBySlug` normalise le slug reçu).
+
+## ⚡ Performance — note sur l'intro
+
+L'intro « soudure » de la page d'accueil est le plus grand élément peint
+(LCP) mesuré par Lighthouse : le score Performance de la home (~85) reflète
+ce choix de marque, pas un défaut technique (SEO/Best Practices = 100).
+Pour privilégier la métrique, désactiver l'intro = supprimer `<IntroGate />`
+dans `src/app/page.tsx` (une ligne).
+
+Le formulaire de devis **sauvegarde automatiquement** la saisie
+(localStorage, clé `pe-devis-draft`) et la restaure à la prochaine visite ;
+le consentement RGPD n'est jamais restauré.
 
 ## 🩺 Problèmes courants
 

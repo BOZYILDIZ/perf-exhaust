@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { ArrowRight, CheckCircle, AlertCircle, Loader2, ChevronDown } from "lucide-react";
-import VehicleSelector from "./VehicleSelector";
+import VehicleSelector, { type VehicleValue } from "./VehicleSelector";
 
 const schema = z.object({
   nom: z.string().min(2, "Nom requis"),
@@ -45,6 +45,13 @@ const sonorities = [
   "À définir avec l'atelier",
 ];
 
+const DRAFT_KEY = "pe-devis-draft";
+const REQUIRED_FIELDS: (keyof FormData)[] = [
+  "prenom", "nom", "telephone", "email",
+  "marque", "modele", "annee",
+  "typeProjet", "sonoritePreference", "description", "rgpd",
+];
+
 const labelStyle = "block text-xs font-bold tracking-widest uppercase text-gray-400 mb-2";
 const inputStyle = "w-full bg-transparent border border-gray-800 text-white text-sm px-4 py-3 focus:outline-none focus:border-brand-500 transition-colors placeholder-gray-700";
 const selectStyle = "w-full bg-gray-950 border border-gray-800 text-white text-sm px-4 py-3 focus:outline-none focus:border-brand-500 transition-colors appearance-none";
@@ -54,10 +61,60 @@ export default function AppointmentForm() {
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
 
-  const { register, handleSubmit, setValue, formState: { errors, isSubmitted }, reset } = useForm<FormData>({
+  // Brouillon localStorage : restauré APRÈS montage (jamais au rendu initial,
+  // sinon le HTML client diverge du HTML serveur → erreur d'hydratation React).
+  const [draft, setDraft] = useState<Partial<FormData> | null>(null);
+  const [draftRestored, setDraftRestored] = useState(false);
+
+  const { register, handleSubmit, setValue, watch, formState: { errors, isSubmitted }, reset } = useForm<FormData>({
     resolver: zodResolver(schema),
+    // Validation en temps réel dès qu'un champ a été visité
+    mode: "onTouched",
     defaultValues: { marque: "", modele: "", annee: "", motorisation: "" },
   });
+
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(DRAFT_KEY);
+      if (!raw) return;
+      const saved = JSON.parse(raw) as Partial<FormData>;
+      // Le consentement RGPD ne se restaure jamais automatiquement
+      reset({ marque: "", modele: "", annee: "", motorisation: "", ...saved, rgpd: false } as FormData);
+      setDraft(saved);
+      setDraftRestored(true);
+    } catch { /* stockage indisponible/corrompu : on repart à vide */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Sauvegarde automatique (débouncée) de tous les champs sauf le consentement
+  const values = watch();
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (status === "success") return;
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => {
+      try {
+        const toSave: Record<string, unknown> = { ...values };
+        delete toSave.rgpd;
+        const hasContent = Object.values(toSave).some((v) => typeof v === "string" && v.trim() !== "");
+        if (hasContent) window.localStorage.setItem(DRAFT_KEY, JSON.stringify(toSave));
+      } catch { /* stockage indisponible : silencieux */ }
+    }, 600);
+    return () => { if (saveTimer.current) clearTimeout(saveTimer.current); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(values), status]);
+
+  const clearDraft = () => {
+    try { window.localStorage.removeItem(DRAFT_KEY); } catch { /* noop */ }
+    setDraftRestored(false);
+  };
+
+  // Progression : proportion de champs requis valides/remplis
+  const filledCount = REQUIRED_FIELDS.filter((f) => {
+    const v = values[f];
+    return typeof v === "boolean" ? v : typeof v === "string" && v.trim() !== "";
+  }).length;
+  const progress = Math.round((filledCount / REQUIRED_FIELDS.length) * 100);
 
   const onSubmit = async (data: FormData) => {
     setStatus("loading");
@@ -69,6 +126,7 @@ export default function AppointmentForm() {
       });
       if (!res.ok) throw new Error("Erreur serveur");
       setStatus("success");
+      clearDraft();
       reset();
     } catch {
       setStatus("error");
@@ -82,7 +140,7 @@ export default function AppointmentForm() {
         <div className="w-16 h-16 mx-auto mb-6 flex items-center justify-center" style={{ background: "rgba(34,197,94,0.1)", border: "1px solid rgba(34,197,94,0.3)" }}>
           <CheckCircle size={32} className="text-green-400" />
         </div>
-        <h3 className="text-2xl font-black text-white mb-3" style={{ fontFamily: "Oswald, sans-serif" }}>
+        <h3 className="text-2xl font-black text-white mb-3" style={{ fontFamily: "var(--font-oswald), sans-serif" }}>
           Demande envoyée !
         </h3>
         <p className="text-gray-400 text-sm max-w-md mx-auto mb-2">
@@ -101,6 +159,34 @@ export default function AppointmentForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      {/* Progression */}
+      <div aria-hidden="true">
+        <div className="flex items-center justify-between mb-1.5">
+          <span className="text-xs text-gray-500">Progression de votre demande</span>
+          <span className="text-xs font-bold text-brand-400 tabular-nums">{progress}%</span>
+        </div>
+        <div className="h-1 bg-white/10 overflow-hidden">
+          <div
+            className="h-full transition-all duration-500 ease-out"
+            style={{ width: `${progress}%`, background: "linear-gradient(90deg, #1266ea, #4d8ef0)" }}
+          />
+        </div>
+      </div>
+
+      {/* Reprise de brouillon */}
+      {draftRestored && (
+        <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 border border-brand-500/25 bg-brand-500/5">
+          <p className="text-brand-400 text-xs">Votre saisie précédente a été restaurée automatiquement.</p>
+          <button
+            type="button"
+            onClick={() => { clearDraft(); reset({ marque: "", modele: "", annee: "", motorisation: "", rgpd: false } as FormData); window.location.reload(); }}
+            className="text-xs text-gray-500 hover:text-white underline underline-offset-2 transition-colors"
+          >
+            Recommencer à zéro
+          </button>
+        </div>
+      )}
+
       {/* Section identité */}
       <div>
         <h2 className="text-white font-bold text-sm tracking-widest uppercase mb-4 pb-2" style={{ borderBottom: "1px solid #1e1e1e" }}>
@@ -136,6 +222,8 @@ export default function AppointmentForm() {
           02 — Votre véhicule
         </h2>
         <VehicleSelector
+          key={draft ? "draft" : "fresh"}
+          initial={draft ? ({ marque: draft.marque ?? "", modele: draft.modele ?? "", annee: draft.annee ?? "", motorisation: draft.motorisation ?? "" } as VehicleValue) : undefined}
           onChange={(v) => {
             const opts = { shouldValidate: isSubmitted };
             setValue("marque", v.marque, opts);
@@ -204,6 +292,19 @@ export default function AppointmentForm() {
           </div>
         </div>
       </div>
+
+      {/* Résumé avant envoi */}
+      {values.marque && values.typeProjet && (
+        <div className="p-4 border border-white/10 bg-white/[0.02]">
+          <p className="text-xs font-bold tracking-widest uppercase text-gray-500 mb-3">Récapitulatif de votre demande</p>
+          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5 text-sm">
+            <div className="flex gap-2"><dt className="text-gray-500 shrink-0">Véhicule :</dt><dd className="text-white">{[values.marque, values.modele, values.annee].filter(Boolean).join(" · ")}</dd></div>
+            {values.motorisation && <div className="flex gap-2"><dt className="text-gray-500 shrink-0">Motorisation :</dt><dd className="text-white">{values.motorisation}</dd></div>}
+            <div className="flex gap-2"><dt className="text-gray-500 shrink-0">Projet :</dt><dd className="text-white">{values.typeProjet}</dd></div>
+            {values.sonoritePreference && <div className="flex gap-2"><dt className="text-gray-500 shrink-0">Sonorité :</dt><dd className="text-white">{values.sonoritePreference}</dd></div>}
+          </dl>
+        </div>
+      )}
 
       {/* RGPD */}
       <div className="flex items-start gap-3 p-4" style={{ background: "rgba(18,102,234,0.03)", border: "1px solid rgba(18,102,234,0.1)" }}>

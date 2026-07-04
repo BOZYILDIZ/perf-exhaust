@@ -38,7 +38,7 @@ export default function RendezVousPage() {
             <div className="w-8 h-0.5 bg-brand-500" />
             <span className="text-brand-500 text-xs font-bold tracking-widest uppercase">Devis gratuit</span>
           </div>
-          <h1 className="font-black text-white mb-4" style={{ fontFamily: "Oswald, sans-serif", fontSize: "clamp(2rem, 5vw, 4rem)", lineHeight: "1" }}>
+          <h1 className="font-black text-white mb-4" style={{ fontFamily: "var(--font-oswald), sans-serif", fontSize: "clamp(2rem, 5vw, 4rem)", lineHeight: "1" }}>
             DEMANDE DE DEVIS
           </h1>
           <p className="text-gray-400 text-lg max-w-xl">
@@ -59,7 +59,7 @@ export default function RendezVousPage() {
           {/* Sidebar */}
           <div className="space-y-6">
             <div className="p-6 border" style={{ background: "#0f0f0f", borderColor: "#1e1e1e" }}>
-              <h3 className="text-white font-bold text-sm tracking-widest uppercase mb-4" style={{ fontFamily: "Oswald, sans-serif" }}>
+              <h3 className="text-white font-bold text-sm tracking-widest uppercase mb-4" style={{ fontFamily: "var(--font-oswald), sans-serif" }}>
                 Pourquoi nous choisir ?
               </h3>
               <div className="space-y-3">

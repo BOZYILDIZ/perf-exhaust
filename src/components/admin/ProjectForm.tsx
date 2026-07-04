@@ -404,7 +404,12 @@ export default function ProjectForm({
         <h2 className={sectionTitle}>SEO</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field>
-            <label htmlFor="pf-seotitle" className={label}>Meta title <span className="text-gray-600 normal-case">(vide = auto)</span></label>
+            <label htmlFor="pf-seotitle" className={label}>
+              Meta title <span className="text-gray-600 normal-case">(vide = auto)</span>
+              <span className={`float-right tabular-nums ${(v.seoTitle || `${v.vehicule} — ${v.prestation}`).length > 60 ? "text-red-400" : "text-gray-600"}`}>
+                {(v.seoTitle || `${v.vehicule} — ${v.prestation}`).length}/60
+              </span>
+            </label>
             <input id="pf-seotitle" value={v.seoTitle} onChange={(e) => set("seoTitle", e.target.value)} className={input} maxLength={120} />
           </Field>
           <Field>
@@ -412,11 +417,32 @@ export default function ProjectForm({
             <input id="pf-ogimage" value={v.ogImage} onChange={(e) => set("ogImage", e.target.value)} className={input} placeholder="vide = image du site" />
           </Field>
           <Field span>
-            <label htmlFor="pf-seodesc" className={label}>Meta description <span className="text-gray-600 normal-case">(vide = description courte)</span></label>
+            <label htmlFor="pf-seodesc" className={label}>
+              Meta description <span className="text-gray-600 normal-case">(vide = description courte)</span>
+              <span className={`float-right tabular-nums ${(v.seoDescription || v.description).length > 160 ? "text-red-400" : "text-gray-600"}`}>
+                {(v.seoDescription || v.description).length}/160
+              </span>
+            </label>
             <textarea id="pf-seodesc" value={v.seoDescription} onChange={(e) => set("seoDescription", e.target.value)} className={area} rows={2} maxLength={300} />
           </Field>
         </div>
         <p className="text-gray-600 text-xs mt-2">Canonical : https://perfexhaust.vercel.app/realisations/{v.slug || "..."} (automatique)</p>
+
+        {/* Aperçu résultat Google */}
+        <div className="mt-4 p-4 border border-white/10 bg-white/[0.02]">
+          <p className="text-xs font-bold tracking-widest uppercase text-gray-500 mb-3">Aperçu Google</p>
+          <div className="max-w-xl">
+            <p className="text-xs text-gray-500 truncate">perfexhaust.vercel.app › realisations › {v.slug || "votre-slug"}</p>
+            <p className="text-[#8ab4f8] text-lg leading-snug truncate" style={{ fontFamily: "arial, sans-serif" }}>
+              {(v.seoTitle || `${v.vehicule || "Titre du projet"} — ${v.prestation || "Prestation"}`).slice(0, 60)}
+              {(v.seoTitle || `${v.vehicule} — ${v.prestation}`).length > 60 ? "…" : ""}
+            </p>
+            <p className="text-gray-400 text-sm leading-snug" style={{ fontFamily: "arial, sans-serif" }}>
+              {(v.seoDescription || v.description || "La meta description apparaîtra ici.").slice(0, 160)}
+              {(v.seoDescription || v.description).length > 160 ? "…" : ""}
+            </p>
+          </div>
+        </div>
       </section>
 
       {/* ===== Divers ===== */}

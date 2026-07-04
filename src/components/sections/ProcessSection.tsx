@@ -45,7 +45,7 @@ export default function ProcessSection() {
                   <span
                     className="text-4xl font-black"
                     style={{
-                      fontFamily: "Oswald, sans-serif",
+                      fontFamily: "var(--font-oswald), sans-serif",
                       WebkitTextStroke: "1px rgba(18,102,234,0.4)",
                       color: "transparent",
                     }}
@@ -56,7 +56,7 @@ export default function ProcessSection() {
                 </div>
                 <h3
                   className="text-white font-bold text-lg mb-2"
-                  style={{ fontFamily: "Oswald, sans-serif" }}
+                  style={{ fontFamily: "var(--font-oswald), sans-serif" }}
                 >
                   {step.title}
                 </h3>

@@ -71,15 +71,15 @@ export default function ServicesSection() {
 
                 <h3
                   className="text-white font-bold text-base mb-2 leading-tight group-hover:text-brand-400 transition-colors"
-                  style={{ fontFamily: "Oswald, sans-serif" }}
+                  style={{ fontFamily: "var(--font-oswald), sans-serif" }}
                 >
                   {service.title}
                 </h3>
-                <p className="text-gray-500 text-sm leading-relaxed mb-4">{service.description}</p>
+                <p className="text-gray-400 text-sm leading-relaxed mb-4">{service.description}</p>
 
                 <ul className="space-y-1">
                   {service.details.slice(0, 3).map((d) => (
-                    <li key={d} className="flex items-center gap-2 text-xs text-gray-600">
+                    <li key={d} className="flex items-center gap-2 text-xs text-gray-500">
                       <span className="w-1 h-1 bg-brand-500 rounded-full flex-shrink-0" />
                       {d}
                     </li>
@@ -96,7 +96,7 @@ export default function ServicesSection() {
           style={{ background: "rgba(18,102,234,0.05)", border: "1px solid rgba(18,102,234,0.15)" }}
         >
           <div>
-            <p className="text-white font-bold text-lg" style={{ fontFamily: "Oswald, sans-serif" }}>
+            <p className="text-white font-bold text-lg" style={{ fontFamily: "var(--font-oswald), sans-serif" }}>
               Tous nos tarifs sur devis personnalisé
             </p>
             <p className="text-gray-400 text-sm mt-1">

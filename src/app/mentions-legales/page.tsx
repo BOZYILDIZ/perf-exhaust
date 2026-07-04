@@ -11,7 +11,7 @@ export default function MentionsLegalesPage() {
   return (
     <div className="pt-20" style={{ background: "#080808" }}>
       <div className="max-w-4xl mx-auto px-6 py-10 sm:py-16">
-        <h1 className="text-3xl md:text-4xl lg:text-5xl font-black text-white mb-8 sm:mb-12" style={{ fontFamily: "Oswald, sans-serif" }}>
+        <h1 className="text-3xl md:text-4xl lg:text-5xl font-black text-white mb-8 sm:mb-12" style={{ fontFamily: "var(--font-oswald), sans-serif" }}>
           Mentions légales &amp; Confidentialité
         </h1>
 
@@ -80,7 +80,7 @@ function Section({ title, children, id }: { title: string; children: React.React
     <section id={id}>
       <div className="flex items-center gap-3 mb-4">
         <div className="w-6 h-0.5 bg-brand-500" />
-        <h2 className="text-white font-bold text-lg" style={{ fontFamily: "Oswald, sans-serif" }}>{title}</h2>
+        <h2 className="text-white font-bold text-lg" style={{ fontFamily: "var(--font-oswald), sans-serif" }}>{title}</h2>
       </div>
       <div className="pl-4 sm:pl-9 space-y-2">{children}</div>
     </section>

@@ -1,9 +1,7 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
-
-const WeldingIntro = dynamic(() => import("@/components/animations/WeldingIntro"), { ssr: false });
+import WeldingIntro from "@/components/animations/WeldingIntro";
 
 /**
  * Porte d'entrée de l'intro soudure : overlay plein écran affiché une fois

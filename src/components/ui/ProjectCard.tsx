@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import type { Project } from "@/types";
+import { projectCoverImage } from "@/lib/utils";
 
 // Correspondance par préfixe : les prestations réelles sont des libellés longs
 // ("Ligne complète inox", "Demi-ligne sur mesure"...) — on matche sur le début.
@@ -28,6 +30,7 @@ const SONORITY_GRADIENTS: Record<string, string> = {
 export default function ProjectCard({ project }: { project: Project }) {
   const prestColor = PRESTATION_COLORS.find(([prefix]) => project.prestation.startsWith(prefix))?.[1] ?? "#6b7280";
   const grad = SONORITY_GRADIENTS[project.sonoriteTag] || "from-gray-900/60 to-black";
+  const cover = projectCoverImage(project);
 
   return (
     <motion.article
@@ -36,12 +39,23 @@ export default function ProjectCard({ project }: { project: Project }) {
       className="group relative bg-[#111] border border-white/10 overflow-hidden"
       style={{ willChange: "transform" }}
     >
-      <Link href={"/realisations/" + project.slug} aria-label={"Voir le projet " + project.vehicule}>
-        {/* Thumbnail placeholder */}
+      <Link href={"/realisations/" + project.slug}>
+        {/* Visuel : photo réelle si disponible, sinon placeholder premium */}
         <div
           className={"relative h-56 bg-gradient-to-br " + grad + " flex items-center justify-center overflow-hidden"}
-          aria-hidden="true"
+          aria-hidden={cover ? undefined : true}
         >
+          {cover && (
+            <Image
+              src={cover.src}
+              alt={cover.alt}
+              fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+          )}
+          {!cover && (
+          <>
           {/* Metal texture lines */}
           <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 8px, rgba(255,255,255,0.3) 8px, rgba(255,255,255,0.3) 9px)" }} />
 
@@ -60,6 +74,8 @@ export default function ProjectCard({ project }: { project: Project }) {
             <circle cx="28" cy="52" r="3" fill="white" opacity="0.5"/>
             <circle cx="92" cy="52" r="3" fill="white" opacity="0.5"/>
           </svg>
+          </>
+          )}
 
           {/* Hover glow */}
           <div

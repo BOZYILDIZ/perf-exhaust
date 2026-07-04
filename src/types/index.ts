@@ -20,6 +20,13 @@ export interface Project {
   videoUrl?: string
   featured: boolean
   date: string
+  /** Image de couverture (admin) — affichée si URL http(s) réelle. */
+  imagePrincipale?: string
+  imageAlt?: string
+  /** Surcharges SEO saisies dans l'admin. */
+  seoTitle?: string
+  seoDescription?: string
+  ogImage?: string
 }
 
 export interface Service {

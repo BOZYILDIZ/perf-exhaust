@@ -14,6 +14,8 @@ export interface VehicleValue {
 interface VehicleSelectorProps {
   onChange: (value: VehicleValue) => void;
   errors?: Partial<Record<keyof VehicleValue, string | undefined>>;
+  /** Valeurs sauvegardées (reprise de brouillon) — ré-hydrate la cascade au montage. */
+  initial?: VehicleValue;
 }
 
 const OTHER = "__autre__";
@@ -42,15 +44,41 @@ function Chevron() {
  * saisie manuelle libre pour les véhicules absents du catalogue
  * (src/data/vehicles.ts).
  */
-export default function VehicleSelector({ onChange, errors }: VehicleSelectorProps) {
-  const [brand, setBrand] = useState("");
-  const [model, setModel] = useState("");
-  const [year, setYear] = useState("");
-  const [engine, setEngine] = useState("");
-  const [manualBrand, setManualBrand] = useState("");
-  const [manualModel, setManualModel] = useState("");
-  const [manualYear, setManualYear] = useState("");
-  const [manualEngine, setManualEngine] = useState("");
+/** Reconstruit l'état de la cascade depuis des valeurs sauvegardées (best-effort). */
+function deriveState(initial?: VehicleValue) {
+  const empty = { brand: "", model: "", year: "", engine: "", manualBrand: "", manualModel: "", manualYear: "", manualEngine: "" };
+  if (!initial?.marque) return empty;
+  if (initial.marque.startsWith("Autre — ")) {
+    return { ...empty, brand: OTHER, manualBrand: initial.marque.slice(8), manualModel: initial.modele, manualYear: initial.annee, manualEngine: initial.motorisation };
+  }
+  const brandData = vehicleCatalog.find((b) => b.brand === initial.marque);
+  if (!brandData) return empty;
+  const modelData = brandData.models.find((m) => m.name === initial.modele);
+  if (!modelData) {
+    return { ...empty, brand: initial.marque, model: OTHER, manualModel: initial.modele, manualYear: initial.annee, manualEngine: initial.motorisation };
+  }
+  const year = modelData.years.includes(initial.annee) ? initial.annee : "";
+  const engineInList = modelData.engines.includes(initial.motorisation);
+  return {
+    ...empty,
+    brand: initial.marque,
+    model: initial.modele,
+    year,
+    engine: !year ? "" : engineInList ? initial.motorisation : initial.motorisation ? "Autre" : "",
+    manualEngine: year && !engineInList ? initial.motorisation : "",
+  };
+}
+
+export default function VehicleSelector({ onChange, errors, initial }: VehicleSelectorProps) {
+  const [init] = useState(() => deriveState(initial));
+  const [brand, setBrand] = useState(init.brand);
+  const [model, setModel] = useState(init.model);
+  const [year, setYear] = useState(init.year);
+  const [engine, setEngine] = useState(init.engine);
+  const [manualBrand, setManualBrand] = useState(init.manualBrand);
+  const [manualModel, setManualModel] = useState(init.manualModel);
+  const [manualYear, setManualYear] = useState(init.manualYear);
+  const [manualEngine, setManualEngine] = useState(init.manualEngine);
 
   const brandData = useMemo(
     () => vehicleCatalog.find((b) => b.brand === brand),

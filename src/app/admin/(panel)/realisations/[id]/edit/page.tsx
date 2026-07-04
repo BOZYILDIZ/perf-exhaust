@@ -45,7 +45,7 @@ export default async function EditProjectPage({ params }: { params: Promise<{ id
 
   return (
     <div>
-      <h1 className="text-2xl font-black text-white mb-8" style={{ fontFamily: "Oswald, sans-serif" }}>
+      <h1 className="text-2xl font-black text-white mb-8" style={{ fontFamily: "var(--font-oswald), sans-serif" }}>
         Modifier — {p.vehicule}
       </h1>
       <ProjectForm initial={initial} projectId={p.id} blobConfigured={Boolean(process.env.BLOB_READ_WRITE_TOKEN)} />

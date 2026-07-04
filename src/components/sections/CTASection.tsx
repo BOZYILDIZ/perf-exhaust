@@ -33,7 +33,7 @@ export default function CTASection() {
         <h2
           className="text-white font-black mb-6"
           style={{
-            fontFamily: "Oswald, sans-serif",
+            fontFamily: "var(--font-oswald), sans-serif",
             fontSize: "clamp(2.5rem, 6vw, 5rem)",
             lineHeight: "0.95",
           }}

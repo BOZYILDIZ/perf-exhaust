@@ -22,7 +22,7 @@ export default async function AdminProjectsPage() {
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
-        <h1 className="text-2xl font-black text-white" style={{ fontFamily: "Oswald, sans-serif" }}>
+        <h1 className="text-2xl font-black text-white" style={{ fontFamily: "var(--font-oswald), sans-serif" }}>
           Réalisations
         </h1>
         <Link

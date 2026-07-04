@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Search, PencilLine, Trash2, Eye, Star, Loader2 } from "lucide-react";
+import { Search, PencilLine, Trash2, Eye, Star, Loader2, Copy } from "lucide-react";
 
 export interface AdminProjectRow {
   id: string;
@@ -23,6 +23,7 @@ export default function ProjectsTable({ initialRows }: { initialRows: AdminProje
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "published" | "draft">("all");
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [duplicating, setDuplicating] = useState<string | null>(null);
   const [message, setMessage] = useState<{ type: "ok" | "err"; text: string } | null>(null);
 
   const filtered = useMemo(() => {
@@ -35,6 +36,22 @@ export default function ProjectsTable({ initialRows }: { initialRows: AdminProje
       );
     });
   }, [rows, query, statusFilter]);
+
+  const duplicate = async (row: AdminProjectRow) => {
+    setDuplicating(row.id);
+    setMessage(null);
+    try {
+      const res = await fetch(`/api/admin/projects/${row.id}/duplicate`, { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Duplication impossible");
+      setMessage({ type: "ok", text: `Copie créée en brouillon (${data.slug}) — redirection...` });
+      router.push(`/admin/realisations/${data.id}/edit`);
+    } catch (e) {
+      setMessage({ type: "err", text: e instanceof Error ? e.message : "Erreur" });
+    } finally {
+      setDuplicating(null);
+    }
+  };
 
   const remove = async (row: AdminProjectRow) => {
     if (!window.confirm(`Supprimer définitivement « ${row.vehicule} — ${row.prestation} » ?\nCette action est irréversible.`)) return;
@@ -148,6 +165,15 @@ export default function ProjectsTable({ initialRows }: { initialRows: AdminProje
                     >
                       <Eye size={15} />
                     </a>
+                    <button
+                      onClick={() => duplicate(r)}
+                      disabled={duplicating === r.id}
+                      className="p-2 text-gray-500 hover:text-brand-400 transition-colors disabled:opacity-50"
+                      aria-label={`Dupliquer ${r.vehicule}`}
+                      title="Dupliquer (brouillon)"
+                    >
+                      {duplicating === r.id ? <Loader2 size={15} className="animate-spin" /> : <Copy size={15} />}
+                    </button>
                     <Link
                       href={`/admin/realisations/${r.id}/edit`}
                       className="p-2 text-brand-400 hover:text-brand-300 transition-colors"

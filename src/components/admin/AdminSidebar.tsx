@@ -27,7 +27,7 @@ export default function AdminSidebar() {
     >
       <Link href="/admin" className="flex items-center gap-3 px-3 sm:px-5 py-5 border-b" style={{ borderColor: "#1e1e1e" }}>
         <Image src="/brand/logo-icon.png" alt="Logo PERF'EXHAUST" width={36} height={25} className="h-7 w-auto" />
-        <span className="hidden sm:block text-white font-bold text-sm tracking-wider" style={{ fontFamily: "Oswald, sans-serif" }}>
+        <span className="hidden sm:block text-white font-bold text-sm tracking-wider" style={{ fontFamily: "var(--font-oswald), sans-serif" }}>
           ADMIN
         </span>
       </Link>

@@ -13,7 +13,7 @@ function StatCard({ label, value, accent }: { label: string; value: number | str
         borderColor: accent ? "rgba(18,102,234,0.3)" : "#1e1e1e",
       }}
     >
-      <div className="text-3xl font-black text-white" style={{ fontFamily: "Oswald, sans-serif" }}>{value}</div>
+      <div className="text-3xl font-black text-white" style={{ fontFamily: "var(--font-oswald), sans-serif" }}>{value}</div>
       <div className="text-gray-500 text-xs uppercase tracking-wider mt-1">{label}</div>
     </div>
   );
@@ -23,7 +23,7 @@ export default async function AdminDashboard() {
   if (!isDbConfigured()) {
     return (
       <div>
-        <h1 className="text-2xl font-black text-white mb-6" style={{ fontFamily: "Oswald, sans-serif" }}>Dashboard</h1>
+        <h1 className="text-2xl font-black text-white mb-6" style={{ fontFamily: "var(--font-oswald), sans-serif" }}>Dashboard</h1>
         <div className="p-6 border border-brand-500/30 bg-brand-500/5 max-w-2xl">
           <div className="flex items-start gap-3">
             <Database size={20} className="text-brand-400 flex-shrink-0 mt-0.5" />
@@ -60,7 +60,7 @@ export default async function AdminDashboard() {
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
-        <h1 className="text-2xl font-black text-white" style={{ fontFamily: "Oswald, sans-serif" }}>Dashboard</h1>
+        <h1 className="text-2xl font-black text-white" style={{ fontFamily: "var(--font-oswald), sans-serif" }}>Dashboard</h1>
         <Link
           href="/admin/realisations/new"
           className="inline-flex items-center gap-2 px-5 py-3 text-xs font-bold tracking-widest uppercase text-white"

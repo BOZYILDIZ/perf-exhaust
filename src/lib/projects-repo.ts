@@ -52,6 +52,11 @@ export function toPublicProject(row: DbProject): Project {
     videoUrl: row.videoUrl ?? undefined,
     featured: row.featured,
     date: row.date || row.createdAt.toISOString().slice(0, 10),
+    imagePrincipale: row.imagePrincipale ?? undefined,
+    imageAlt: row.imageAlt ?? undefined,
+    seoTitle: row.seoTitle ?? undefined,
+    seoDescription: row.seoDescription ?? undefined,
+    ogImage: row.ogImage ?? undefined,
   }
 }
 

@@ -47,7 +47,7 @@ export default function PartnersSection() {
                     >
                       <span
                         className="text-white font-black text-lg"
-                        style={{ fontFamily: "Oswald, sans-serif", letterSpacing: "0.05em" }}
+                        style={{ fontFamily: "var(--font-oswald), sans-serif", letterSpacing: "0.05em" }}
                       >
                         {partner.name.substring(0, 2)}
                       </span>
@@ -57,7 +57,7 @@ export default function PartnersSection() {
                     <div className="flex items-center gap-2">
                       <h3
                         className="text-white font-black text-xl"
-                        style={{ fontFamily: "Oswald, sans-serif" }}
+                        style={{ fontFamily: "var(--font-oswald), sans-serif" }}
                       >
                         {partner.name}
                       </h3>
@@ -84,7 +84,7 @@ export default function PartnersSection() {
 
         <p className="text-center text-gray-600 text-sm mt-6">
           Vous souhaitez devenir partenaire ?{" "}
-          <a href="/contact" className="text-brand-500 hover:text-brand-400 transition-colors">
+          <a href="/contact" className="text-brand-500 hover:text-brand-400 underline underline-offset-2 transition-colors">
             Contactez-nous
           </a>
         </p>

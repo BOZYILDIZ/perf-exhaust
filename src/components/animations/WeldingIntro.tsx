@@ -137,7 +137,7 @@ export default function WeldingIntro({ onComplete }: { onComplete: () => void })
         <div
           className="text-4xl sm:text-5xl md:text-7xl font-black text-white mb-2"
           style={{
-            fontFamily: "Oswald, sans-serif",
+            fontFamily: "var(--font-oswald), sans-serif",
             letterSpacing: "0.08em",
             textShadow: "0 0 40px rgba(18,102,234,0.8), 0 0 80px rgba(18,102,234,0.4)",
           }}

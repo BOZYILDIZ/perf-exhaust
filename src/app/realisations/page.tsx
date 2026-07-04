@@ -46,7 +46,7 @@ export default async function RealisationsPage() {
           <h1
             className="font-black text-white mb-4"
             style={{
-              fontFamily: "Oswald, sans-serif",
+              fontFamily: "var(--font-oswald), sans-serif",
               fontSize: "clamp(2.5rem, 6vw, 5rem)",
               lineHeight: "0.95",
             }}
@@ -76,7 +76,7 @@ export default async function RealisationsPage() {
         >
           <h2
             className="text-2xl font-black text-white mb-2"
-            style={{ fontFamily: "Oswald, sans-serif" }}
+            style={{ fontFamily: "var(--font-oswald), sans-serif" }}
           >
             Vous avez un projet similaire ?
           </h2>

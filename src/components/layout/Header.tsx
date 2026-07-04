@@ -48,7 +48,7 @@ export default function Header() {
           <div>
             <div
               className="text-white font-black text-xl leading-none group-hover:text-brand-400 transition-colors"
-              style={{ fontFamily: "Oswald, sans-serif", letterSpacing: "0.05em" }}
+              style={{ fontFamily: "var(--font-oswald), sans-serif", letterSpacing: "0.05em" }}
             >
               PERF&apos;EXHAUST
             </div>

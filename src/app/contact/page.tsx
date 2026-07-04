@@ -24,7 +24,7 @@ export default function ContactPage() {
             <div className="w-8 h-0.5 bg-brand-500" />
             <span className="text-brand-500 text-xs font-bold tracking-widest uppercase">Nous joindre</span>
           </div>
-          <h1 className="font-black text-white mb-4" style={{ fontFamily: "Oswald, sans-serif", fontSize: "clamp(2rem, 5vw, 4rem)", lineHeight: "1" }}>
+          <h1 className="font-black text-white mb-4" style={{ fontFamily: "var(--font-oswald), sans-serif", fontSize: "clamp(2rem, 5vw, 4rem)", lineHeight: "1" }}>
             CONTACT
           </h1>
           <p className="text-gray-400 text-lg max-w-xl">Une question ? Un projet ? Contactez notre atelier.</p>
@@ -38,7 +38,7 @@ export default function ContactPage() {
           </div>
           <div className="space-y-5">
             <div className="p-6 border" style={{ background: "#0f0f0f", borderColor: "#1e1e1e" }}>
-              <h2 className="text-white font-bold text-sm tracking-widest uppercase mb-4" style={{ fontFamily: "Oswald, sans-serif" }}>Informations</h2>
+              <h2 className="text-white font-bold text-sm tracking-widest uppercase mb-4" style={{ fontFamily: "var(--font-oswald), sans-serif" }}>Informations</h2>
               <div className="space-y-4">
                 <div className="flex items-start gap-3">
                   <MapPin size={16} className="text-brand-500 mt-0.5 flex-shrink-0" />

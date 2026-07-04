@@ -48,7 +48,7 @@ export default function Footer() {
               />
               <div
                 className="text-white font-black text-xl"
-                style={{ fontFamily: "Oswald, sans-serif", letterSpacing: "0.05em" }}
+                style={{ fontFamily: "var(--font-oswald), sans-serif", letterSpacing: "0.05em" }}
               >
                 PERF&apos;EXHAUST
               </div>
@@ -82,7 +82,7 @@ export default function Footer() {
 
           {/* Services */}
           <div>
-            <h3 className="text-white font-bold text-sm tracking-widest uppercase mb-5" style={{ fontFamily: "Oswald, sans-serif" }}>
+            <h3 className="text-white font-bold text-sm tracking-widest uppercase mb-5" style={{ fontFamily: "var(--font-oswald), sans-serif" }}>
               Services
             </h3>
             <ul className="space-y-2">
@@ -99,7 +99,7 @@ export default function Footer() {
 
           {/* Navigation */}
           <div>
-            <h3 className="text-white font-bold text-sm tracking-widest uppercase mb-5" style={{ fontFamily: "Oswald, sans-serif" }}>
+            <h3 className="text-white font-bold text-sm tracking-widest uppercase mb-5" style={{ fontFamily: "var(--font-oswald), sans-serif" }}>
               Navigation
             </h3>
             <ul className="space-y-2">
@@ -116,7 +116,7 @@ export default function Footer() {
 
           {/* Contact */}
           <div>
-            <h3 className="text-white font-bold text-sm tracking-widest uppercase mb-5" style={{ fontFamily: "Oswald, sans-serif" }}>
+            <h3 className="text-white font-bold text-sm tracking-widest uppercase mb-5" style={{ fontFamily: "var(--font-oswald), sans-serif" }}>
               Contact
             </h3>
             <ul className="space-y-4">
@@ -158,7 +158,7 @@ export default function Footer() {
                   className="w-6 h-6 flex-shrink-0"
                   style={{ borderRadius: "2px" }}
                 />
-                <span className="text-white font-bold text-sm" style={{ fontFamily: "Oswald, sans-serif" }}>SHIFTECH</span>
+                <span className="text-white font-bold text-sm" style={{ fontFamily: "var(--font-oswald), sans-serif" }}>SHIFTECH</span>
                 <ExternalLink size={12} className="text-gray-500" />
               </div>
             </a>
@@ -196,7 +196,7 @@ export default function Footer() {
               href="https://www.bicer.fr/"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-gray-500 hover:text-brand-500 underline-offset-2 hover:underline transition-colors duration-300"
+              className="text-gray-500 hover:text-brand-500 underline underline-offset-2 transition-colors duration-300"
             >
               Nevora
             </a>

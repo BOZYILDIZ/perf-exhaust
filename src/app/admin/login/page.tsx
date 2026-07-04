@@ -42,7 +42,7 @@ export default function AdminLoginPage() {
         <div className="flex items-center justify-center gap-3 mb-8">
           <Image src="/brand/logo-icon.png" alt="Logo PERF'EXHAUST" width={52} height={36} className="h-9 w-auto" />
           <div>
-            <div className="text-white font-black text-lg leading-none" style={{ fontFamily: "Oswald, sans-serif" }}>
+            <div className="text-white font-black text-lg leading-none" style={{ fontFamily: "var(--font-oswald), sans-serif" }}>
               PERF&apos;EXHAUST
             </div>
             <div className="text-brand-500 text-xs font-bold tracking-widest uppercase">Administration</div>

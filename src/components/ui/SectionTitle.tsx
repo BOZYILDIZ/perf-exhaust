@@ -19,7 +19,7 @@ export default function SectionTitle({ label, title, subtitle, centered, classNa
       )}
       <h2
         className="text-3xl md:text-4xl lg:text-5xl font-black text-white mb-4 leading-tight"
-        style={{ fontFamily: "Oswald, sans-serif", letterSpacing: "-0.01em" }}
+        style={{ fontFamily: "var(--font-oswald), sans-serif", letterSpacing: "-0.01em" }}
         dangerouslySetInnerHTML={{ __html: title }}
       />
       {subtitle && (
