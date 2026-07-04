@@ -3,6 +3,9 @@ import { getPublishedProjects } from "@/lib/projects-repo";
 
 const BASE_URL = "https://perfexhaust.vercel.app";
 
+// ISR : le sitemap suit les publications/suppressions admin sans redéploiement.
+export const revalidate = 60;
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const projects = await getPublishedProjects();
   const projectUrls = projects.map((p) => ({
