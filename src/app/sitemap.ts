@@ -3,8 +3,10 @@ import { getPublishedProjects } from "@/lib/projects-repo";
 
 const BASE_URL = "https://perfexhaust.vercel.app";
 
-// ISR : le sitemap suit les publications/suppressions admin sans redéploiement.
-export const revalidate = 60;
+// Le sitemap est « cached by default » (doc Next : metadata routes) et ignore
+// revalidate/revalidatePath — force-dynamic garantit qu'il reflète toujours les
+// publications/suppressions admin. Coût : une requête DB par crawl, négligeable.
+export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const projects = await getPublishedProjects();
