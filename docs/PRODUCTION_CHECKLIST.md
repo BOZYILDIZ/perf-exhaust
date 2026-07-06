@@ -63,15 +63,22 @@ exclusivement dans Pennylane.
 
 - [x] Intégration code prête pour les deux modes (client `src/lib/pennylane/`,
       résolution de mode `PENNYLANE_MODE`, création automatique en mode API
-      dans `/api/rendez-vous`, bloc manuel + bouton "Copier pour Pennylane"
-      en mode manuel, retry admin, modèle Prisma `QuoteRequest`)
+      dans `/api/rendez-vous`, bloc manuel + bouton "Ouvrir Pennylane +
+      copier les infos" en mode manuel, retry admin, modèle Prisma `QuoteRequest`)
 - [x] `QuoteLine` supprimée (table vide en production, migration propre) —
       plus aucune construction de devis local dans le panel, dans aucun mode
 - [x] **Mode manuel actif par défaut** (plan gratuit Pennylane, sans clé API
       requise) — demande + emails toujours fonctionnels, aucun appel réseau
       Pennylane, rien ne casse
+- [x] Le bouton manuel copie les infos ET ouvre Pennylane dans un nouvel
+      onglet (aucune API, aucun scraping, aucune automatisation du
+      navigateur) — URL configurable dans `/admin/settings` (`pennylaneManualUrl`,
+      défaut `https://app.pennylane.com/`)
 - [x] Un échec Pennylane (mode API) ne bloque jamais la demande client
       (best-effort, erreur visible uniquement côté admin avec bouton "Réessayer")
+- [ ] Si Pennylane expose un jour un lien direct vers la création de devis,
+      le renseigner dans `/admin/settings` (`pennylaneManualUrl`) pour gagner
+      un clic supplémentaire à chaque demande
 - [ ] Si le client passe à un abonnement Pennylane avec accès API à l'avenir :
   - [ ] Générer la clé API Pennylane (Company API Token, "Read and write")
   - [ ] Poser `PENNYLANE_API_KEY` (et `PENNYLANE_MODE=api` si besoin) sur Vercel

@@ -110,6 +110,7 @@ export const siteSettingsSchema = z.object({
   legalForm: z.string().max(120).optional().or(z.literal('')),
   siret: z.string().max(30).optional().or(z.literal('')),
   publicationDirector: z.string().max(120).optional().or(z.literal('')),
+  pennylaneManualUrl: z.string().url("URL Pennylane invalide").max(500).optional().or(z.literal('')),
 })
 
 /** Prestation affichée sur /services, éditée depuis /admin/services. */

@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Copy, CheckCircle, AlertCircle, Loader2, Save, ExternalLink } from "lucide-react";
 
+const DEFAULT_PENNYLANE_URL = "https://app.pennylane.com/";
+
 export interface PennylaneManualSource {
   nom: string;
   prenom: string;
@@ -77,32 +79,51 @@ export default function PennylaneManualSection({
   quoteRequestId,
   source,
   state,
+  pennylaneManualUrl,
 }: {
   quoteRequestId: string;
   source: PennylaneManualSource;
   state: PennylaneManualState;
+  pennylaneManualUrl?: string;
 }) {
   const router = useRouter();
-  const [copied, setCopied] = useState(false);
+  const [opening, setOpening] = useState(false);
   const [status, setStatus] = useState(state.pennylaneManualStatus || "a_creer");
   const [quoteNumber, setQuoteNumber] = useState(state.pennylaneQuoteNumber || "");
   const [quoteUrl, setQuoteUrl] = useState(state.pennylaneQuoteUrl || "");
   const [saving, setSaving] = useState(false);
-  const [msg, setMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+  const [copyMsg, setCopyMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+  const [saveMsg, setSaveMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
 
-  const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(buildClipboardText(source));
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2500);
-    } catch {
-      setMsg({ type: "err", text: "Copie impossible — le presse-papiers n'est pas accessible dans ce navigateur." });
-    }
+  /**
+   * Copie les informations puis ouvre Pennylane dans un nouvel onglet —
+   * aucune API, aucun scraping, aucune automatisation du navigateur, aucune
+   * injection de données : l'admin colle et chiffre lui-même dans Pennylane.
+   * `window.open` est appelé AVANT l'attente de la copie (et non après) pour
+   * rester dans le geste utilisateur du clic — sinon certains navigateurs
+   * bloquent l'ouverture du nouvel onglet comme un pop-up intempestif.
+   */
+  const openAndCopy = () => {
+    setOpening(true);
+    setCopyMsg(null);
+    window.open(pennylaneManualUrl || DEFAULT_PENNYLANE_URL, "_blank", "noopener,noreferrer");
+    navigator.clipboard
+      .writeText(buildClipboardText(source))
+      .then(() => {
+        setCopyMsg({
+          type: "ok",
+          text: "Les informations ont été copiées. Collez-les dans la description du devis Pennylane, puis ajoutez les prix.",
+        });
+      })
+      .catch(() => {
+        setCopyMsg({ type: "err", text: "Pennylane a été ouvert, mais la copie a échoué — le presse-papiers n'est pas accessible dans ce navigateur." });
+      })
+      .finally(() => setOpening(false));
   };
 
   const save = async () => {
     setSaving(true);
-    setMsg(null);
+    setSaveMsg(null);
     try {
       const res = await fetch(`/api/admin/quote-requests/${quoteRequestId}`, {
         method: "PATCH",
@@ -115,10 +136,10 @@ export default function PennylaneManualSection({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Enregistrement impossible");
-      setMsg({ type: "ok", text: "Suivi Pennylane enregistré." });
+      setSaveMsg({ type: "ok", text: "Suivi Pennylane enregistré." });
       router.refresh();
     } catch (e) {
-      setMsg({ type: "err", text: e instanceof Error ? e.message : "Erreur" });
+      setSaveMsg({ type: "err", text: e instanceof Error ? e.message : "Erreur" });
     } finally {
       setSaving(false);
     }
@@ -146,12 +167,25 @@ export default function PennylaneManualSection({
 
       <button
         type="button"
-        onClick={copy}
-        className="inline-flex items-center gap-2 px-5 py-2.5 text-xs font-bold tracking-widest uppercase text-white mb-5 disabled:opacity-50"
+        onClick={openAndCopy}
+        disabled={opening}
+        className="inline-flex items-center gap-2 px-5 py-2.5 text-xs font-bold tracking-widest uppercase text-white mb-3 disabled:opacity-50"
         style={{ background: "linear-gradient(135deg, #1266ea, #0d54c8)" }}
       >
-        {copied ? <><CheckCircle size={13} /> Copié !</> : <><Copy size={13} /> Copier pour Pennylane</>}
+        <ExternalLink size={13} /> <Copy size={13} /> Ouvrir Pennylane + copier les infos
       </button>
+
+      {copyMsg && (
+        <p
+          role="status"
+          className={`text-sm px-4 py-2.5 border flex items-center gap-2 mb-5 max-w-xl ${
+            copyMsg.type === "ok" ? "text-green-400 border-green-500/25 bg-green-500/5" : "text-red-400 border-red-500/25 bg-red-500/5"
+          }`}
+        >
+          {copyMsg.type === "ok" ? <CheckCircle size={15} className="flex-shrink-0" /> : <AlertCircle size={15} className="flex-shrink-0" />}
+          {copyMsg.text}
+        </p>
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
         <div>
@@ -190,15 +224,15 @@ export default function PennylaneManualSection({
         </div>
       </div>
 
-      {msg && (
+      {saveMsg && (
         <p
           role="status"
           className={`text-sm px-4 py-2.5 border flex items-center gap-2 mb-4 ${
-            msg.type === "ok" ? "text-green-400 border-green-500/25 bg-green-500/5" : "text-red-400 border-red-500/25 bg-red-500/5"
+            saveMsg.type === "ok" ? "text-green-400 border-green-500/25 bg-green-500/5" : "text-red-400 border-red-500/25 bg-red-500/5"
           }`}
         >
-          {msg.type === "ok" ? <CheckCircle size={15} /> : <AlertCircle size={15} />}
-          {msg.text}
+          {saveMsg.type === "ok" ? <CheckCircle size={15} /> : <AlertCircle size={15} />}
+          {saveMsg.text}
         </p>
       )}
 

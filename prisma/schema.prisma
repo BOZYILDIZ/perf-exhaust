@@ -128,6 +128,12 @@ model SiteSettings {
   siret                String  @default("882 838 667 00021")
   publicationDirector  String  @default("")
 
+  // Mode manuel Pennylane (plan gratuit, sans API) — voir src/lib/pennylane/mode.ts.
+  // URL ouverte par le bouton "Ouvrir Pennylane + copier les infos" de
+  // /admin/devis/[id] : idéalement un lien direct vers la création de devis
+  // si Pennylane en expose un, sinon la page d'accueil de l'app.
+  pennylaneManualUrl String @default("https://app.pennylane.com/")
+
   updatedAt DateTime @updatedAt
 }
 

@@ -56,10 +56,12 @@ export default function QuoteRequestDetail({
   request,
   pennylaneConfigured,
   pennylaneMode,
+  pennylaneManualUrl,
 }: {
   request: QuoteRequestDetailData;
   pennylaneConfigured: boolean;
   pennylaneMode: "api" | "manual";
+  pennylaneManualUrl: string;
 }) {
   const router = useRouter();
   const [status, setStatus] = useState(request.status);
@@ -166,6 +168,7 @@ export default function QuoteRequestDetail({
       {pennylaneMode === "manual" ? (
         <PennylaneManualSection
           quoteRequestId={request.id}
+          pennylaneManualUrl={pennylaneManualUrl}
           source={{
             nom: request.nom,
             prenom: request.prenom,

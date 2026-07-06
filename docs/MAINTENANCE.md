@@ -138,10 +138,18 @@ Client envoie /rendez-vous
 
 Sur `/admin/devis/[id]`, le bloc **« Pennylane manuel »** remplace la section
 API :
-- bouton **« Copier pour Pennylane »** : copie dans le presse-papiers un texte
-  prêt à coller (nom, email, téléphone, véhicule, motorisation, type de
-  projet, sonorité souhaitée, message client, ligne suggérée *"Échappement
-  sur mesure — prix à compléter"*, TVA 20 %) ;
+- bouton **« Ouvrir Pennylane + copier les infos »** : en un clic, copie dans
+  le presse-papiers un texte prêt à coller (nom, email, téléphone, véhicule,
+  motorisation, type de projet, sonorité souhaitée, message client, ligne
+  suggérée *"Échappement sur mesure — prix à compléter"*, TVA 20 %) **et**
+  ouvre Pennylane dans un nouvel onglet, avec le message *« Les informations
+  ont été copiées. Collez-les dans la description du devis Pennylane, puis
+  ajoutez les prix. »* L'onglet s'ouvre sur l'URL configurée dans
+  `/admin/settings` (§ Pennylane) — idéalement un lien direct vers la
+  création de devis si Pennylane en expose un un jour, sinon
+  `https://app.pennylane.com/` par défaut. Aucune API, aucun scraping, aucune
+  automatisation du navigateur, aucune donnée injectée dans Pennylane : c'est
+  l'admin qui colle et chiffre lui-même ;
 - statut manuel modifiable : À créer dans Pennylane → Devis créé → Devis
   envoyé → Devis accepté / refusé → Facture créée → Payé ;
 - champs optionnels numéro de devis et lien Pennylane, à renseigner après
@@ -212,10 +220,12 @@ ailleurs sur le site.
 1. Soumettre une demande réelle via `/rendez-vous`.
 2. Ouvrir la demande sur `/admin/devis/[id]` — le bloc **« Pennylane
    manuel »** affiche le statut *« À créer dans Pennylane »*.
-3. Cliquer **« Copier pour Pennylane »**, vérifier que le texte collé
-   contient bien toutes les informations client/véhicule/projet.
-4. Créer le devis à la main dans Pennylane, puis revenir mettre à jour le
-   statut, le numéro et le lien depuis l'admin.
+3. Cliquer **« Ouvrir Pennylane + copier les infos »** : un nouvel onglet
+   Pennylane s'ouvre et le texte prêt à coller doit être dans le
+   presse-papiers — coller (Cmd/Ctrl+V) dans la description du devis pour
+   vérifier qu'il contient bien toutes les informations client/véhicule/projet.
+4. Créer le devis à la main dans Pennylane (en y ajoutant les prix), puis
+   revenir mettre à jour le statut, le numéro et le lien depuis l'admin.
 
 **Mode API (abonnement avec accès API) :**
 1. Poser `PENNYLANE_API_KEY` (et `PENNYLANE_MODE=api` si besoin de forcer).

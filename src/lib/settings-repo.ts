@@ -33,6 +33,7 @@ export const getSiteSettings = cache(async function getSiteSettings(): Promise<S
       legalForm: row.legalForm,
       siret: row.siret,
       publicationDirector: row.publicationDirector,
+      pennylaneManualUrl: row.pennylaneManualUrl,
     }
   } catch (error) {
     console.error('[settings-repo] Lecture SiteSettings échouée, repli sur les valeurs par défaut:', error)

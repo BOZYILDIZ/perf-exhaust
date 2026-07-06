@@ -3,6 +3,7 @@ import { isAdminAuthenticated } from "@/lib/admin-auth";
 import { isDbConfigured } from "@/lib/db";
 import { siteSettingsSchema, sanitizeStrings } from "@/lib/admin-validation";
 import { saveSiteSettings } from "@/lib/settings-repo";
+import { FALLBACK_SETTINGS } from "@/data/settings";
 import { revalidatePath } from "next/cache";
 
 function guardOrigin(req: NextRequest): boolean {
@@ -43,6 +44,9 @@ export async function PUT(req: NextRequest) {
       legalForm: d.legalForm || "",
       siret: d.siret || "",
       publicationDirector: d.publicationDirector || "",
+      // Le bouton "Ouvrir Pennylane" a besoin d'une URL non vide pour fonctionner —
+      // on retombe sur la valeur par défaut plutôt que de sauvegarder une chaîne vide.
+      pennylaneManualUrl: d.pennylaneManualUrl || FALLBACK_SETTINGS.pennylaneManualUrl,
     });
     // Les paramètres sont lus par quasiment toutes les pages publiques (layout, contact, mentions légales...)
     revalidatePath("/", "layout");

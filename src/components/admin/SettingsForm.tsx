@@ -104,6 +104,25 @@ export default function SettingsForm({ initial }: { initial: SiteSettingsData })
       </section>
 
       <section>
+        <h2 className={sectionTitle}>Pennylane (mode manuel)</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Field span>
+            <label htmlFor="st-pennylane-url" className={label}>
+              URL ouverte par « Ouvrir Pennylane + copier les infos »
+              <span className="text-gray-600 normal-case"> (idéalement un lien direct vers la création de devis)</span>
+            </label>
+            <input
+              id="st-pennylane-url"
+              value={v.pennylaneManualUrl}
+              onChange={(e) => set("pennylaneManualUrl", e.target.value)}
+              className={input}
+              placeholder="https://app.pennylane.com/"
+            />
+          </Field>
+        </div>
+      </section>
+
+      <section>
         <h2 className={sectionTitle}>Informations légales</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field>

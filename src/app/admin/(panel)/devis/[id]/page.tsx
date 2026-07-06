@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { isDbConfigured, getDb } from "@/lib/db";
 import { isPennylaneConfigured, getPennylaneMode } from "@/lib/pennylane/client";
+import { getSiteSettings } from "@/lib/settings-repo";
 import QuoteRequestDetail from "@/components/admin/QuoteRequestDetail";
 
 export const dynamic = "force-dynamic";
@@ -8,7 +9,10 @@ export const dynamic = "force-dynamic";
 export default async function AdminQuoteRequestDetailPage({ params }: { params: Promise<{ id: string }> }) {
   if (!isDbConfigured()) notFound();
   const { id } = await params;
-  const q = await getDb().quoteRequest.findUnique({ where: { id } });
+  const [q, settings] = await Promise.all([
+    getDb().quoteRequest.findUnique({ where: { id } }),
+    getSiteSettings(),
+  ]);
   if (!q) notFound();
 
   return (
@@ -44,6 +48,7 @@ export default async function AdminQuoteRequestDetailPage({ params }: { params: 
         }}
         pennylaneConfigured={isPennylaneConfigured()}
         pennylaneMode={getPennylaneMode()}
+        pennylaneManualUrl={settings.pennylaneManualUrl}
       />
     </div>
   );
