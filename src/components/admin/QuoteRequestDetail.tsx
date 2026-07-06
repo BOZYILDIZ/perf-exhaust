@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Save, Trash2, Archive, CheckCircle, AlertCircle, Phone, Mail } from "lucide-react";
-import QuoteLinesEditor, { type QuoteLineValue } from "@/components/admin/QuoteLinesEditor";
 import PennylaneSection from "@/components/admin/PennylaneSection";
 
 export interface QuoteRequestDetailData {
@@ -53,11 +52,9 @@ function InfoRow({ label: l, value }: { label: string; value: string }) {
 
 export default function QuoteRequestDetail({
   request,
-  initialLines,
   pennylaneConfigured,
 }: {
   request: QuoteRequestDetailData;
-  initialLines: QuoteLineValue[];
   pennylaneConfigured: boolean;
 }) {
   const router = useRouter();
@@ -66,18 +63,6 @@ export default function QuoteRequestDetail({
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [msg, setMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
-
-  const hasClientInfo = Boolean(request.email.trim() && request.nom.trim() && request.prenom.trim());
-  const hasLines = initialLines.length > 0;
-  const allPriced = hasLines && initialLines.every((l) => l.unitPriceCents > 0);
-  const canCreatePennylaneQuote = hasClientInfo && hasLines && allPriced;
-  const blockReason = !hasClientInfo
-    ? "Nom ou email du client manquant."
-    : !hasLines
-      ? "Ajoutez et enregistrez au moins une ligne de devis ci-dessus."
-      : !allPriced
-        ? "Toutes les lignes doivent avoir un prix renseigné — enregistrez après modification."
-        : null;
 
   const save = async () => {
     setSaving(true);
@@ -174,16 +159,9 @@ export default function QuoteRequestDetail({
         </div>
       </section>
 
-      <section>
-        <h2 className={sectionTitle}>Lignes du devis</h2>
-        <QuoteLinesEditor quoteRequestId={request.id} initialLines={initialLines} />
-      </section>
-
       <PennylaneSection
         quoteRequestId={request.id}
         pennylaneConfigured={pennylaneConfigured}
-        canCreate={canCreatePennylaneQuote}
-        blockReason={blockReason}
         state={{
           pennylaneQuoteId: request.pennylaneQuoteId,
           pennylaneQuoteNumber: request.pennylaneQuoteNumber,

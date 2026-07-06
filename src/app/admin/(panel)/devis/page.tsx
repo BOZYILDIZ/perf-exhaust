@@ -31,6 +31,7 @@ export default async function AdminQuoteRequestsPage() {
           id: true, nom: true, prenom: true, email: true, telephone: true,
           marque: true, modele: true, annee: true, typeProjet: true,
           status: true, createdAt: true,
+          pennylaneSyncStatus: true, pennylaneQuoteUrl: true,
         },
       }),
       db.quoteRequest.count({ where: { status: "new" } }),

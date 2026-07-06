@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Search, Eye } from "lucide-react";
+import { Search, Eye, ExternalLink } from "lucide-react";
 
 export interface QuoteRequestRow {
   id: string;
@@ -16,6 +16,8 @@ export interface QuoteRequestRow {
   typeProjet: string;
   status: string;
   createdAt: string;
+  pennylaneSyncStatus: string | null;
+  pennylaneQuoteUrl: string | null;
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -32,6 +34,20 @@ const STATUS_STYLES: Record<string, string> = {
   in_progress: "text-yellow-400 bg-yellow-500/10",
   completed: "text-green-400 bg-green-500/10",
   archived: "text-gray-500 bg-white/5",
+};
+
+const PENNYLANE_LABELS: Record<string, string> = {
+  not_configured: "Non configuré",
+  pending: "En attente",
+  draft_created: "Brouillon créé",
+  failed: "Erreur",
+};
+
+const PENNYLANE_STYLES: Record<string, string> = {
+  not_configured: "text-gray-500 bg-white/5",
+  pending: "text-yellow-400 bg-yellow-500/10",
+  draft_created: "text-green-400 bg-green-500/10",
+  failed: "text-red-400 bg-red-500/10",
 };
 
 export default function QuoteRequestsTable({ initialRows }: { initialRows: QuoteRequestRow[] }) {
@@ -84,13 +100,14 @@ export default function QuoteRequestsTable({ initialRows }: { initialRows: Quote
       <p className="text-gray-600 text-xs mb-3">{filtered.length} demande{filtered.length > 1 ? "s" : ""}</p>
 
       <div className="border overflow-x-auto" style={{ borderColor: "#1e1e1e" }}>
-        <table className="w-full text-sm min-w-[680px]">
+        <table className="w-full text-sm min-w-[820px]">
           <thead>
             <tr className="text-left text-gray-500 text-xs uppercase tracking-wider" style={{ background: "#0d0d0d" }}>
               <th className="px-4 py-3 font-bold">Client</th>
               <th className="px-4 py-3 font-bold">Véhicule</th>
               <th className="px-4 py-3 font-bold">Projet</th>
               <th className="px-4 py-3 font-bold">Statut</th>
+              <th className="px-4 py-3 font-bold">Pennylane</th>
               <th className="px-4 py-3 font-bold">Reçue</th>
               <th className="px-4 py-3 font-bold text-right">Actions</th>
             </tr>
@@ -109,6 +126,25 @@ export default function QuoteRequestsTable({ initialRows }: { initialRows: Quote
                     {STATUS_LABELS[r.status] ?? r.status}
                   </span>
                 </td>
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-2">
+                    <span className={`text-xs font-bold px-2 py-0.5 uppercase tracking-wider whitespace-nowrap ${PENNYLANE_STYLES[r.pennylaneSyncStatus ?? "not_configured"] ?? "text-gray-500 bg-white/5"}`}>
+                      {PENNYLANE_LABELS[r.pennylaneSyncStatus ?? "not_configured"] ?? r.pennylaneSyncStatus}
+                    </span>
+                    {r.pennylaneQuoteUrl && (
+                      <a
+                        href={r.pennylaneQuoteUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-brand-400 hover:text-brand-300"
+                        aria-label="Ouvrir dans Pennylane"
+                        title="Ouvrir dans Pennylane"
+                      >
+                        <ExternalLink size={13} />
+                      </a>
+                    )}
+                  </div>
+                </td>
                 <td className="px-4 py-3 text-gray-600 text-xs whitespace-nowrap">{new Date(r.createdAt).toLocaleDateString("fr-FR")}</td>
                 <td className="px-4 py-3">
                   <div className="flex items-center justify-end gap-1">
@@ -126,7 +162,7 @@ export default function QuoteRequestsTable({ initialRows }: { initialRows: Quote
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-gray-600 text-sm">
+                <td colSpan={7} className="px-4 py-8 text-center text-gray-600 text-sm">
                   Aucune demande ne correspond.
                 </td>
               </tr>

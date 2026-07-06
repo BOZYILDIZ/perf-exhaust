@@ -81,42 +81,23 @@ model QuoteRequest {
   status String @default("new") // "new" | "contacted" | "in_progress" | "completed" | "archived"
   notes  String @default("") // notes internes atelier, jamais exposées publiquement
 
-  // Intégration Pennylane — voir src/lib/pennylane/. Rien n'est envoyé
-  // automatiquement : ces champs ne se remplissent qu'après une action
-  // explicite de l'admin sur /admin/devis/[id].
+  // Intégration Pennylane — voir src/lib/pennylane/. Pennylane est la source
+  // unique pour les devis et factures : dès qu'une demande est enregistrée
+  // (et si PENNYLANE_API_KEY est configurée), un brouillon de devis Pennylane
+  // est créé automatiquement par POST /api/rendez-vous. Le panel PERF'EXHAUST
+  // ne construit plus de devis local — il consulte uniquement ce résultat.
   pennylaneCustomerId  String?
   pennylaneQuoteId     String?
   pennylaneQuoteNumber String?
   pennylaneQuoteUrl    String?
-  pennylaneSyncStatus  String?   @default("not_configured") // "not_configured" | "draft" | "synced" | "failed"
+  pennylaneSyncStatus  String?   @default("not_configured") // "not_configured" | "pending" | "draft_created" | "failed"
   pennylaneSyncError   String?
   pennylaneSyncedAt    DateTime?
-
-  lines QuoteLine[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([status, createdAt])
-}
-
-// Lignes préparées par l'admin avant l'envoi du devis à Pennylane —
-// éditables librement tant que le devis n'a pas été synchronisé.
-model QuoteLine {
-  id             String   @id @default(cuid())
-  quoteRequestId String
-  quoteRequest   QuoteRequest @relation(fields: [quoteRequestId], references: [id], onDelete: Cascade)
-
-  description    String
-  quantity       Int    @default(1)
-  unitPriceCents Int    @default(0) // prix unitaire HT en centimes — évite les erreurs d'arrondi flottant
-  vatRate        Float  @default(20) // taux de TVA en % (20, 10, 5.5, 2.1, 0...)
-  sortOrder      Int    @default(0)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([quoteRequestId, sortOrder])
 }
 
 // Paramètres globaux du site, éditables depuis /admin/settings.

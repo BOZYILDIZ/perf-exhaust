@@ -102,18 +102,33 @@ npm run db:seed      # importe les projets historiques (idempotent)
 npm run db:studio    # explorer la base (Prisma Studio)
 ```
 
-## 🧾 Intégration Pennylane (devis)
+## 🧾 Intégration Pennylane — devis & factures
 
-Le site fonctionne en « prix sur devis » : aucun devis Pennylane n'est jamais
-créé automatiquement à la réception d'un formulaire. Le workflow est
-volontairement semi-automatique et reste sous le contrôle de l'atelier :
+**Principe non négociable : Pennylane est la source unique pour les devis et
+les factures officiels.** PERF'EXHAUST ne génère jamais de devis complet : le
+site collecte les demandes et crée un **brouillon** dans Pennylane pour que
+l'atelier n'ait pas à ressaisir les informations client. Tout ce qui suit —
+prix, envoi au client, acceptation, facturation — se fait **exclusivement
+dans Pennylane**. Le panel `/admin/devis` reste un CRM de demandes : il
+consulte le statut et le lien Pennylane, il ne construit rien.
 
 ```
-Demande reçue (/rendez-vous) → revue admin (/admin/devis)
-  → préparation des lignes (description, prix, TVA)
-  → clic « Créer le devis dans Pennylane »
-  → devis créé en BROUILLON dans Pennylane (jamais envoyé automatiquement)
+Client envoie /rendez-vous
+  → demande enregistrée dans QuoteRequest (CRM PERF'EXHAUST)
+  → emails Resend envoyés (atelier + confirmation client), comme avant
+  → SI PENNYLANE_API_KEY configurée : brouillon Pennylane créé automatiquement
+      (client retrouvé/créé + devis avec une ligne générique 0 € HT
+       "Échappement sur mesure — prix à définir après analyse")
+  → résultat (ID, numéro, lien) sauvegardé sur la demande
+  → le client voit toujours "Demande envoyée avec succès", même si
+    l'étape Pennylane échoue (jamais visible côté public)
 ```
+
+Le devis Pennylane embarque dans sa description tout ce que l'atelier a
+besoin de savoir sans rouvrir le CRM : nom, téléphone, email, véhicule,
+motorisation, type de projet, sonorité souhaitée, message du client, et la
+mention *« Prix à compléter dans Pennylane après analyse »*. Aucun prix
+définitif n'est jamais inventé par le site.
 
 ### Créer une clé API Pennylane
 
@@ -138,26 +153,52 @@ n'ajouter que si Pennylane l'exige explicitement pour votre configuration
 « Company API » standard n'en a pas besoin : le token est déjà rattaché à
 une seule entreprise.
 
-Sans `PENNYLANE_API_KEY`, la section « Devis Pennylane » de
+Sans `PENNYLANE_API_KEY` : la demande est enregistrée normalement, les
+emails partent normalement, et la section « Devis Pennylane » de
 `/admin/devis/[id]` affiche simplement *« Pennylane non configuré »* — rien
 ne casse ailleurs sur le site.
 
 ### Comment tester l'intégration
 
-1. Ouvrir une demande sur `/admin/devis/[id]`.
-2. Compléter la section **« Lignes du devis »** (une ligne par défaut est
-   pré-remplie : *« Échappement sur mesure — prix à confirmer après
-   diagnostic »*) — renseigner au moins un prix unitaire HT, puis
-   **Enregistrer les lignes**.
-3. Cliquer **« Créer le devis dans Pennylane »** dans la section Pennylane.
-4. En cas de succès : l'ID (et le numéro/lien si Pennylane les renvoie)
-   s'affichent, le statut passe à « Créé dans Pennylane (brouillon) ».
-5. En cas d'échec : le message d'erreur exact de Pennylane est affiché
-   (souvent 422 = champ manquant/invalide) avec un bouton **« Réessayer »**.
+1. Poser `PENNYLANE_API_KEY` (local ou Vercel).
+2. Soumettre une demande réelle via `/rendez-vous`.
+3. Ouvrir la demande correspondante sur `/admin/devis/[id]` — la section
+   « Devis Pennylane » doit afficher le statut **« Brouillon créé »**, l'ID
+   Pennylane, le numéro si Pennylane le renvoie, et un bouton
+   **« Ouvrir dans Pennylane »**.
+4. Vérifier dans Pennylane que le client et le devis existent, avec la
+   description pré-remplie.
 
-Le bouton de création disparaît une fois le devis créé, pour éviter tout
-doublon dans Pennylane — toute modification ultérieure se fait directement
-dans Pennylane.
+### Comment réessayer une synchronisation en échec
+
+Si la création automatique échoue (réseau, quota, donnée refusée par
+Pennylane...), la demande reste enregistrée normalement — seul le statut
+Pennylane passe à **« Erreur »**, avec le message exact de Pennylane affiché
+dans `/admin/devis/[id]`. Cliquer **« Réessayer la création du brouillon »**
+relance la même tentative (`POST /api/admin/quote-requests/[id]/pennylane/retry`).
+Une fois un brouillon créé avec succès, le bouton disparaît définitivement
+pour cette demande — impossible de recréer un doublon depuis le panel.
+
+### Que faire si Pennylane échoue durablement
+
+- Vérifier que `PENNYLANE_API_KEY` est toujours valide (un token peut
+  expirer ou être révoqué).
+- Lire le message d'erreur affiché dans l'admin — il reprend le détail
+  exact renvoyé par Pennylane (souvent une adresse de facturation
+  manquante, voir limite ci-dessous).
+- Compléter manuellement le client/devis directement dans Pennylane si
+  besoin, puis ignorer le bouton « Réessayer » pour cette demande (il ne
+  fait que relancer une création automatique, pas une synchronisation).
+
+### Pourquoi les prix ne sont pas gérés dans le panel PERF'EXHAUST
+
+Le site fonctionne en « prix sur devis » : chaque projet est unique et
+nécessite une analyse avant chiffrage. Dupliquer un outil de devis/facture
+dans PERF'EXHAUST créerait deux sources de vérité (site + Pennylane) avec
+un risque réel d'incohérence comptable. Le panel reste donc volontairement
+un **CRM de demandes** — chiffrage, envoi, acceptation et facturation se
+font uniquement dans Pennylane, l'outil déjà utilisé par l'atelier pour sa
+comptabilité.
 
 ### Limites connues
 
@@ -179,9 +220,12 @@ dans Pennylane.
 - **Limite de débit Pennylane** : environ 5 requêtes/seconde. Les erreurs
   429 sont automatiquement réessayées une fois pour les lectures (recherche
   de client), jamais pour les créations (pour ne jamais créer de doublon).
-- **Statut « synced »** : réservé pour une amélioration future (confirmation
-  que le devis a été envoyé/accepté côté Pennylane) — non utilisé dans cette
-  version, qui s'arrête au statut « brouillon créé ».
+- **Modèle `QuoteLine` supprimé** : une version précédente permettait de
+  préparer des lignes de devis localement avant envoi manuel à Pennylane.
+  Cette table était vide en production (vérifié avant suppression) — elle
+  a été supprimée proprement (migration `20260707090000_drop_quoteline`)
+  avec toute l'UI et les routes associées, pour que PERF'EXHAUST reste un
+  CRM simple et non un second outil de devis.
 
 ## 📞 Modifier le téléphone
 

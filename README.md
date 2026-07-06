@@ -113,7 +113,7 @@ Canvas animé (particules d'étincelles avec physique réaliste), intro de soudu
 <td width="33%" valign="top">
 
 ### 🔐 Panel admin
-Gestion des réalisations sur `/admin` : CRUD complet, brouillon/publié, prévisualisation, upload d'images — avec repli statique automatique sans base. Mini-CRM devis avec création de devis Pennylane en un clic.
+Gestion des réalisations sur `/admin` : CRUD complet, brouillon/publié, prévisualisation, upload d'images — avec repli statique automatique sans base. CRM des demandes de devis avec brouillon Pennylane créé automatiquement.
 
 </td>
 </tr>
@@ -328,20 +328,26 @@ Le site est accessible sur **[http://localhost:3000](http://localhost:3000)**.
 
 ## 🧾 Intégration Pennylane
 
-Le CRM devis (`/admin/devis`) peut créer un devis **Pennylane** à partir
-d'une demande reçue — toujours sur action manuelle de l'admin, jamais
-automatiquement à la soumission du formulaire public (le site fonctionne en
-« prix sur devis », l'atelier valide et chiffre chaque demande au cas par cas).
+**Pennylane est la source unique pour les devis et les factures.**
+PERF'EXHAUST ne génère pas de devis officiel : le site collecte la demande et
+crée automatiquement un **brouillon** dans Pennylane. Prix, envoi au client,
+acceptation et facturation se gèrent ensuite entièrement dans Pennylane — le
+CRM `/admin/devis` ne fait que refléter le statut et le lien.
 
 ```
-Demande reçue → revue admin → lignes de devis (description/prix/TVA)
-  → clic « Créer le devis dans Pennylane » → devis créé en brouillon
+Demande /rendez-vous → enregistrée (CRM) + emails Resend (comme avant)
+  → si PENNYLANE_API_KEY configurée : brouillon Pennylane créé automatiquement
+    (client + devis pré-rempli, ligne générique 0 € "prix à définir")
+  → le client voit toujours "Demande envoyée avec succès", même en cas
+    d'échec Pennylane (jamais visible côté public — admin uniquement)
 ```
 
 Sans `PENNYLANE_API_KEY`, la section correspondante affiche simplement
-*« Pennylane non configuré »*. Procédure complète (génération de la clé,
-variables, test, limites connues) : voir
-[`docs/MAINTENANCE.md`](docs/MAINTENANCE.md#-intégration-pennylane-devis).
+*« Pennylane non configuré »* — rien ne casse ailleurs. En cas d'échec, un
+bouton **« Réessayer la création du brouillon »** apparaît dans l'admin.
+Procédure complète (génération de la clé, variables, test, limites
+connues) : voir [`docs/MAINTENANCE.md`](docs/MAINTENANCE.md), section
+« Intégration Pennylane ».
 
 <br />
 

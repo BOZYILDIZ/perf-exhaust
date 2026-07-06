@@ -8,10 +8,7 @@ export const dynamic = "force-dynamic";
 export default async function AdminQuoteRequestDetailPage({ params }: { params: Promise<{ id: string }> }) {
   if (!isDbConfigured()) notFound();
   const { id } = await params;
-  const q = await getDb().quoteRequest.findUnique({
-    where: { id },
-    include: { lines: { orderBy: { sortOrder: "asc" } } },
-  });
+  const q = await getDb().quoteRequest.findUnique({ where: { id } });
   if (!q) notFound();
 
   return (
@@ -44,13 +41,6 @@ export default async function AdminQuoteRequestDetailPage({ params }: { params: 
           pennylaneSyncError: q.pennylaneSyncError,
           pennylaneSyncedAt: q.pennylaneSyncedAt ? q.pennylaneSyncedAt.toISOString() : null,
         }}
-        initialLines={q.lines.map((l) => ({
-          id: l.id,
-          description: l.description,
-          quantity: l.quantity,
-          unitPriceCents: l.unitPriceCents,
-          vatRate: l.vatRate,
-        }))}
         pennylaneConfigured={isPennylaneConfigured()}
       />
     </div>

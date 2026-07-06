@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, ExternalLink, AlertCircle, CheckCircle2, RefreshCw, FileWarning } from "lucide-react";
+import { Loader2, ExternalLink, AlertCircle, RefreshCw, FileWarning, Info } from "lucide-react";
 
 export interface PennylaneState {
   pennylaneQuoteId: string | null;
@@ -14,31 +14,35 @@ export interface PennylaneState {
 }
 
 const STATUS_LABELS: Record<string, string> = {
-  not_configured: "Non synchronisé",
-  draft: "Créé dans Pennylane (brouillon)",
-  synced: "Synchronisé",
-  failed: "Échec de synchronisation",
+  not_configured: "Non configuré",
+  pending: "En attente",
+  draft_created: "Brouillon créé",
+  failed: "Erreur",
 };
 
 const STATUS_STYLES: Record<string, string> = {
   not_configured: "text-gray-400 bg-white/5",
-  draft: "text-brand-400 bg-brand-500/10",
-  synced: "text-green-400 bg-green-500/10",
+  pending: "text-yellow-400 bg-yellow-500/10",
+  draft_created: "text-green-400 bg-green-500/10",
   failed: "text-red-400 bg-red-500/10",
 };
 
+/**
+ * Pennylane est la source unique pour les devis et les factures — ce bloc ne
+ * fait que REFLÉTER l'état du brouillon créé automatiquement par
+ * POST /api/rendez-vous (voir src/lib/pennylane/client.ts,
+ * createDraftQuoteFromRequest). Le panel PERF'EXHAUST ne construit plus de
+ * devis local : prix, envoi, acceptation et facturation se font dans
+ * Pennylane. Voir docs/MAINTENANCE.md § "Intégration Pennylane".
+ */
 export default function PennylaneSection({
   quoteRequestId,
   state,
   pennylaneConfigured,
-  canCreate,
-  blockReason,
 }: {
   quoteRequestId: string;
   state: PennylaneState;
   pennylaneConfigured: boolean;
-  canCreate: boolean;
-  blockReason: string | null;
 }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -46,12 +50,13 @@ export default function PennylaneSection({
 
   const status = state.pennylaneSyncStatus || "not_configured";
   const hasQuote = Boolean(state.pennylaneQuoteId);
+  const hasFailed = status === "failed";
 
-  const create = async () => {
+  const retry = async () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/admin/quote-requests/${quoteRequestId}/pennylane/create`, { method: "POST" });
+      const res = await fetch(`/api/admin/quote-requests/${quoteRequestId}/pennylane/retry`, { method: "POST" });
       const data = await res.json();
       if (!res.ok || data.success === false) throw new Error(data.error || "Création impossible");
       router.refresh();
@@ -70,8 +75,9 @@ export default function PennylaneSection({
           <FileWarning size={18} className="text-brand-400 flex-shrink-0 mt-0.5" />
           <span>
             <strong className="text-white block mb-1">Pennylane non configuré</strong>
-            Définissez <code className="text-brand-400">PENNYLANE_API_KEY</code> pour activer la création de devis
-            depuis cette demande. Voir <code className="text-brand-400">docs/MAINTENANCE.md</code> § « Intégration Pennylane ».
+            Définissez <code className="text-brand-400">PENNYLANE_API_KEY</code> pour qu&apos;un brouillon de devis
+            soit créé automatiquement à chaque nouvelle demande. Voir{" "}
+            <code className="text-brand-400">docs/MAINTENANCE.md</code> § « Intégration Pennylane ».
           </span>
         </p>
       </section>
@@ -91,7 +97,7 @@ export default function PennylaneSection({
         )}
       </div>
 
-      {hasQuote && (
+      {hasQuote ? (
         <dl className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4 text-sm">
           <div>
             <dt className="text-gray-600 text-xs uppercase tracking-wider mb-0.5">ID Pennylane</dt>
@@ -103,22 +109,17 @@ export default function PennylaneSection({
               <dd className="text-white">{state.pennylaneQuoteNumber}</dd>
             </div>
           )}
-          {state.pennylaneQuoteUrl && (
-            <div className="sm:col-span-2">
-              <a
-                href={state.pennylaneQuoteUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-brand-400 hover:text-brand-300 transition-colors"
-              >
-                Ouvrir dans Pennylane <ExternalLink size={13} />
-              </a>
-            </div>
-          )}
         </dl>
+      ) : (
+        <p className="text-sm text-gray-400 p-3 border border-[#1e1e1e] bg-white/[0.02] mb-4 flex items-start gap-2 max-w-xl">
+          <Info size={15} className="text-gray-500 flex-shrink-0 mt-0.5" />
+          {hasFailed
+            ? "La création automatique du brouillon a échoué — la demande est bien enregistrée, mais aucun devis Pennylane n'existe encore."
+            : "Aucun brouillon Pennylane n'a encore été créé pour cette demande."}
+        </p>
       )}
 
-      {(state.pennylaneSyncError && status === "failed") && (
+      {hasFailed && state.pennylaneSyncError && (
         <p className="text-sm text-red-400 p-3 border border-red-500/25 bg-red-500/5 mb-4 flex items-start gap-2 max-w-xl">
           <AlertCircle size={15} className="flex-shrink-0 mt-0.5" />
           {state.pennylaneSyncError}
@@ -131,32 +132,38 @@ export default function PennylaneSection({
         </p>
       )}
 
-      {hasQuote ? (
-        <p className="text-xs text-gray-600 flex items-center gap-1.5">
-          <CheckCircle2 size={13} className="text-green-500" /> Devis déjà créé — pour éviter un doublon, une nouvelle création n&apos;est pas proposée ici. Utilisez Pennylane directement pour toute modification ultérieure.
-        </p>
-      ) : (
-        <>
+      <div className="flex flex-wrap items-center gap-3 mb-4">
+        {hasQuote && state.pennylaneQuoteUrl && (
+          <a
+            href={state.pennylaneQuoteUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-5 py-2.5 text-xs font-bold tracking-widest uppercase text-white"
+            style={{ background: "linear-gradient(135deg, #1266ea, #0d54c8)" }}
+          >
+            Ouvrir dans Pennylane <ExternalLink size={13} />
+          </a>
+        )}
+        {!hasQuote && (
           <button
             type="button"
-            onClick={create}
-            disabled={loading || !canCreate}
+            onClick={retry}
+            disabled={loading}
             className="inline-flex items-center gap-2 px-5 py-2.5 text-xs font-bold tracking-widest uppercase text-white disabled:opacity-50"
             style={{ background: "linear-gradient(135deg, #1266ea, #0d54c8)" }}
           >
             {loading ? (
               <><Loader2 size={14} className="animate-spin" /> Création...</>
-            ) : status === "failed" ? (
-              <><RefreshCw size={13} /> Réessayer</>
             ) : (
-              "Créer le devis dans Pennylane"
+              <><RefreshCw size={13} /> {hasFailed ? "Réessayer la création du brouillon" : "Créer le brouillon Pennylane"}</>
             )}
           </button>
-          {!canCreate && blockReason && (
-            <p className="text-xs text-gray-500 mt-2">{blockReason}</p>
-          )}
-        </>
-      )}
+        )}
+      </div>
+
+      <p className="text-xs text-gray-500 max-w-xl">
+        Les prix, l&apos;envoi au client, l&apos;acceptation et la facturation sont gérés directement dans Pennylane.
+      </p>
     </section>
   );
 }

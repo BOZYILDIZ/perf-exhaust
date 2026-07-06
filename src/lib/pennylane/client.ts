@@ -12,9 +12,13 @@ import {
  *
  * Toute la logique d'appel réseau est centralisée ici — aucun composant ni
  * route ne doit fetch() Pennylane directement. Voir docs/MAINTENANCE.md
- * § "Intégration Pennylane" pour le détail des endpoints, limites et du
- * workflow (création de client → devis, toujours déclenchée manuellement
- * depuis /admin/devis/[id], jamais automatique).
+ * § "Intégration Pennylane" pour le détail des endpoints et des limites.
+ *
+ * Pennylane est la source unique pour les devis et les factures : dès
+ * qu'une demande est enregistrée via /rendez-vous (voir
+ * src/app/api/rendez-vous/route.ts), createDraftQuoteFromRequest() crée
+ * automatiquement un brouillon — le panel PERF'EXHAUST ne construit plus de
+ * devis local, il ne fait que refléter ce résultat (ID, numéro, lien).
  */
 
 const BASE_URL = (process.env.PENNYLANE_BASE_URL || 'https://app.pennylane.com/api/external/v2').replace(/\/+$/, '')
@@ -133,11 +137,10 @@ export async function createOrFindCustomer(input: { name: string; email: string;
 }
 
 /**
- * Crée un devis Pennylane. Toujours déclenché explicitement par l'admin —
- * jamais en réaction directe à la soumission du formulaire public.
- * Le devis est créé dans l'état initial par défaut de Pennylane (brouillon,
- * non envoyé) : cette intégration n'appelle jamais l'endpoint d'envoi/mise
- * à jour de statut, l'atelier reste maître de la validation finale.
+ * Crée un devis Pennylane. Le devis est créé dans l'état initial par défaut
+ * de Pennylane (brouillon, non envoyé) : cette intégration n'appelle jamais
+ * l'endpoint d'envoi/mise à jour de statut — l'atelier reste maître de la
+ * relecture, du chiffrage et de l'envoi final, depuis Pennylane lui-même.
  */
 export async function createQuote(input: PennylaneCreateQuoteInput): Promise<PennylaneQuote> {
   return pennylaneRequest<PennylaneQuote>('/quotes', {
@@ -150,4 +153,90 @@ export async function createQuote(input: PennylaneCreateQuoteInput): Promise<Pen
 /** Relit l'état actuel d'un devis (statut, numéro...) déjà créé. */
 export async function getQuote(id: string): Promise<PennylaneQuote> {
   return pennylaneRequest<PennylaneQuote>(`/quotes/${encodeURIComponent(id)}`, { method: 'GET' })
+}
+
+export interface DraftQuoteSourceRequest {
+  nom: string
+  prenom: string
+  email: string
+  telephone: string
+  marque: string
+  modele: string
+  annee: string
+  motorisation?: string | null
+  typeProjet: string
+  sonorite: string
+  message: string
+}
+
+export interface DraftQuoteResult {
+  customerId: number
+  quoteId: number
+  quoteNumber: string | null
+  quoteUrl: string | null
+  rawStatus: string | null
+}
+
+/** Bloc de description inclus dans le devis — jamais de prix inventé. */
+function buildDraftQuoteDescription(r: DraftQuoteSourceRequest): string {
+  return [
+    `Client : ${r.prenom} ${r.nom}`,
+    `Téléphone : ${r.telephone}`,
+    `Email : ${r.email}`,
+    `Véhicule : ${r.marque} ${r.modele} (${r.annee})`,
+    r.motorisation ? `Motorisation : ${r.motorisation}` : null,
+    `Type de projet : ${r.typeProjet}`,
+    `Sonorité souhaitée : ${r.sonorite}`,
+    '',
+    `Message du client : ${r.message}`,
+    '',
+    'Prix à compléter dans Pennylane après analyse.',
+  ]
+    .filter((line) => line !== null)
+    .join('\n')
+}
+
+/**
+ * Point d'entrée unique du workflow automatique : crée/retrouve le client
+ * Pennylane puis un brouillon de devis pré-rempli à partir d'une demande —
+ * jamais de prix définitif inventé (ligne générique à 0 €, à chiffrer dans
+ * Pennylane). Appelée depuis /api/rendez-vous (best-effort, à la réception
+ * de chaque demande) et depuis la route de retry admin.
+ */
+export async function createDraftQuoteFromRequest(request: DraftQuoteSourceRequest): Promise<DraftQuoteResult> {
+  const { customer } = await createOrFindCustomer({
+    name: `${request.prenom} ${request.nom}`,
+    email: request.email,
+    phone: request.telephone,
+  })
+
+  const today = new Date()
+  const deadline = new Date(today)
+  deadline.setDate(deadline.getDate() + 30)
+  const isoDate = (d: Date) => d.toISOString().slice(0, 10)
+
+  const quote = await createQuote({
+    date: isoDate(today),
+    deadline: isoDate(deadline),
+    customer_id: customer.id,
+    pdf_invoice_subject: `Demande de devis — ${request.marque} ${request.modele}`,
+    pdf_description: buildDraftQuoteDescription(request),
+    invoice_lines: [
+      {
+        label: 'Échappement sur mesure — prix à définir après analyse',
+        quantity: 1,
+        raw_currency_unit_price: '0.00',
+        vat_rate: mapVatRateToPennylane(20),
+        unit: 'unité',
+      },
+    ],
+  })
+
+  return {
+    customerId: customer.id,
+    quoteId: quote.id,
+    quoteNumber: typeof quote.number === 'string' ? quote.number : null,
+    quoteUrl: typeof quote.public_url === 'string' ? quote.public_url : (typeof quote.url === 'string' ? quote.url : null),
+    rawStatus: typeof quote.status === 'string' ? quote.status : null,
+  }
 }

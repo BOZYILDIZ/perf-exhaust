@@ -36,6 +36,7 @@ export interface PennylaneCreateQuoteInput {
   customer_id: number
   invoice_lines: PennylaneQuoteLineInput[]
   external_reference?: string
+  pdf_description?: string
   pdf_invoice_subject?: string
 }
 
