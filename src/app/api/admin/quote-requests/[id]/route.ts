@@ -22,7 +22,10 @@ async function guard(req: NextRequest) {
   return null;
 }
 
-/** Changement de statut et/ou mise à jour des notes internes. */
+/**
+ * Changement de statut CRM, notes internes, et/ou suivi manuel Pennylane
+ * (statut/numéro/lien — plan gratuit sans API, voir src/lib/pennylane/mode.ts).
+ */
 export async function PATCH(req: NextRequest, ctx: Ctx) {
   try {
     const denied = await guard(req);
@@ -37,7 +40,15 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
     const exists = await db.quoteRequest.findUnique({ where: { id }, select: { id: true } });
     if (!exists) return NextResponse.json({ error: "Demande introuvable" }, { status: 404 });
 
-    await db.quoteRequest.update({ where: { id }, data: parsed.data });
+    const { pennylaneQuoteNumber, pennylaneQuoteUrl, ...rest } = parsed.data;
+    await db.quoteRequest.update({
+      where: { id },
+      data: {
+        ...rest,
+        ...(pennylaneQuoteNumber !== undefined && { pennylaneQuoteNumber: pennylaneQuoteNumber || null }),
+        ...(pennylaneQuoteUrl !== undefined && { pennylaneQuoteUrl: pennylaneQuoteUrl || null }),
+      },
+    });
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("[API/admin/quote-requests PATCH]", error);

@@ -105,20 +105,62 @@ npm run db:studio    # explorer la base (Prisma Studio)
 ## 🧾 Intégration Pennylane — devis & factures
 
 **Principe non négociable : Pennylane est la source unique pour les devis et
-les factures officiels.** PERF'EXHAUST ne génère jamais de devis complet : le
-site collecte les demandes et crée un **brouillon** dans Pennylane pour que
-l'atelier n'ait pas à ressaisir les informations client. Tout ce qui suit —
-prix, envoi au client, acceptation, facturation — se fait **exclusivement
-dans Pennylane**. Le panel `/admin/devis` reste un CRM de demandes : il
-consulte le statut et le lien Pennylane, il ne construit rien.
+les factures officiels.** PERF'EXHAUST ne génère jamais de devis complet — le
+panel `/admin/devis` reste un CRM de demandes : il consulte le statut et le
+lien Pennylane (ou aide à y transférer l'information), il ne construit rien.
+Prix, envoi au client, acceptation et facturation se font **exclusivement
+dans Pennylane**, quel que soit le mode ci-dessous.
+
+### Deux modes, un seul principe
+
+L'API Pennylane n'est disponible qu'à partir d'un abonnement payant. Le site
+s'adapte automatiquement au plan Pennylane du client via `PENNYLANE_MODE` :
+
+| `PENNYLANE_MODE` | Comportement |
+|---|---|
+| `manual` | **Plan gratuit Pennylane (sans API).** Mode par défaut si `PENNYLANE_API_KEY` est absente — aucune configuration requise. |
+| `api` | **Abonnement Pennylane avec accès API.** Automatique si `PENNYLANE_API_KEY` est présente et `PENNYLANE_MODE` n'est pas forcé sur `manual`. |
+
+Le code des deux modes coexiste dans `src/lib/pennylane/` — **rien n'est
+supprimé** quand le client repasse au plan gratuit : mettre `PENNYLANE_MODE=api`
+et poser `PENNYLANE_API_KEY` suffit à réactiver la création automatique le
+jour où l'abonnement le permet.
+
+### Mode manuel (plan gratuit, par défaut)
+
+```
+Client envoie /rendez-vous
+  → demande enregistrée dans QuoteRequest (CRM PERF'EXHAUST), statut
+    Pennylane manuel initialisé à "À créer dans Pennylane"
+  → emails Resend envoyés (atelier + confirmation client), comme avant
+  → AUCUN appel réseau vers Pennylane (le plan gratuit n'a pas d'API)
+```
+
+Sur `/admin/devis/[id]`, le bloc **« Pennylane manuel »** remplace la section
+API :
+- bouton **« Copier pour Pennylane »** : copie dans le presse-papiers un texte
+  prêt à coller (nom, email, téléphone, véhicule, motorisation, type de
+  projet, sonorité souhaitée, message client, ligne suggérée *"Échappement
+  sur mesure — prix à compléter"*, TVA 20 %) ;
+- statut manuel modifiable : À créer dans Pennylane → Devis créé → Devis
+  envoyé → Devis accepté / refusé → Facture créée → Payé ;
+- champs optionnels numéro de devis et lien Pennylane, à renseigner après
+  avoir créé le devis à la main dans Pennylane.
+
+Ce statut et ces champs sont purement déclaratifs — l'admin les met à jour
+lui-même après chaque étape faite dans Pennylane. `/admin/devis` affiche le
+statut CRM, le statut Pennylane manuel et le numéro de devis (si renseigné)
+en un coup d'œil.
+
+### Mode API (abonnement avec accès API)
 
 ```
 Client envoie /rendez-vous
   → demande enregistrée dans QuoteRequest (CRM PERF'EXHAUST)
   → emails Resend envoyés (atelier + confirmation client), comme avant
-  → SI PENNYLANE_API_KEY configurée : brouillon Pennylane créé automatiquement
-      (client retrouvé/créé + devis avec une ligne générique 0 € HT
-       "Échappement sur mesure — prix à définir après analyse")
+  → SI PENNYLANE_API_KEY configurée ET mode=api : brouillon Pennylane créé
+      automatiquement (client retrouvé/créé + devis avec une ligne générique
+      0 € HT "Échappement sur mesure — prix à définir après analyse")
   → résultat (ID, numéro, lien) sauvegardé sur la demande
   → le client voit toujours "Demande envoyée avec succès", même si
     l'étape Pennylane échoue (jamais visible côté public)
@@ -130,7 +172,7 @@ motorisation, type de projet, sonorité souhaitée, message du client, et la
 mention *« Prix à compléter dans Pennylane après analyse »*. Aucun prix
 définitif n'est jamais inventé par le site.
 
-### Créer une clé API Pennylane
+### Créer une clé API Pennylane (mode `api` uniquement)
 
 1. Se connecter à Pennylane avec un compte **Cadre dirigeant, Comptable
    interne ou externe** (plan Essential ou supérieur requis).
@@ -144,8 +186,14 @@ définitif n'est jamais inventé par le site.
 ### Variables à poser sur Vercel
 
 ```
+PENNYLANE_MODE=api
 PENNYLANE_API_KEY=<le token généré ci-dessus>
 ```
+
+`PENNYLANE_MODE` est **optionnelle** : ne la poser que pour forcer un mode
+explicitement (ex. `manual` pour repasser au plan gratuit sans retirer une
+clé API laissée dans l'environnement). Sans elle, le mode se déduit de la
+présence de `PENNYLANE_API_KEY`.
 
 `PENNYLANE_BASE_URL` et `PENNYLANE_COMPANY_ID` sont **optionnelles** — à
 n'ajouter que si Pennylane l'exige explicitement pour votre configuration
@@ -153,14 +201,24 @@ n'ajouter que si Pennylane l'exige explicitement pour votre configuration
 « Company API » standard n'en a pas besoin : le token est déjà rattaché à
 une seule entreprise.
 
-Sans `PENNYLANE_API_KEY` : la demande est enregistrée normalement, les
-emails partent normalement, et la section « Devis Pennylane » de
-`/admin/devis/[id]` affiche simplement *« Pennylane non configuré »* — rien
-ne casse ailleurs sur le site.
+Sans `PENNYLANE_API_KEY` (ou avec `PENNYLANE_MODE=manual`) : la demande est
+enregistrée normalement, les emails partent normalement, et
+`/admin/devis/[id]` affiche le bloc **« Pennylane manuel »** — rien ne casse
+ailleurs sur le site.
 
 ### Comment tester l'intégration
 
-1. Poser `PENNYLANE_API_KEY` (local ou Vercel).
+**Mode manuel (par défaut, aucune variable à poser) :**
+1. Soumettre une demande réelle via `/rendez-vous`.
+2. Ouvrir la demande sur `/admin/devis/[id]` — le bloc **« Pennylane
+   manuel »** affiche le statut *« À créer dans Pennylane »*.
+3. Cliquer **« Copier pour Pennylane »**, vérifier que le texte collé
+   contient bien toutes les informations client/véhicule/projet.
+4. Créer le devis à la main dans Pennylane, puis revenir mettre à jour le
+   statut, le numéro et le lien depuis l'admin.
+
+**Mode API (abonnement avec accès API) :**
+1. Poser `PENNYLANE_API_KEY` (et `PENNYLANE_MODE=api` si besoin de forcer).
 2. Soumettre une demande réelle via `/rendez-vous`.
 3. Ouvrir la demande correspondante sur `/admin/devis/[id]` — la section
    « Devis Pennylane » doit afficher le statut **« Brouillon créé »**, l'ID

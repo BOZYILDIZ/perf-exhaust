@@ -309,6 +309,7 @@ Le site est accessible sur **[http://localhost:3000](http://localhost:3000)**.
 | `TIKTOK_CLIENT_SECRET` | Client secret de l'API TikTok | ❌ |
 | `TIKTOK_ACCESS_TOKEN` | Token d'accès à l'API TikTok | ❌ |
 | `NEXT_PUBLIC_SITE_URL` | URL canonique du site (SEO, sitemap, Open Graph) | ❌ |
+| `PENNYLANE_MODE` | `manual` (plan gratuit, défaut) ou `api` (abonnement avec accès API) — déduit de `PENNYLANE_API_KEY` si absente | ❌ |
 | `PENNYLANE_API_KEY` | Token [Company API Pennylane](https://pennylane.readme.io/) pour créer des devis depuis `/admin/devis` | ❌ |
 | `PENNYLANE_BASE_URL` | URL de base Pennylane si différente de la production standard (sandbox...) | ❌ |
 | `PENNYLANE_COMPANY_ID` | Réservé aux configurations multi-entreprises (cabinet comptable) | ❌ |
@@ -328,23 +329,23 @@ Le site est accessible sur **[http://localhost:3000](http://localhost:3000)**.
 
 ## 🧾 Intégration Pennylane
 
-**Pennylane est la source unique pour les devis et les factures.**
-PERF'EXHAUST ne génère pas de devis officiel : le site collecte la demande et
-crée automatiquement un **brouillon** dans Pennylane. Prix, envoi au client,
-acceptation et facturation se gèrent ensuite entièrement dans Pennylane — le
-CRM `/admin/devis` ne fait que refléter le statut et le lien.
+**Pennylane est la source unique pour les devis et les factures**, dans les
+deux modes ci-dessous — PERF'EXHAUST ne génère jamais de devis officiel.
 
-```
-Demande /rendez-vous → enregistrée (CRM) + emails Resend (comme avant)
-  → si PENNYLANE_API_KEY configurée : brouillon Pennylane créé automatiquement
-    (client + devis pré-rempli, ligne générique 0 € "prix à définir")
-  → le client voit toujours "Demande envoyée avec succès", même en cas
-    d'échec Pennylane (jamais visible côté public — admin uniquement)
-```
+- **Mode manuel** (`PENNYLANE_MODE=manual`, ou par défaut sans clé API —
+  adapté au **plan gratuit Pennylane**, qui n'inclut pas l'API) :
+  `/admin/devis/[id]` affiche un bloc « Pennylane manuel » avec un bouton
+  **« Copier pour Pennylane »** (copie toutes les infos client/véhicule/projet
+  prêtes à coller) et un suivi déclaratif (statut, numéro, lien) que l'admin
+  met à jour après chaque étape faite à la main dans Pennylane.
+- **Mode API** (`PENNYLANE_API_KEY` configurée) : un **brouillon** est créé
+  automatiquement dans Pennylane à chaque demande — client + devis pré-rempli,
+  ligne générique 0 € "prix à définir". Le client voit toujours "Demande
+  envoyée avec succès", même en cas d'échec Pennylane (jamais visible côté
+  public). Un bouton **« Réessayer »** apparaît dans l'admin en cas d'erreur.
 
-Sans `PENNYLANE_API_KEY`, la section correspondante affiche simplement
-*« Pennylane non configuré »* — rien ne casse ailleurs. En cas d'échec, un
-bouton **« Réessayer la création du brouillon »** apparaît dans l'admin.
+Les deux modes coexistent dans le code : passer de l'un à l'autre ne
+nécessite qu'une variable d'environnement, jamais une modification de code.
 Procédure complète (génération de la clé, variables, test, limites
 connues) : voir [`docs/MAINTENANCE.md`](docs/MAINTENANCE.md), section
 « Intégration Pennylane ».

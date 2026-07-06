@@ -70,13 +70,27 @@ export type ProjectPayload = z.infer<typeof projectSchema>
 /** Statuts possibles d'une demande de devis (mini-CRM). */
 export const QUOTE_STATUSES = ['new', 'contacted', 'in_progress', 'completed', 'archived'] as const
 
-/** Mise à jour d'une demande de devis depuis l'admin (statut et/ou notes internes). */
+/** Statuts du suivi manuel Pennylane (plan gratuit, sans API — voir src/lib/pennylane/mode.ts). */
+export const PENNYLANE_MANUAL_STATUSES = [
+  'a_creer',
+  'devis_cree',
+  'devis_envoye',
+  'devis_accepte',
+  'devis_refuse',
+  'facture_creee',
+  'paye',
+] as const
+
+/** Mise à jour d'une demande de devis depuis l'admin (CRM + suivi manuel Pennylane). */
 export const quoteRequestUpdateSchema = z
   .object({
     status: z.enum(QUOTE_STATUSES).optional(),
     notes: z.string().max(5000).optional(),
+    pennylaneManualStatus: z.enum(PENNYLANE_MANUAL_STATUSES).optional(),
+    pennylaneQuoteNumber: z.string().max(120).optional().or(z.literal('')),
+    pennylaneQuoteUrl: z.string().url("Lien Pennylane invalide").optional().or(z.literal('')),
   })
-  .refine((v) => v.status !== undefined || v.notes !== undefined, {
+  .refine((v) => Object.values(v).some((value) => value !== undefined), {
     message: 'Aucune modification fournie',
   })
 

@@ -81,18 +81,25 @@ model QuoteRequest {
   status String @default("new") // "new" | "contacted" | "in_progress" | "completed" | "archived"
   notes  String @default("") // notes internes atelier, jamais exposées publiquement
 
-  // Intégration Pennylane — voir src/lib/pennylane/. Pennylane est la source
-  // unique pour les devis et factures : dès qu'une demande est enregistrée
-  // (et si PENNYLANE_API_KEY est configurée), un brouillon de devis Pennylane
-  // est créé automatiquement par POST /api/rendez-vous. Le panel PERF'EXHAUST
-  // ne construit plus de devis local — il consulte uniquement ce résultat.
+  // Intégration Pennylane — voir src/lib/pennylane/. Deux modes cohabitent
+  // (PENNYLANE_MODE, voir src/lib/pennylane/mode.ts) :
+  //  - "api"    : brouillon créé automatiquement par POST /rendez-vous
+  //               (nécessite un abonnement Pennylane avec accès API) ;
+  //               statut reflété par pennylaneSyncStatus/*Error/*SyncedAt.
+  //  - "manual" : plan gratuit Pennylane (pas d'API) — l'admin copie les
+  //               informations depuis /admin/devis/[id] et crée le devis à
+  //               la main dans Pennylane, puis renseigne pennylaneManualStatus
+  //               + pennylaneQuoteNumber/Url manuellement.
+  // Dans les deux cas, Pennylane reste la source unique pour les devis et
+  // factures — le panel PERF'EXHAUST ne construit jamais de devis local.
   pennylaneCustomerId  String?
   pennylaneQuoteId     String?
   pennylaneQuoteNumber String?
   pennylaneQuoteUrl    String?
-  pennylaneSyncStatus  String?   @default("not_configured") // "not_configured" | "pending" | "draft_created" | "failed"
+  pennylaneSyncStatus  String?   @default("not_configured") // mode "api" : "not_configured" | "pending" | "draft_created" | "failed"
   pennylaneSyncError   String?
   pennylaneSyncedAt    DateTime?
+  pennylaneManualStatus String?  // mode "manual" : "a_creer" | "devis_cree" | "devis_envoye" | "devis_accepte" | "devis_refuse" | "facture_creee" | "paye"
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

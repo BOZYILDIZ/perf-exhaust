@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Save, Trash2, Archive, CheckCircle, AlertCircle, Phone, Mail } from "lucide-react";
 import PennylaneSection from "@/components/admin/PennylaneSection";
+import PennylaneManualSection from "@/components/admin/PennylaneManualSection";
 
 export interface QuoteRequestDetailData {
   id: string;
@@ -28,6 +29,7 @@ export interface QuoteRequestDetailData {
   pennylaneSyncStatus: string | null;
   pennylaneSyncError: string | null;
   pennylaneSyncedAt: string | null;
+  pennylaneManualStatus: string | null;
 }
 
 const STATUSES = [
@@ -53,9 +55,11 @@ function InfoRow({ label: l, value }: { label: string; value: string }) {
 export default function QuoteRequestDetail({
   request,
   pennylaneConfigured,
+  pennylaneMode,
 }: {
   request: QuoteRequestDetailData;
   pennylaneConfigured: boolean;
+  pennylaneMode: "api" | "manual";
 }) {
   const router = useRouter();
   const [status, setStatus] = useState(request.status);
@@ -159,18 +163,42 @@ export default function QuoteRequestDetail({
         </div>
       </section>
 
-      <PennylaneSection
-        quoteRequestId={request.id}
-        pennylaneConfigured={pennylaneConfigured}
-        state={{
-          pennylaneQuoteId: request.pennylaneQuoteId,
-          pennylaneQuoteNumber: request.pennylaneQuoteNumber,
-          pennylaneQuoteUrl: request.pennylaneQuoteUrl,
-          pennylaneSyncStatus: request.pennylaneSyncStatus,
-          pennylaneSyncError: request.pennylaneSyncError,
-          pennylaneSyncedAt: request.pennylaneSyncedAt,
-        }}
-      />
+      {pennylaneMode === "manual" ? (
+        <PennylaneManualSection
+          quoteRequestId={request.id}
+          source={{
+            nom: request.nom,
+            prenom: request.prenom,
+            email: request.email,
+            telephone: request.telephone,
+            marque: request.marque,
+            modele: request.modele,
+            annee: request.annee,
+            motorisation: request.motorisation,
+            typeProjet: request.typeProjet,
+            sonorite: request.sonorite,
+            message: request.message,
+          }}
+          state={{
+            pennylaneManualStatus: request.pennylaneManualStatus,
+            pennylaneQuoteNumber: request.pennylaneQuoteNumber,
+            pennylaneQuoteUrl: request.pennylaneQuoteUrl,
+          }}
+        />
+      ) : (
+        <PennylaneSection
+          quoteRequestId={request.id}
+          pennylaneConfigured={pennylaneConfigured}
+          state={{
+            pennylaneQuoteId: request.pennylaneQuoteId,
+            pennylaneQuoteNumber: request.pennylaneQuoteNumber,
+            pennylaneQuoteUrl: request.pennylaneQuoteUrl,
+            pennylaneSyncStatus: request.pennylaneSyncStatus,
+            pennylaneSyncError: request.pennylaneSyncError,
+            pennylaneSyncedAt: request.pennylaneSyncedAt,
+          }}
+        />
+      )}
 
       <section>
         <h2 className={sectionTitle}>Suivi atelier</h2>

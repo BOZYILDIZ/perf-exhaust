@@ -57,24 +57,26 @@ Les cases cochées `[x]` correspondent à ce qui est **réellement fait et véri
 
 ## 🧾 Pennylane — source unique devis & factures
 
-Rappel de principe : PERF'EXHAUST ne génère pas de devis officiel. Un
-brouillon Pennylane est créé automatiquement à chaque demande reçue ; prix,
-envoi, acceptation et facturation se font exclusivement dans Pennylane.
+Rappel de principe : PERF'EXHAUST ne génère pas de devis officiel, en mode
+manuel comme en mode API. Prix, envoi, acceptation et facturation se font
+exclusivement dans Pennylane.
 
-- [x] Intégration code prête (client `src/lib/pennylane/`, création
-      automatique dans `/api/rendez-vous`, retry admin, UI simplifiée
-      `/admin/devis/[id]`, modèle Prisma `QuoteRequest`)
+- [x] Intégration code prête pour les deux modes (client `src/lib/pennylane/`,
+      résolution de mode `PENNYLANE_MODE`, création automatique en mode API
+      dans `/api/rendez-vous`, bloc manuel + bouton "Copier pour Pennylane"
+      en mode manuel, retry admin, modèle Prisma `QuoteRequest`)
 - [x] `QuoteLine` supprimée (table vide en production, migration propre) —
-      plus aucune construction de devis local dans le panel
-- [x] Le site fonctionne sans `PENNYLANE_API_KEY` (statut "Non configuré",
-      demande + emails toujours fonctionnels, rien ne casse ailleurs)
-- [x] Un échec Pennylane ne bloque jamais la demande client (best-effort,
-      erreur visible uniquement côté admin avec bouton "Réessayer")
-- [ ] Compte Pennylane du client finalisé
-- [ ] Générer la clé API Pennylane (Company API Token, "Read and write")
-- [ ] Poser `PENNYLANE_API_KEY` sur Vercel
-- [ ] Soumettre une demande réelle via `/rendez-vous` et vérifier la création
-      automatique du brouillon (statut, ID, numéro/lien) sur `/admin/devis/[id]`
+      plus aucune construction de devis local dans le panel, dans aucun mode
+- [x] **Mode manuel actif par défaut** (plan gratuit Pennylane, sans clé API
+      requise) — demande + emails toujours fonctionnels, aucun appel réseau
+      Pennylane, rien ne casse
+- [x] Un échec Pennylane (mode API) ne bloque jamais la demande client
+      (best-effort, erreur visible uniquement côté admin avec bouton "Réessayer")
+- [ ] Si le client passe à un abonnement Pennylane avec accès API à l'avenir :
+  - [ ] Générer la clé API Pennylane (Company API Token, "Read and write")
+  - [ ] Poser `PENNYLANE_API_KEY` (et `PENNYLANE_MODE=api` si besoin) sur Vercel
+  - [ ] Soumettre une demande réelle via `/rendez-vous` et vérifier la création
+        automatique du brouillon (statut, ID, numéro/lien) sur `/admin/devis/[id]`
 - [ ] Voir `docs/MAINTENANCE.md` § "Intégration Pennylane" pour la procédure complète
 
 ## 🔍 Google Search Console

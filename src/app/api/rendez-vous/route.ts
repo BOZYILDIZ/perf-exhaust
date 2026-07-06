@@ -3,7 +3,8 @@ import { z } from "zod";
 import { sendAppointmentToShop, sendConfirmationToClient } from "@/lib/email";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { isDbConfigured, getDb } from "@/lib/db";
-import { isPennylaneConfigured, createDraftQuoteFromRequest } from "@/lib/pennylane/client";
+import { createDraftQuoteFromRequest } from "@/lib/pennylane/client";
+import { getPennylaneMode } from "@/lib/pennylane/mode";
 import { PennylaneError } from "@/lib/pennylane/types";
 
 const schema = z.object({
@@ -42,6 +43,7 @@ export async function POST(req: NextRequest) {
     // Mini-CRM : la demande est enregistrée en base en plus de l'email —
     // best-effort, ne doit jamais empêcher l'envoi des emails ni casser le
     // formulaire si la base est temporairement indisponible.
+    const pennylaneMode = getPennylaneMode();
     let quoteRequestId: string | null = null;
     if (isDbConfigured()) {
       try {
@@ -58,7 +60,10 @@ export async function POST(req: NextRequest) {
             typeProjet: data.typeProjet,
             sonorite: data.sonoritePreference,
             message: data.description,
-            pennylaneSyncStatus: isPennylaneConfigured() ? "pending" : "not_configured",
+            pennylaneSyncStatus: pennylaneMode === "api" ? "pending" : "not_configured",
+            // Mode manuel (plan gratuit Pennylane, sans API) : la demande démarre
+            // "à créer dans Pennylane" — l'admin la fait avancer depuis /admin/devis/[id].
+            pennylaneManualStatus: pennylaneMode === "manual" ? "a_creer" : null,
           },
         });
         quoteRequestId = created.id;
@@ -74,11 +79,14 @@ export async function POST(req: NextRequest) {
       sendConfirmationToClient(data),
     ]);
 
-    // Pennylane est la source unique pour les devis : un brouillon est créé
-    // automatiquement dès que la demande est enregistrée. Best-effort total —
-    // le client ne voit jamais un échec Pennylane, seul l'admin le voit
-    // (pennylaneSyncStatus/"failed" + bouton "Réessayer" sur /admin/devis/[id]).
-    if (quoteRequestId && isPennylaneConfigured()) {
+    // Pennylane est la source unique pour les devis. En mode "api", un
+    // brouillon est créé automatiquement dès que la demande est enregistrée —
+    // best-effort total, le client ne voit jamais un échec Pennylane, seul
+    // l'admin le voit (pennylaneSyncStatus="failed" + bouton "Réessayer" sur
+    // /admin/devis/[id]). En mode "manual" (plan gratuit, pas d'API), aucun
+    // appel réseau n'est effectué : l'admin crée le devis à la main depuis le
+    // bloc "Pennylane manuel" (bouton "Copier pour Pennylane").
+    if (quoteRequestId && pennylaneMode === "api") {
       try {
         const draft = await createDraftQuoteFromRequest({
           nom: data.nom,

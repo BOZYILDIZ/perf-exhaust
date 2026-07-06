@@ -1,4 +1,5 @@
 import { isDbConfigured, getDb } from "@/lib/db";
+import { getPennylaneMode } from "@/lib/pennylane/client";
 import QuoteRequestsTable, { type QuoteRequestRow } from "@/components/admin/QuoteRequestsTable";
 
 export const dynamic = "force-dynamic";
@@ -32,6 +33,7 @@ export default async function AdminQuoteRequestsPage() {
           marque: true, modele: true, annee: true, typeProjet: true,
           status: true, createdAt: true,
           pennylaneSyncStatus: true, pennylaneQuoteUrl: true,
+          pennylaneManualStatus: true, pennylaneQuoteNumber: true,
         },
       }),
       db.quoteRequest.count({ where: { status: "new" } }),
@@ -66,7 +68,7 @@ export default async function AdminQuoteRequestsPage() {
             <StatChip label="Terminées" value={counts.completed} />
             <StatChip label="Archivées" value={counts.archived} />
           </div>
-          <QuoteRequestsTable initialRows={rows} />
+          <QuoteRequestsTable initialRows={rows} pennylaneMode={getPennylaneMode()} />
         </>
       )}
     </div>

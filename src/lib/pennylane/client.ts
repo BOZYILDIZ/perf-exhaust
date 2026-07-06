@@ -7,8 +7,10 @@ import {
   type PennylaneErrorBody,
 } from './types'
 import { buildBillingAddress, type PartialBillingAddress } from './billing-address'
+import { getPennylaneMode, isPennylaneApiMode, isPennylaneManualMode, type PennylaneMode } from './mode'
 
-export type { PartialBillingAddress }
+export type { PartialBillingAddress, PennylaneMode }
+export { getPennylaneMode, isPennylaneApiMode, isPennylaneManualMode }
 
 /**
  * Client Pennylane API v2 (https://pennylane.readme.io/reference).
@@ -17,11 +19,17 @@ export type { PartialBillingAddress }
  * route ne doit fetch() Pennylane directement. Voir docs/MAINTENANCE.md
  * § "Intégration Pennylane" pour le détail des endpoints et des limites.
  *
- * Pennylane est la source unique pour les devis et les factures : dès
- * qu'une demande est enregistrée via /rendez-vous (voir
- * src/app/api/rendez-vous/route.ts), createDraftQuoteFromRequest() crée
- * automatiquement un brouillon — le panel PERF'EXHAUST ne construit plus de
- * devis local, il ne fait que refléter ce résultat (ID, numéro, lien).
+ * Pennylane est la source unique pour les devis et les factures. Selon
+ * PENNYLANE_MODE (voir ./mode.ts) :
+ *  - mode "api"    : dès qu'une demande est enregistrée via /rendez-vous,
+ *                    createDraftQuoteFromRequest() crée automatiquement un
+ *                    brouillon (nécessite un abonnement Pennylane avec API).
+ *  - mode "manual" : plan gratuit sans API — l'admin copie les informations
+ *                    depuis /admin/devis/[id] (bouton "Copier pour
+ *                    Pennylane") et crée le devis à la main, puis renseigne
+ *                    le statut/numéro/lien manuellement.
+ * Dans les deux cas, le panel PERF'EXHAUST ne construit jamais de devis
+ * local — il ne fait que refléter ce résultat (ID, numéro, lien).
  */
 
 const BASE_URL = (process.env.PENNYLANE_BASE_URL || 'https://app.pennylane.com/api/external/v2').replace(/\/+$/, '')

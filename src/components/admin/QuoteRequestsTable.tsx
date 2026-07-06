@@ -18,6 +18,8 @@ export interface QuoteRequestRow {
   createdAt: string;
   pennylaneSyncStatus: string | null;
   pennylaneQuoteUrl: string | null;
+  pennylaneManualStatus: string | null;
+  pennylaneQuoteNumber: string | null;
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -50,7 +52,27 @@ const PENNYLANE_STYLES: Record<string, string> = {
   failed: "text-red-400 bg-red-500/10",
 };
 
-export default function QuoteRequestsTable({ initialRows }: { initialRows: QuoteRequestRow[] }) {
+const MANUAL_STATUS_LABELS: Record<string, string> = {
+  a_creer: "À créer",
+  devis_cree: "Devis créé",
+  devis_envoye: "Devis envoyé",
+  devis_accepte: "Devis accepté",
+  devis_refuse: "Devis refusé",
+  facture_creee: "Facture créée",
+  paye: "Payé",
+};
+
+const MANUAL_STATUS_STYLES: Record<string, string> = {
+  a_creer: "text-gray-400 bg-white/5",
+  devis_cree: "text-brand-400 bg-brand-500/10",
+  devis_envoye: "text-yellow-400 bg-yellow-500/10",
+  devis_accepte: "text-green-400 bg-green-500/10",
+  devis_refuse: "text-red-400 bg-red-500/10",
+  facture_creee: "text-purple-300 bg-purple-500/10",
+  paye: "text-green-400 bg-green-500/10",
+};
+
+export default function QuoteRequestsTable({ initialRows, pennylaneMode }: { initialRows: QuoteRequestRow[]; pennylaneMode: "api" | "manual" }) {
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | string>("all");
 
@@ -128,9 +150,15 @@ export default function QuoteRequestsTable({ initialRows }: { initialRows: Quote
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
-                    <span className={`text-xs font-bold px-2 py-0.5 uppercase tracking-wider whitespace-nowrap ${PENNYLANE_STYLES[r.pennylaneSyncStatus ?? "not_configured"] ?? "text-gray-500 bg-white/5"}`}>
-                      {PENNYLANE_LABELS[r.pennylaneSyncStatus ?? "not_configured"] ?? r.pennylaneSyncStatus}
-                    </span>
+                    {pennylaneMode === "manual" ? (
+                      <span className={`text-xs font-bold px-2 py-0.5 uppercase tracking-wider whitespace-nowrap ${MANUAL_STATUS_STYLES[r.pennylaneManualStatus ?? "a_creer"] ?? "text-gray-500 bg-white/5"}`}>
+                        {MANUAL_STATUS_LABELS[r.pennylaneManualStatus ?? "a_creer"] ?? r.pennylaneManualStatus}
+                      </span>
+                    ) : (
+                      <span className={`text-xs font-bold px-2 py-0.5 uppercase tracking-wider whitespace-nowrap ${PENNYLANE_STYLES[r.pennylaneSyncStatus ?? "not_configured"] ?? "text-gray-500 bg-white/5"}`}>
+                        {PENNYLANE_LABELS[r.pennylaneSyncStatus ?? "not_configured"] ?? r.pennylaneSyncStatus}
+                      </span>
+                    )}
                     {r.pennylaneQuoteUrl && (
                       <a
                         href={r.pennylaneQuoteUrl}
@@ -144,6 +172,9 @@ export default function QuoteRequestsTable({ initialRows }: { initialRows: Quote
                       </a>
                     )}
                   </div>
+                  {r.pennylaneQuoteNumber && (
+                    <div className="text-gray-600 text-xs mt-0.5">{r.pennylaneQuoteNumber}</div>
+                  )}
                 </td>
                 <td className="px-4 py-3 text-gray-600 text-xs whitespace-nowrap">{new Date(r.createdAt).toLocaleDateString("fr-FR")}</td>
                 <td className="px-4 py-3">

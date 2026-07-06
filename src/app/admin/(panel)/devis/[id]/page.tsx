@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { isDbConfigured, getDb } from "@/lib/db";
-import { isPennylaneConfigured } from "@/lib/pennylane/client";
+import { isPennylaneConfigured, getPennylaneMode } from "@/lib/pennylane/client";
 import QuoteRequestDetail from "@/components/admin/QuoteRequestDetail";
 
 export const dynamic = "force-dynamic";
@@ -40,8 +40,10 @@ export default async function AdminQuoteRequestDetailPage({ params }: { params: 
           pennylaneSyncStatus: q.pennylaneSyncStatus,
           pennylaneSyncError: q.pennylaneSyncError,
           pennylaneSyncedAt: q.pennylaneSyncedAt ? q.pennylaneSyncedAt.toISOString() : null,
+          pennylaneManualStatus: q.pennylaneManualStatus,
         }}
         pennylaneConfigured={isPennylaneConfigured()}
+        pennylaneMode={getPennylaneMode()}
       />
     </div>
   );
