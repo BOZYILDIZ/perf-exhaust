@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { sendAppointmentToShop, sendConfirmationToClient } from "@/lib/email";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+import { isDbConfigured, getDb } from "@/lib/db";
 
 const schema = z.object({
   nom: z.string().min(2),
@@ -34,6 +35,31 @@ export async function POST(req: NextRequest) {
     const data = parsed.data;
     if (!data.rgpd) {
       return NextResponse.json({ error: "Consentement RGPD requis" }, { status: 400 });
+    }
+
+    // Mini-CRM : la demande est enregistrée en base en plus de l'email —
+    // best-effort, ne doit jamais empêcher l'envoi des emails ni casser le
+    // formulaire si la base est temporairement indisponible.
+    if (isDbConfigured()) {
+      try {
+        await getDb().quoteRequest.create({
+          data: {
+            nom: data.nom,
+            prenom: data.prenom,
+            email: data.email,
+            telephone: data.telephone,
+            marque: data.marque,
+            modele: data.modele,
+            annee: data.annee,
+            motorisation: data.motorisation || null,
+            typeProjet: data.typeProjet,
+            sonorite: data.sonoritePreference,
+            message: data.description,
+          },
+        });
+      } catch (dbError) {
+        console.error("[API/rendez-vous] Échec de l'enregistrement en base (email envoyé normalement) :", dbError);
+      }
     }
 
     await Promise.all([

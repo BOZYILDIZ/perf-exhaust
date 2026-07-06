@@ -1,7 +1,5 @@
-"use client";
-
 import Link from "next/link";
-import { services } from "@/data/services";
+import { getPublishedServices } from "@/lib/services-repo";
 import SectionTitle from "@/components/ui/SectionTitle";
 import { ArrowRight, Wrench, Zap, Volume2, Flame, Music, Star, Settings } from "lucide-react";
 
@@ -10,7 +8,8 @@ const iconMap: Record<string, React.ElementType> = {
   tool: Settings, music: Music, star: Star,
 };
 
-export default function ServicesSection() {
+export default async function ServicesSection() {
+  const services = await getPublishedServices();
   return (
     <section className="py-24 relative" style={{ background: "linear-gradient(180deg, #0a0a0a 0%, #0d0d0d 100%)" }}>
       <div className="max-w-7xl mx-auto px-6">
@@ -34,20 +33,8 @@ export default function ServicesSection() {
             return (
               <div
                 key={service.id}
-                className="group p-6 border transition-all duration-300 hover:-translate-y-1 cursor-pointer"
-                style={{
-                  background: "#111111",
-                  borderColor: "#1e1e1e",
-                  borderRadius: "2px",
-                }}
-                onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLElement).style.borderColor = "rgba(18,102,234,0.3)";
-                  (e.currentTarget as HTMLElement).style.boxShadow = "0 20px 40px rgba(0,0,0,0.4), 0 0 20px rgba(18,102,234,0.08)";
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLElement).style.borderColor = "#1e1e1e";
-                  (e.currentTarget as HTMLElement).style.boxShadow = "none";
-                }}
+                className="group p-6 border border-[#1e1e1e] transition-all duration-300 hover:-translate-y-1 hover:border-brand-500/30 hover:shadow-[0_20px_40px_rgba(0,0,0,0.4),0_0_20px_rgba(18,102,234,0.08)] cursor-pointer"
+                style={{ background: "#111111", borderRadius: "2px" }}
               >
                 <div className="flex items-start justify-between mb-4">
                   <div
@@ -77,14 +64,16 @@ export default function ServicesSection() {
                 </h3>
                 <p className="text-gray-400 text-sm leading-relaxed mb-4">{service.description}</p>
 
-                <ul className="space-y-1">
-                  {service.details.slice(0, 3).map((d) => (
-                    <li key={d} className="flex items-center gap-2 text-xs text-gray-500">
-                      <span className="w-1 h-1 bg-brand-500 rounded-full flex-shrink-0" />
-                      {d}
-                    </li>
-                  ))}
-                </ul>
+                {service.details && service.details.length > 0 && (
+                  <ul className="space-y-1">
+                    {service.details.slice(0, 3).map((d) => (
+                      <li key={d} className="flex items-center gap-2 text-xs text-gray-500">
+                        <span className="w-1 h-1 bg-brand-500 rounded-full flex-shrink-0" />
+                        {d}
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
             );
           })}

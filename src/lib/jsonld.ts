@@ -1,21 +1,29 @@
+import type { SiteSettingsData } from "@/lib/settings-repo";
+
 const SITE_URL = "https://perfexhaust.fr";
 
-export const organizationSchema = {
+/**
+ * Schema LocalBusiness — construit à partir des paramètres du site
+ * (téléphone, email, adresse, réseaux) pour rester cohérent avec les
+ * valeurs éditées depuis /admin/settings. Voir src/app/layout.tsx.
+ */
+export function buildOrganizationSchema(settings: SiteSettingsData) {
+  return {
   "@context": "https://schema.org",
   "@type": ["LocalBusiness", "AutomotiveBusiness"],
   "@id": `${SITE_URL}/#organization`,
-  name: "PERF'EXHAUST",
+  name: settings.businessName,
   url: SITE_URL,
   logo: `${SITE_URL}/brand/app-icon-512.png`,
   image: `${SITE_URL}/brand/og-image.jpg`,
   description: "Fabrication artisanale d'échappements sur mesure en Alsace. Soudure TIG inox 304L/316L, modification sonore, ligne complète ou demi-ligne. Atelier spécialisé à Rountzenheim-Auenheim, Bas-Rhin.",
-  telephone: "+33636523058",
-  email: "contact@perfexhaust.fr",
+  telephone: settings.phone,
+  email: settings.email,
   address: {
     "@type": "PostalAddress",
-    streetAddress: "30 Rue de Soufflenheim",
-    addressLocality: "Rountzenheim-Auenheim",
-    postalCode: "67480",
+    streetAddress: settings.address,
+    addressLocality: settings.city,
+    postalCode: settings.postalCode,
     addressRegion: "Bas-Rhin",
     addressCountry: "FR",
   },
@@ -103,11 +111,9 @@ export const organizationSchema = {
   priceRange: "€€",
   currenciesAccepted: "EUR",
   paymentAccepted: "Cash, Virement bancaire",
-  sameAs: [
-    "https://www.instagram.com/perfexhaust67/",
-    "https://www.tiktok.com/@perfexhaust",
-  ],
-};
+  sameAs: [settings.instagramUrl, settings.tiktokUrl].filter(Boolean),
+  };
+}
 
 export const websiteSchema = {
   "@context": "https://schema.org",

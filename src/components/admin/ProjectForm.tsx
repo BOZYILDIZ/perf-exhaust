@@ -330,7 +330,18 @@ export default function ProjectForm({
               </label>
             </div>
             {v.imagePrincipale && (
-              <img src={v.imagePrincipale} alt={v.imageAlt || "Aperçu image principale"} className="mt-2 h-24 w-auto border border-gray-800 object-cover" />
+              <div className="mt-2 relative inline-block">
+                <img src={v.imagePrincipale} alt={v.imageAlt || "Aperçu image principale"} className="h-24 w-auto border border-gray-800 object-cover" />
+                <button
+                  type="button"
+                  onClick={() => set("imagePrincipale", "")}
+                  className="absolute -top-2 -right-2 w-5 h-5 flex items-center justify-center bg-red-500/90 text-white hover:bg-red-500 transition-colors rounded-full"
+                  aria-label="Supprimer l'image principale"
+                  title="Supprimer l'image"
+                >
+                  <Trash2 size={11} />
+                </button>
+              </div>
             )}
           </Field>
           <Field>

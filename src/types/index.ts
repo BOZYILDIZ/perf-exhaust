@@ -31,10 +31,13 @@ export interface Project {
 
 export interface Service {
   id: string
+  /** Identifiant stable pour l'URL/l'admin (kebab-case). */
+  slug: string
   title: string
   description: string
   icon: string
-  details: string[]
+  /** Puces techniques — absentes pour les services créés depuis l'admin (non demandé dans ce modèle). */
+  details?: string[]
   badge?: string
 }
 

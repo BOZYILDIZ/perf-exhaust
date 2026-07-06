@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { getSiteSettings } from "@/lib/settings-repo";
 
 export const metadata: Metadata = {
   title: "Mentions légales & Confidentialité",
@@ -7,7 +8,8 @@ export const metadata: Metadata = {
   alternates: { canonical: "https://perfexhaust.fr/mentions-legales" },
 };
 
-export default function MentionsLegalesPage() {
+export default async function MentionsLegalesPage() {
+  const settings = await getSiteSettings();
   return (
     <div className="pt-20" style={{ background: "#080808" }}>
       <div className="max-w-4xl mx-auto px-6 py-10 sm:py-16">
@@ -17,12 +19,13 @@ export default function MentionsLegalesPage() {
 
         <div className="space-y-10 text-gray-400 text-sm leading-relaxed">
           <Section title="Éditeur du site">
-            <p><strong className="text-white">PERF&apos;EXHAUST</strong></p>
-            <p>Adresse : 30 Rue de Soufflenheim, 67480 Rountzenheim-Auenheim, France</p>
-            <p>Email : contact@perfexhaust.fr</p>
-            <p>Téléphone : +33 6 36 52 30 58</p>
-            <p>Forme juridique : à compléter</p>
-            <p>SIRET : 882 838 667 00021</p>
+            <p><strong className="text-white">{settings.businessName}</strong></p>
+            <p>Adresse : {settings.address}, {settings.postalCode} {settings.city}, France</p>
+            <p>Email : {settings.email}</p>
+            <p>Téléphone : {settings.phone}</p>
+            <p>Forme juridique : {settings.legalForm || "à compléter"}</p>
+            <p>SIRET : {settings.siret || "à compléter"}</p>
+            {settings.publicationDirector && <p>Directeur de la publication : {settings.publicationDirector}</p>}
           </Section>
 
           <Section title="Hébergement">
@@ -61,7 +64,7 @@ export default function MentionsLegalesPage() {
             <h3 className="text-white font-bold text-base mb-2 mt-4">Conservation</h3>
             <p>Vos données sont conservées pendant la durée nécessaire au traitement de votre demande, et au maximum 3 ans.</p>
             <h3 className="text-white font-bold text-base mb-2 mt-4">Vos droits</h3>
-            <p>Conformément au RGPD (Règlement 2016/679), vous disposez d&apos;un droit d&apos;accès, de rectification, d&apos;effacement et de portabilité de vos données. Pour exercer ces droits : contact@perfexhaust.fr</p>
+            <p>Conformément au RGPD (Règlement 2016/679), vous disposez d&apos;un droit d&apos;accès, de rectification, d&apos;effacement et de portabilité de vos données. Pour exercer ces droits : {settings.email}</p>
             <h3 className="text-white font-bold text-base mb-2 mt-4">Cookies</h3>
             <p>Ce site utilise uniquement des cookies techniques nécessaires à son fonctionnement. Aucun cookie publicitaire ou de tracking tiers n&apos;est utilisé.</p>
           </Section>

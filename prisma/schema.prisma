@@ -59,3 +59,91 @@ model Project {
 
   @@index([status, sortOrder])
 }
+
+// Demandes de devis reçues via /rendez-vous — persistées en plus de l'email
+// (mini-CRM atelier). Le formulaire continue de fonctionner même si l'écriture
+// en base échoue (voir src/app/api/rendez-vous/route.ts).
+model QuoteRequest {
+  id  String @id @default(cuid())
+
+  nom          String
+  prenom       String
+  email        String
+  telephone    String
+  marque       String
+  modele       String
+  annee        String
+  motorisation String?
+  typeProjet   String
+  sonorite     String
+  message      String
+
+  status String @default("new") // "new" | "contacted" | "in_progress" | "completed" | "archived"
+  notes  String @default("") // notes internes atelier, jamais exposées publiquement
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, createdAt])
+}
+
+// Paramètres globaux du site, éditables depuis /admin/settings.
+// Ligne unique (id fixe "singleton") — voir src/lib/settings-repo.ts pour le
+// fallback sur les valeurs codées en dur tant qu'aucune ligne n'existe.
+model SiteSettings {
+  id String @id @default("singleton")
+
+  businessName        String  @default("PERF'EXHAUST")
+  phone                String  @default("+33636523058")
+  email                String  @default("contact@perfexhaust.fr")
+  address              String  @default("30 Rue de Soufflenheim")
+  postalCode           String  @default("67480")
+  city                 String  @default("Rountzenheim-Auenheim")
+  instagramUrl         String  @default("https://www.instagram.com/perfexhaust67/")
+  tiktokUrl            String  @default("https://www.tiktok.com/@perfexhaust")
+  googleReviewsUrl     String  @default("")
+  shiftechUrl          String  @default("https://www.shiftech.eu")
+  openingHours         String  @default("Lun–Ven : 8h–18h (sur rendez-vous)")
+  legalForm            String  @default("")
+  siret                String  @default("882 838 667 00021")
+  publicationDirector  String  @default("")
+
+  updatedAt DateTime @updatedAt
+}
+
+// Prestations affichées sur /services, gérées depuis /admin/services.
+// Fallback statique : src/data/services.ts tant qu'aucune ligne n'existe.
+model Service {
+  id                String   @id @default(cuid())
+  title             String
+  slug              String   @unique
+  shortDescription  String
+  longDescription   String   @default("")
+  icon              String   @default("wrench")
+  status            String   @default("draft") // "draft" | "published"
+  sortOrder         Int      @default(0)
+  seoTitle          String?
+  seoDescription    String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, sortOrder])
+}
+
+// Questions fréquentes affichées sur la home, gérées depuis /admin/faq.
+// Fallback statique : liste codée dans src/lib/faq-repo.ts tant qu'aucune
+// ligne n'existe. Le schema.org FAQPage est généré depuis les mêmes données.
+model FAQItem {
+  id        String   @id @default(cuid())
+  question  String
+  answer    String
+  category  String?
+  status    String   @default("draft") // "draft" | "published"
+  sortOrder Int      @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, sortOrder])
+}

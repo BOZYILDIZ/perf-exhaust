@@ -3,6 +3,7 @@ import type { Service } from '@/types'
 export const services: Service[] = [
   {
     id: 'ligne-complete',
+    slug: 'ligne-complete',
     title: 'Ligne complète sur mesure',
     description: 'Fabrication intégrale d\'une ligne d\'échappement de A à Z, du collecteur au silencieux arrière, entièrement conçue pour votre véhicule.',
     icon: 'wrench',
@@ -11,6 +12,7 @@ export const services: Service[] = [
   },
   {
     id: 'demi-ligne',
+    slug: 'demi-ligne',
     title: 'Demi-ligne',
     description: 'Remplacement de la section intermédiaire et/ou du silencieux arrière par des pièces fabriquées sur mesure en inox.',
     icon: 'zap',
@@ -18,6 +20,7 @@ export const services: Service[] = [
   },
   {
     id: 'silencieux',
+    slug: 'silencieux',
     title: 'Silencieux personnalisé',
     description: 'Conception et fabrication d\'un silencieux unique, adapté à votre véhicule et à vos objectifs sonores.',
     icon: 'volume-2',
@@ -25,6 +28,7 @@ export const services: Service[] = [
   },
   {
     id: 'soudure-inox',
+    slug: 'soudure-inox',
     title: 'Soudure inox · métal · alu',
     description: 'Soudure TIG professionnelle sur tous types de matériaux : inox 304L/316L, acier, aluminium, titane.',
     icon: 'flame',
@@ -33,6 +37,7 @@ export const services: Service[] = [
   },
   {
     id: 'reparation',
+    slug: 'reparation',
     title: 'Réparation échappement',
     description: 'Diagnostic, réparation et renfort de votre ligne existante : fissures, rouille, casses, fuites.',
     icon: 'tool',
@@ -40,6 +45,7 @@ export const services: Service[] = [
   },
   {
     id: 'modification-sonore',
+    slug: 'modification-sonore',
     title: 'Modification sonore',
     description: 'Modification ciblée pour changer le caractère sonore de votre véhicule : plus grave, plus sport, plus discret.',
     icon: 'music',
@@ -47,6 +53,7 @@ export const services: Service[] = [
   },
   {
     id: 'projet-performance',
+    slug: 'projet-performance',
     title: 'Projet performance / esthétique',
     description: 'Projets complets alliant performance moteur et esthétique : sorties personnalisées, poli miroir, titane.',
     icon: 'star',

@@ -3,14 +3,18 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, Car, ExternalLink, LogOut } from "lucide-react";
+import { LayoutDashboard, Car, Wrench, FileQuestion, MessageSquareText, Settings, ExternalLink, LogOut } from "lucide-react";
 
 const links = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { href: "/admin/realisations", label: "Réalisations", icon: Car, exact: false },
+  { href: "/admin/devis", label: "Devis", icon: MessageSquareText, exact: false, badgeKey: "newQuotesCount" as const },
+  { href: "/admin/services", label: "Services", icon: Wrench, exact: false },
+  { href: "/admin/faq", label: "FAQ", icon: FileQuestion, exact: false },
+  { href: "/admin/settings", label: "Paramètres", icon: Settings, exact: false },
 ];
 
-export default function AdminSidebar() {
+export default function AdminSidebar({ newQuotesCount = 0 }: { newQuotesCount?: number }) {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -35,17 +39,33 @@ export default function AdminSidebar() {
       <nav className="flex-1 py-4 space-y-1 px-2 sm:px-3">
         {links.map((l) => {
           const active = l.exact ? pathname === l.href : pathname.startsWith(l.href);
+          const badge = l.badgeKey === "newQuotesCount" ? newQuotesCount : 0;
           return (
             <Link
               key={l.href}
               href={l.href}
               className={[
-                "flex items-center gap-3 px-3 py-2.5 text-sm rounded-sm transition-colors",
+                "flex items-center gap-3 px-3 py-2.5 text-sm rounded-sm transition-colors relative",
                 active ? "bg-brand-500/15 text-brand-400 font-bold" : "text-gray-400 hover:text-white hover:bg-white/5",
               ].join(" ")}
             >
-              <l.icon size={17} className="flex-shrink-0" />
-              <span className="hidden sm:block">{l.label}</span>
+              <span className="relative flex-shrink-0">
+                <l.icon size={17} />
+                {badge > 0 && (
+                  <span
+                    className="absolute -top-1.5 -right-1.5 sm:hidden flex items-center justify-center w-3.5 h-3.5 rounded-full bg-brand-500 text-white text-[9px] font-bold"
+                    aria-hidden="true"
+                  />
+                )}
+              </span>
+              <span className="hidden sm:flex items-center gap-2 flex-1">
+                {l.label}
+                {badge > 0 && (
+                  <span className="ml-auto inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-brand-500 text-white text-[10px] font-bold">
+                    {badge}
+                  </span>
+                )}
+              </span>
             </Link>
           );
         })}

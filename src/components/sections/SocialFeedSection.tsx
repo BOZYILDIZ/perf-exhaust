@@ -1,5 +1,6 @@
 import SectionTitle from "@/components/ui/SectionTitle";
-import { SOCIAL_LINKS, featuredPosts } from "@/data/social";
+import { featuredPosts } from "@/data/social";
+import { getSiteSettings } from "@/lib/settings-repo";
 import { ExternalLink, ArrowRight } from "lucide-react";
 
 function InstagramIcon({ size = 20 }: { size?: number }) {
@@ -20,28 +21,28 @@ function TikTokIcon({ size = 20 }: { size?: number }) {
   );
 }
 
-const NETWORKS = [
-  {
-    key: "instagram" as const,
-    name: "Instagram",
-    handle: "@perfexhaust67",
-    description: "Photos des réalisations, avant/après, coulisses de l'atelier et finitions en détail.",
-    cta: "Voir Instagram",
-    url: SOCIAL_LINKS.instagram,
-    icon: InstagramIcon,
-  },
-  {
-    key: "tiktok" as const,
-    name: "TikTok",
-    handle: "@perfexhaust",
-    description: "Sonorités en vidéo : démarrages, accélérations et soudure TIG en action.",
-    cta: "Voir TikTok",
-    url: SOCIAL_LINKS.tiktok,
-    icon: TikTokIcon,
-  },
-];
-
-export default function SocialFeedSection() {
+export default async function SocialFeedSection() {
+  const settings = await getSiteSettings();
+  const NETWORKS = [
+    {
+      key: "instagram" as const,
+      name: "Instagram",
+      handle: "@perfexhaust67",
+      description: "Photos des réalisations, avant/après, coulisses de l'atelier et finitions en détail.",
+      cta: "Voir Instagram",
+      url: settings.instagramUrl,
+      icon: InstagramIcon,
+    },
+    {
+      key: "tiktok" as const,
+      name: "TikTok",
+      handle: "@perfexhaust",
+      description: "Sonorités en vidéo : démarrages, accélérations et soudure TIG en action.",
+      cta: "Voir TikTok",
+      url: settings.tiktokUrl,
+      icon: TikTokIcon,
+    },
+  ];
   return (
     <section className="py-24" style={{ background: "#0a0a0a" }} aria-label="Réseaux sociaux">
       <div className="max-w-7xl mx-auto px-6">

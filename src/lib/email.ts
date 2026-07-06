@@ -1,4 +1,5 @@
 import { Resend } from 'resend'
+import { getSiteSettings } from '@/lib/settings-repo'
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
 
@@ -77,6 +78,7 @@ export async function sendConfirmationToClient(data: AppointmentData) {
     console.log('[EMAIL MOCK] Confirmation to client:', data.email)
     return { success: true, mock: true }
   }
+  const settings = await getSiteSettings()
   const { error } = await resend.emails.send({
     from: FROM_EMAIL,
     to: data.email,
@@ -89,7 +91,7 @@ export async function sendConfirmationToClient(data: AppointmentData) {
         <p>Votre demande de devis pour votre <strong>${escapeHtml(data.marque)} ${escapeHtml(data.modele)}</strong> a bien été reçue.</p>
         <p>Notre équipe va analyser votre projet et vous recontactera dans les <strong>24 à 48h</strong> pour vous transmettre un devis personnalisé.</p>
         <hr style="border-color:#333;margin:24px 0"/>
-        <p style="color:#aaa;font-size:14px">PERF'EXHAUST — Rountzenheim-Auenheim, Alsace<br/>Échappements sur mesure · Soudure inox · Sonorité personnalisée</p>
+        <p style="color:#aaa;font-size:14px">${escapeHtml(settings.businessName)} — ${escapeHtml(settings.city)}, Alsace · ${escapeHtml(settings.phone)}<br/>Échappements sur mesure · Soudure inox · Sonorité personnalisée</p>
       </div>
     `,
   })

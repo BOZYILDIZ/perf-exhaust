@@ -67,6 +67,62 @@ export const projectSchema = z.object({
 
 export type ProjectPayload = z.infer<typeof projectSchema>
 
+/** Statuts possibles d'une demande de devis (mini-CRM). */
+export const QUOTE_STATUSES = ['new', 'contacted', 'in_progress', 'completed', 'archived'] as const
+
+/** Mise à jour d'une demande de devis depuis l'admin (statut et/ou notes internes). */
+export const quoteRequestUpdateSchema = z
+  .object({
+    status: z.enum(QUOTE_STATUSES).optional(),
+    notes: z.string().max(5000).optional(),
+  })
+  .refine((v) => v.status !== undefined || v.notes !== undefined, {
+    message: 'Aucune modification fournie',
+  })
+
+/** Paramètres globaux du site, édités depuis /admin/settings. */
+export const siteSettingsSchema = z.object({
+  businessName: z.string().min(1).max(120),
+  phone: z.string().min(4).max(30),
+  email: z.string().email(),
+  address: z.string().min(1).max(200),
+  postalCode: z.string().min(2).max(20),
+  city: z.string().min(1).max(120),
+  instagramUrl: z.string().url().optional().or(z.literal('')),
+  tiktokUrl: z.string().url().optional().or(z.literal('')),
+  googleReviewsUrl: z.string().url().optional().or(z.literal('')),
+  shiftechUrl: z.string().url().optional().or(z.literal('')),
+  openingHours: z.string().max(300),
+  legalForm: z.string().max(120).optional().or(z.literal('')),
+  siret: z.string().max(30).optional().or(z.literal('')),
+  publicationDirector: z.string().max(120).optional().or(z.literal('')),
+})
+
+/** Prestation affichée sur /services, éditée depuis /admin/services. */
+export const serviceSchema = z.object({
+  title: z.string().min(2, 'Titre requis'),
+  slug: z
+    .string()
+    .min(2)
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Slug invalide : minuscules, chiffres et tirets uniquement'),
+  shortDescription: z.string().min(10, 'Description courte requise (10 caractères min)'),
+  longDescription: z.string().default(''),
+  icon: z.string().min(1).max(40).default('wrench'),
+  status: z.enum(['draft', 'published']),
+  sortOrder: z.number().int().min(0).max(9999).default(0),
+  seoTitle: z.string().max(120).optional().or(z.literal('')),
+  seoDescription: z.string().max(300).optional().or(z.literal('')),
+})
+
+/** Question fréquente, éditée depuis /admin/faq. */
+export const faqItemSchema = z.object({
+  question: z.string().min(5, 'Question requise'),
+  answer: z.string().min(5, 'Réponse requise'),
+  category: z.string().max(80).optional().or(z.literal('')),
+  status: z.enum(['draft', 'published']),
+  sortOrder: z.number().int().min(0).max(9999).default(0),
+})
+
 /** Nettoyage léger : trim + suppression des caractères de contrôle. */
 export function sanitizeStrings<T>(value: T): T {
   if (typeof value === 'string') {

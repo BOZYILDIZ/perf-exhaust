@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import ContactForm from "@/components/forms/ContactForm";
+import { getSiteSettings } from "@/lib/settings-repo";
 import { MapPin, Phone, Mail, Clock } from "lucide-react";
 
 export const metadata: Metadata = {
@@ -15,7 +16,8 @@ export const metadata: Metadata = {
   alternates: { canonical: "https://perfexhaust.fr/contact" },
 };
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const settings = await getSiteSettings();
   return (
     <div className="pt-20" style={{ background: "#080808" }}>
       <div className="relative py-16" style={{ background: "linear-gradient(135deg, #0a0a0a, #0f0808)" }}>
@@ -43,23 +45,22 @@ export default function ContactPage() {
                 <div className="flex items-start gap-3">
                   <MapPin size={16} className="text-brand-500 mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="text-white text-sm font-medium">30 Rue de Soufflenheim<br />67480 Rountzenheim-Auenheim</p>
+                    <p className="text-white text-sm font-medium">{settings.address}<br />{settings.postalCode} {settings.city}</p>
                     <p className="text-gray-500 text-xs">Alsace, Bas-Rhin (67)</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
                   <Phone size={16} className="text-brand-500 flex-shrink-0" />
-                  <a href="tel:+33636523058" className="text-gray-300 text-sm hover:text-brand-400 transition-colors">+33 6 36 52 30 58</a>
+                  <a href={`tel:${settings.phone}`} className="text-gray-300 text-sm hover:text-brand-400 transition-colors">{settings.phone}</a>
                 </div>
                 <div className="flex items-center gap-3">
                   <Mail size={16} className="text-brand-500 flex-shrink-0" />
-                  <a href="mailto:contact@perfexhaust.fr" className="text-gray-300 text-sm hover:text-brand-400 transition-colors">contact@perfexhaust.fr</a>
+                  <a href={`mailto:${settings.email}`} className="text-gray-300 text-sm hover:text-brand-400 transition-colors">{settings.email}</a>
                 </div>
                 <div className="flex items-start gap-3">
                   <Clock size={16} className="text-brand-500 mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="text-gray-300 text-sm">Sur rendez-vous uniquement</p>
-                    <p className="text-gray-500 text-xs">Lun–Ven : 8h–18h</p>
+                    <p className="text-gray-300 text-sm">{settings.openingHours}</p>
                   </div>
                 </div>
               </div>

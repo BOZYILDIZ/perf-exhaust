@@ -5,7 +5,8 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import MobileCTA from "@/components/ui/MobileCTA";
 import HideOnAdmin from "@/components/layout/HideOnAdmin";
-import { organizationSchema, websiteSchema } from "@/lib/jsonld";
+import { buildOrganizationSchema, websiteSchema } from "@/lib/jsonld";
+import { getSiteSettings } from "@/lib/settings-repo";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -77,18 +78,19 @@ export const metadata: Metadata = {
   alternates: { canonical: SITE_URL },
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const settings = await getSiteSettings();
   return (
     <html lang="fr" className={`${inter.variable} ${oswald.variable}`}>
       <head>
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(buildOrganizationSchema(settings)) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }} />
       </head>
       <body className="min-h-screen flex flex-col">
-        <HideOnAdmin><Header /></HideOnAdmin>
+        <HideOnAdmin><Header settings={settings} /></HideOnAdmin>
         <main className="flex-1">{children}</main>
         <HideOnAdmin>
-          <Footer />
+          <Footer settings={settings} />
           <MobileCTA />
         </HideOnAdmin>
       </body>

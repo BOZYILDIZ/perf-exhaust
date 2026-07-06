@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { services } from "@/data/services";
+import { getPublishedServices } from "@/lib/services-repo";
 import { Wrench, Zap, Volume2, Flame, Music, Star, Settings, ArrowRight } from "lucide-react";
 import { breadcrumbSchema, serviceSchema } from "@/lib/jsonld";
 
@@ -27,7 +27,8 @@ const BREADCRUMB = [
   { name: "Services", url: "https://perfexhaust.fr/services" },
 ];
 
-export default function ServicesPage() {
+export default async function ServicesPage() {
+  const services = await getPublishedServices();
   return (
     <div className="pt-20" style={{ background: "#080808" }}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema(BREADCRUMB)) }} />
@@ -87,13 +88,15 @@ export default function ServicesPage() {
                     )}
                   </div>
                   <p className="text-gray-400 mb-5 leading-relaxed">{service.description}</p>
-                  <div className="flex flex-wrap gap-2 mb-5">
-                    {service.details.map((d) => (
-                      <span key={d} className="flex items-center gap-1.5 text-xs text-gray-400 px-3 py-1" style={{ background: "#1a1a1a", border: "1px solid #222" }}>
-                        <span className="w-1 h-1 bg-brand-500 rounded-full" /> {d}
-                      </span>
-                    ))}
-                  </div>
+                  {service.details && service.details.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mb-5">
+                      {service.details.map((d) => (
+                        <span key={d} className="flex items-center gap-1.5 text-xs text-gray-400 px-3 py-1" style={{ background: "#1a1a1a", border: "1px solid #222" }}>
+                          <span className="w-1 h-1 bg-brand-500 rounded-full" /> {d}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                   <div className="flex items-center gap-2 text-sm text-brand-500 font-bold">
                     <span className="text-gray-500 whitespace-nowrap">Tarif :</span> Prix sur devis personnalisé
                   </div>

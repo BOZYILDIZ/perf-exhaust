@@ -8,7 +8,11 @@
     "start": "next start",
     "lint": "eslint",
     "db:migrate": "prisma migrate deploy",
-    "db:seed": "tsx --env-file=.env.local scripts/seed-projects.ts",
+    "db:seed": "npm run db:seed:projects && npm run db:seed:services && npm run db:seed:faq && npm run db:seed:settings",
+    "db:seed:projects": "tsx --env-file=.env.local scripts/seed-projects.ts",
+    "db:seed:services": "tsx --env-file=.env.local scripts/seed-services.ts",
+    "db:seed:faq": "tsx --env-file=.env.local scripts/seed-faq.ts",
+    "db:seed:settings": "tsx --env-file=.env.local scripts/seed-settings.ts",
     "db:studio": "prisma studio",
     "postinstall": "prisma generate"
   },

@@ -1,13 +1,14 @@
 import SectionTitle from "@/components/ui/SectionTitle";
-import { GOOGLE_REVIEWS_URL } from "@/data/social";
+import { getSiteSettings } from "@/lib/settings-repo";
 import { Star, ExternalLink } from "lucide-react";
 
 /**
  * Section avis clients — SANS scraping ni faux témoignages.
  * Renvoie vers la fiche Google Business de l'atelier (source vérifiable).
- * L'URL se configure dans src/data/social.ts (GOOGLE_REVIEWS_URL).
+ * L'URL se configure depuis /admin/settings (googleReviewsUrl).
  */
-export default function TestimonialsSection() {
+export default async function TestimonialsSection() {
+  const { googleReviewsUrl: GOOGLE_REVIEWS_URL } = await getSiteSettings();
   return (
     <section className="py-24" style={{ background: "#0d0d0d" }} aria-label="Avis clients">
       <div className="max-w-4xl mx-auto px-6 text-center">

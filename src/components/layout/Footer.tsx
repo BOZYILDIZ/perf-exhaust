@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Phone, Mail, MapPin, ExternalLink } from "lucide-react";
+import type { SiteSettingsData } from "@/lib/settings-repo";
 
 function InstagramIcon({ size = 16 }: { size?: number }) {
   return (
@@ -30,7 +31,7 @@ const pages = [
   { href: "/mentions-legales", label: "Mentions légales" },
 ];
 
-export default function Footer() {
+export default function Footer({ settings }: { settings: SiteSettingsData }) {
   return (
     <footer style={{ background: "#050505", borderTop: "1px solid #1a1a1a" }}>
       {/* Main footer */}
@@ -58,7 +59,7 @@ export default function Footer() {
             </p>
             <div className="flex items-center gap-3">
               <a
-                href="https://www.instagram.com/perfexhaust67/"
+                href={settings.instagramUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-9 h-9 flex items-center justify-center rounded-sm border border-gray-700 text-gray-400 hover:text-brand-400 hover:border-brand-400 transition-all"
@@ -67,7 +68,7 @@ export default function Footer() {
                 <InstagramIcon size={16} />
               </a>
               <a
-                href="https://www.tiktok.com/@perfexhaust"
+                href={settings.tiktokUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-9 h-9 flex items-center justify-center rounded-sm border border-gray-700 text-gray-400 hover:text-brand-400 hover:border-brand-400 transition-all"
@@ -123,27 +124,27 @@ export default function Footer() {
               <li className="flex items-start gap-3">
                 <MapPin size={16} className="text-brand-500 mt-0.5 flex-shrink-0" />
                 <div>
-                  <p className="text-gray-300 text-sm font-medium">Rountzenheim-Auenheim</p>
+                  <p className="text-gray-300 text-sm font-medium">{settings.city}</p>
                   <p className="text-gray-500 text-xs">Alsace, Bas-Rhin (67)</p>
                 </div>
               </li>
               <li className="flex items-center gap-3">
                 <Phone size={16} className="text-brand-500 flex-shrink-0" />
-                <a href="tel:+33636523058" className="text-gray-300 text-sm hover:text-brand-400 transition-colors">
-                  +33 6 36 52 30 58
+                <a href={`tel:${settings.phone}`} className="text-gray-300 text-sm hover:text-brand-400 transition-colors">
+                  {settings.phone}
                 </a>
               </li>
               <li className="flex items-center gap-3">
                 <Mail size={16} className="text-brand-500 flex-shrink-0" />
-                <a href="mailto:contact@perfexhaust.fr" className="text-gray-300 text-sm hover:text-brand-400 transition-colors">
-                  contact@perfexhaust.fr
+                <a href={`mailto:${settings.email}`} className="text-gray-300 text-sm hover:text-brand-400 transition-colors">
+                  {settings.email}
                 </a>
               </li>
             </ul>
 
             {/* Partner badge */}
             <a
-              href="https://www.shiftech.eu"
+              href={settings.shiftechUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="mt-6 p-3 border border-gray-800 rounded-sm block hover:border-gray-600 transition-colors"
@@ -170,7 +171,7 @@ export default function Footer() {
       <div style={{ borderTop: "1px solid #1a1a1a" }}>
         <div className="max-w-7xl mx-auto px-6 py-5 flex flex-col md:flex-row items-center justify-between gap-3">
           <p className="text-gray-600 text-xs">
-            © {new Date().getFullYear()}{" "}PERF&apos;EXHAUST — Tous droits réservés.
+            © {new Date().getFullYear()}{" "}{settings.businessName} — Tous droits réservés.
           </p>
           <div className="flex items-center gap-6">
             <Link href="/mentions-legales" className="text-gray-500 text-xs hover:text-gray-300 transition-colors">

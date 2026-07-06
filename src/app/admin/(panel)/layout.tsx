@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { isAdminAuthenticated, isAdminConfigured } from "@/lib/admin-auth";
+import { isDbConfigured, getDb } from "@/lib/db";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 
 export const metadata = { title: "Admin — PERF'EXHAUST", robots: { index: false, follow: false } };
@@ -9,9 +10,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   if (!isAdminConfigured() || !(await isAdminAuthenticated())) {
     redirect("/admin/login");
   }
+  const newQuotesCount = isDbConfigured()
+    ? await getDb().quoteRequest.count({ where: { status: "new" } })
+    : 0;
   return (
     <div className="min-h-screen flex" style={{ background: "#0a0a0a" }}>
-      <AdminSidebar />
+      <AdminSidebar newQuotesCount={newQuotesCount} />
       <main className="flex-1 min-w-0 p-5 sm:p-8 lg:p-10">{children}</main>
     </div>
   );

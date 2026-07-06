@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect } from "react";
 import { Menu, X, Phone } from "lucide-react";
+import type { SiteSettingsData } from "@/lib/settings-repo";
 
 const navLinks = [
   { href: "/", label: "Accueil" },
@@ -13,7 +14,7 @@ const navLinks = [
   { href: "/contact", label: "Contact" },
 ];
 
-export default function Header() {
+export default function Header({ settings }: { settings: SiteSettingsData }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -75,7 +76,7 @@ export default function Header() {
         {/* CTA */}
         <div className="hidden lg:flex items-center gap-4">
           <a
-            href="tel:+33636523058"
+            href={`tel:${settings.phone}`}
             className="flex items-center gap-2 text-sm text-gray-300 hover:text-brand-400 transition-colors"
           >
             <Phone size={14} />
