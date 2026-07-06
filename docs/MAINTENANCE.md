@@ -202,12 +202,20 @@ comptabilité.
 
 ### Limites connues
 
-- **Adresse de facturation** : Pennylane exige un objet `billing_address`
-  pour créer un client, alors que notre formulaire public ne collecte pas
-  d'adresse postale. L'intégration envoie un objet vide ; si Pennylane le
-  refuse (422), le message précis de Pennylane s'affiche dans l'admin —
-  il faut alors compléter l'adresse du client directement dans Pennylane,
-  puis réessayer.
+- **Adresse de facturation** : d'après le schéma OpenAPI officiel de
+  `POST /company_customers`, `billing_address` est obligatoire et, s'il est
+  fourni, ses 4 champs (`address`, `postal_code`, `city`, `country_alpha2`)
+  sont TOUS requis ensemble — il n'existe pas de champ générique "country".
+  Notre formulaire ne collecte aucune adresse postale ; plutôt que d'inventer
+  une rue/un code postal/une ville (donnée fausse dans la comptabilité de
+  l'atelier), l'intégration envoie uniquement `{ country_alpha2: "FR" }`
+  (voir `src/lib/pennylane/billing-address.ts`). Si le compte Pennylane
+  applique la contrainte du schéma à la lettre, la création du client peut
+  donc encore échouer en 422 — le message exact de Pennylane (champs
+  manquants) s'affiche alors dans l'admin, avec un bouton "Réessayer" ; il
+  faut compléter l'adresse du client directement dans Pennylane. Si une
+  adresse réelle devient un jour disponible (champ ajouté au formulaire),
+  elle est utilisée intégralement à la place de ce repli minimal.
 - **Format de réponse du devis créé** : Pennylane ne documente pas
   intégralement les champs retournés à la création (numéro de devis, URL
   publique consultable par le client). Le code lit ces champs de façon

@@ -6,6 +6,9 @@ import {
   type PennylaneQuote,
   type PennylaneErrorBody,
 } from './types'
+import { buildBillingAddress, type PartialBillingAddress } from './billing-address'
+
+export type { PartialBillingAddress }
 
 /**
  * Client Pennylane API v2 (https://pennylane.readme.io/reference).
@@ -109,13 +112,11 @@ export async function findCustomerByEmail(email: string): Promise<PennylaneCusto
 }
 
 /**
- * Crée un client "entreprise" Pennylane. `billing_address` est exigé par
- * l'API mais notre formulaire de devis ne collecte pas d'adresse postale —
- * on envoie un objet vide : Pennylane l'accepte ou renvoie une erreur 422
- * explicite (champ manquant précisé dans `details`), remontée telle quelle
- * à l'admin. Limite documentée dans docs/MAINTENANCE.md.
+ * Crée un client "entreprise" Pennylane. Voir buildBillingAddress() pour le
+ * détail de la contrainte Pennylane sur `billing_address` et la stratégie de
+ * repli (pays seul, jamais de rue/CP/ville inventés).
  */
-export async function createCompanyCustomer(input: { name: string; email: string; phone?: string }): Promise<PennylaneCustomer> {
+export async function createCompanyCustomer(input: { name: string; email: string; phone?: string } & PartialBillingAddress): Promise<PennylaneCustomer> {
   return pennylaneRequest<PennylaneCustomer>('/company_customers', {
     method: 'POST',
     retryOn429: false, // écriture non-idempotente : jamais de retry automatique
@@ -123,13 +124,13 @@ export async function createCompanyCustomer(input: { name: string; email: string
       name: input.name,
       emails: [input.email],
       phone: input.phone || undefined,
-      billing_address: {},
+      billing_address: buildBillingAddress(input),
     }),
   })
 }
 
 /** Retrouve le client par email, ou le crée s'il n'existe pas encore. */
-export async function createOrFindCustomer(input: { name: string; email: string; phone?: string }): Promise<{ customer: PennylaneCustomer; created: boolean }> {
+export async function createOrFindCustomer(input: { name: string; email: string; phone?: string } & PartialBillingAddress): Promise<{ customer: PennylaneCustomer; created: boolean }> {
   const existing = await findCustomerByEmail(input.email)
   if (existing) return { customer: existing, created: false }
   const customer = await createCompanyCustomer(input)
@@ -155,7 +156,7 @@ export async function getQuote(id: string): Promise<PennylaneQuote> {
   return pennylaneRequest<PennylaneQuote>(`/quotes/${encodeURIComponent(id)}`, { method: 'GET' })
 }
 
-export interface DraftQuoteSourceRequest {
+export interface DraftQuoteSourceRequest extends PartialBillingAddress {
   nom: string
   prenom: string
   email: string
@@ -208,6 +209,12 @@ export async function createDraftQuoteFromRequest(request: DraftQuoteSourceReque
     name: `${request.prenom} ${request.nom}`,
     email: request.email,
     phone: request.telephone,
+    // Adresse réelle utilisée si un jour disponible sur la demande ; sinon
+    // repli pays-seul géré par buildBillingAddress() — voir sa docstring.
+    address: request.address,
+    postalCode: request.postalCode,
+    city: request.city,
+    countryAlpha2: request.countryAlpha2,
   })
 
   const today = new Date()
