@@ -102,6 +102,87 @@ npm run db:seed      # importe les projets historiques (idempotent)
 npm run db:studio    # explorer la base (Prisma Studio)
 ```
 
+## 🧾 Intégration Pennylane (devis)
+
+Le site fonctionne en « prix sur devis » : aucun devis Pennylane n'est jamais
+créé automatiquement à la réception d'un formulaire. Le workflow est
+volontairement semi-automatique et reste sous le contrôle de l'atelier :
+
+```
+Demande reçue (/rendez-vous) → revue admin (/admin/devis)
+  → préparation des lignes (description, prix, TVA)
+  → clic « Créer le devis dans Pennylane »
+  → devis créé en BROUILLON dans Pennylane (jamais envoyé automatiquement)
+```
+
+### Créer une clé API Pennylane
+
+1. Se connecter à Pennylane avec un compte **Cadre dirigeant, Comptable
+   interne ou externe** (plan Essential ou supérieur requis).
+2. Aller dans **Management → Settings → Connectivity → Developers**.
+3. Cliquer **« Generate an API Token »**.
+4. Nom : par exemple « Site web — devis ». Permissions : **« Read and
+   write »**. Expiration : au choix (12 mois recommandé, à renouveler).
+5. **Copier le token immédiatement** — Pennylane ne le montre qu'une fois et
+   ne le stocke pas ; en cas de perte, il faut en générer un nouveau.
+
+### Variables à poser sur Vercel
+
+```
+PENNYLANE_API_KEY=<le token généré ci-dessus>
+```
+
+`PENNYLANE_BASE_URL` et `PENNYLANE_COMPANY_ID` sont **optionnelles** — à
+n'ajouter que si Pennylane l'exige explicitement pour votre configuration
+(sandbox de test, compte cabinet comptable multi-entreprises). Un compte
+« Company API » standard n'en a pas besoin : le token est déjà rattaché à
+une seule entreprise.
+
+Sans `PENNYLANE_API_KEY`, la section « Devis Pennylane » de
+`/admin/devis/[id]` affiche simplement *« Pennylane non configuré »* — rien
+ne casse ailleurs sur le site.
+
+### Comment tester l'intégration
+
+1. Ouvrir une demande sur `/admin/devis/[id]`.
+2. Compléter la section **« Lignes du devis »** (une ligne par défaut est
+   pré-remplie : *« Échappement sur mesure — prix à confirmer après
+   diagnostic »*) — renseigner au moins un prix unitaire HT, puis
+   **Enregistrer les lignes**.
+3. Cliquer **« Créer le devis dans Pennylane »** dans la section Pennylane.
+4. En cas de succès : l'ID (et le numéro/lien si Pennylane les renvoie)
+   s'affichent, le statut passe à « Créé dans Pennylane (brouillon) ».
+5. En cas d'échec : le message d'erreur exact de Pennylane est affiché
+   (souvent 422 = champ manquant/invalide) avec un bouton **« Réessayer »**.
+
+Le bouton de création disparaît une fois le devis créé, pour éviter tout
+doublon dans Pennylane — toute modification ultérieure se fait directement
+dans Pennylane.
+
+### Limites connues
+
+- **Adresse de facturation** : Pennylane exige un objet `billing_address`
+  pour créer un client, alors que notre formulaire public ne collecte pas
+  d'adresse postale. L'intégration envoie un objet vide ; si Pennylane le
+  refuse (422), le message précis de Pennylane s'affiche dans l'admin —
+  il faut alors compléter l'adresse du client directement dans Pennylane,
+  puis réessayer.
+- **Format de réponse du devis créé** : Pennylane ne documente pas
+  intégralement les champs retournés à la création (numéro de devis, URL
+  publique consultable par le client). Le code lit ces champs de façon
+  défensive : s'ils sont absents de la réponse, seul l'ID Pennylane est
+  affiché (toujours suffisant pour retrouver le devis dans Pennylane).
+- **Pas d'envoi automatique** : le devis est créé dans l'état par défaut de
+  Pennylane (brouillon) — cette intégration n'appelle jamais l'endpoint
+  d'envoi. L'atelier reste responsable de la relecture finale et de l'envoi
+  au client depuis Pennylane.
+- **Limite de débit Pennylane** : environ 5 requêtes/seconde. Les erreurs
+  429 sont automatiquement réessayées une fois pour les lectures (recherche
+  de client), jamais pour les créations (pour ne jamais créer de doublon).
+- **Statut « synced »** : réservé pour une amélioration future (confirmation
+  que le devis a été envoyé/accepté côté Pennylane) — non utilisé dans cette
+  version, qui s'arrête au statut « brouillon créé ».
+
 ## 📞 Modifier le téléphone
 
 Le numéro apparaît à plusieurs endroits. Rechercher l'ancien numéro et remplacer partout :

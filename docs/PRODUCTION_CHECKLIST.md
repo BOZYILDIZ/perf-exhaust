@@ -55,6 +55,19 @@ Les cases cochées `[x]` correspondent à ce qui est **réellement fait et véri
 - [x] Erreurs d'envoi Resend détectées et remontées (pas de faux succès)
 - [x] Avertissement console explicite si clé absente en production
 
+## 🧾 Pennylane (devis)
+
+- [x] Intégration code prête (client `src/lib/pennylane/`, routes API, UI
+      `/admin/devis/[id]`, modèles Prisma `QuoteRequest`/`QuoteLine`)
+- [x] Le site fonctionne sans `PENNYLANE_API_KEY` (section admin affiche
+      "Pennylane non configuré", rien ne casse ailleurs)
+- [ ] Compte Pennylane du client finalisé
+- [ ] Générer la clé API Pennylane (Company API Token, "Read and write")
+- [ ] Poser `PENNYLANE_API_KEY` sur Vercel
+- [ ] Tester la création d'un devis réel depuis une demande reçue
+- [ ] Vérifier que l'ID/numéro/lien du devis créé s'affichent correctement
+- [ ] Voir `docs/MAINTENANCE.md` § "Intégration Pennylane" pour la procédure complète
+
 ## 🔍 Google Search Console
 
 - [ ] Ajouter la propriété (domaine final)

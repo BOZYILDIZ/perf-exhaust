@@ -80,6 +80,20 @@ export const quoteRequestUpdateSchema = z
     message: 'Aucune modification fournie',
   })
 
+/** Ligne d'un devis, préparée par l'admin avant envoi à Pennylane. */
+export const quoteLineSchema = z.object({
+  description: z.string().min(1, 'Description requise').max(300),
+  quantity: z.number().int().min(1).max(9999),
+  unitPriceCents: z.number().int().min(0).max(100_000_000),
+  vatRate: z.number().min(0).max(100),
+  sortOrder: z.number().int().min(0).max(9999).default(0),
+})
+
+/** Remplacement complet des lignes d'un devis (édition groupée depuis l'admin). */
+export const quoteLinesUpdateSchema = z.object({
+  lines: z.array(quoteLineSchema).max(50),
+})
+
 /** Paramètres globaux du site, édités depuis /admin/settings. */
 export const siteSettingsSchema = z.object({
   businessName: z.string().min(1).max(120),

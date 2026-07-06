@@ -59,6 +59,7 @@
 <td valign="top" width="50%">
 
 - [📜 Scripts disponibles](#-scripts-disponibles)
+- [🧾 Intégration Pennylane](#-intégration-pennylane)
 - [🔎 SEO](#-seo)
 - [🌍 GEO — Référencement génératif](#-geo--référencement-génératif)
 - [📱 Responsive](#-responsive)
@@ -112,7 +113,7 @@ Canvas animé (particules d'étincelles avec physique réaliste), intro de soudu
 <td width="33%" valign="top">
 
 ### 🔐 Panel admin
-Gestion des réalisations sur `/admin` : CRUD complet, brouillon/publié, prévisualisation, upload d'images — avec repli statique automatique sans base.
+Gestion des réalisations sur `/admin` : CRUD complet, brouillon/publié, prévisualisation, upload d'images — avec repli statique automatique sans base. Mini-CRM devis avec création de devis Pennylane en un clic.
 
 </td>
 </tr>
@@ -308,6 +309,9 @@ Le site est accessible sur **[http://localhost:3000](http://localhost:3000)**.
 | `TIKTOK_CLIENT_SECRET` | Client secret de l'API TikTok | ❌ |
 | `TIKTOK_ACCESS_TOKEN` | Token d'accès à l'API TikTok | ❌ |
 | `NEXT_PUBLIC_SITE_URL` | URL canonique du site (SEO, sitemap, Open Graph) | ❌ |
+| `PENNYLANE_API_KEY` | Token [Company API Pennylane](https://pennylane.readme.io/) pour créer des devis depuis `/admin/devis` | ❌ |
+| `PENNYLANE_BASE_URL` | URL de base Pennylane si différente de la production standard (sandbox...) | ❌ |
+| `PENNYLANE_COMPANY_ID` | Réservé aux configurations multi-entreprises (cabinet comptable) | ❌ |
 
 <br />
 
@@ -319,6 +323,25 @@ Le site est accessible sur **[http://localhost:3000](http://localhost:3000)**.
 | `npm run build` | Génère le build de production optimisé |
 | `npm run start` | Lance le serveur en mode production |
 | `npm run lint` | Analyse statique du code (ESLint) |
+
+<br />
+
+## 🧾 Intégration Pennylane
+
+Le CRM devis (`/admin/devis`) peut créer un devis **Pennylane** à partir
+d'une demande reçue — toujours sur action manuelle de l'admin, jamais
+automatiquement à la soumission du formulaire public (le site fonctionne en
+« prix sur devis », l'atelier valide et chiffre chaque demande au cas par cas).
+
+```
+Demande reçue → revue admin → lignes de devis (description/prix/TVA)
+  → clic « Créer le devis dans Pennylane » → devis créé en brouillon
+```
+
+Sans `PENNYLANE_API_KEY`, la section correspondante affiche simplement
+*« Pennylane non configuré »*. Procédure complète (génération de la clé,
+variables, test, limites connues) : voir
+[`docs/MAINTENANCE.md`](docs/MAINTENANCE.md#-intégration-pennylane-devis).
 
 <br />
 
