@@ -42,8 +42,8 @@ export const FIELD_CONFIGS: Record<FieldKey, FieldConfig> = {
       'input[name*="client" i]',
       'input[autocomplete="name"]',
     ],
-    labelKeywords: ["client", "nom du client", "customer", "raison sociale"],
-    placeholderKeywords: ["nom du client", "rechercher un client", "client"],
+    labelKeywords: ["client", "client ou cliente", "nom du client", "customer", "raison sociale"],
+    placeholderKeywords: ["nom du client", "rechercher un client", "client", "choisir"],
     expectedTags: ["input"],
   },
   email: {
@@ -76,19 +76,19 @@ export const FIELD_CONFIGS: Record<FieldKey, FieldConfig> = {
       'textarea[name*="notes" i]',
       'textarea[id*="description" i]',
     ],
-    labelKeywords: ["description", "notes", "commentaire", "détails", "objet du devis"],
+    labelKeywords: ["description", "ajouter une description", "notes", "commentaire", "détails", "objet du devis"],
     placeholderKeywords: ["description", "notes", "commentaire"],
-    expectedTags: ["textarea"],
+    expectedTags: ["textarea", "input"],
   },
   lineDescription: {
-    displayName: "Désignation de la ligne",
+    displayName: "Désignation de la ligne / produit",
     cssSelectors: [
       'input[name*="label" i]',
       'input[name*="designation" i]',
       'textarea[name*="label" i]',
     ],
-    labelKeywords: ["désignation", "libellé", "produit", "article"],
-    placeholderKeywords: ["désignation", "description de l'article", "produit ou service"],
+    labelKeywords: ["désignation", "libellé", "produit", "produits", "article"],
+    placeholderKeywords: ["désignation", "description de l'article", "produit ou service", "choisir"],
     expectedTags: ["input", "textarea"],
   },
   vatRate: {
@@ -98,7 +98,7 @@ export const FIELD_CONFIGS: Record<FieldKey, FieldConfig> = {
       'select[name*="tva" i]',
       'select[id*="vat" i]',
     ],
-    labelKeywords: ["tva", "taux de tva", "vat"],
+    labelKeywords: ["tva", "tva (%)", "taux de tva", "vat"],
     placeholderKeywords: ["tva", "vat"],
     expectedTags: ["select"],
   },
@@ -106,6 +106,16 @@ export const FIELD_CONFIGS: Record<FieldKey, FieldConfig> = {
 
 /** Valeur textuelle recherchée dans les <option> d'un <select> de TVA. */
 export const VAT_OPTION_TEXT_CANDIDATES = ["20", "20 %", "20%", "TVA 20%", "FR 20%"];
+
+/**
+ * Champs correspondant probablement à des composants autocomplete/combobox
+ * sur la vraie interface Pennylane (recherche client, sélection produit) —
+ * même si on arrive à y taper un texte, on ne peut jamais garantir qu'une
+ * vraie sélection a été faite dans la liste déroulante. Toujours signalés
+ * comme "à sélectionner manuellement" dans le rapport, jamais présentés
+ * comme un succès certain.
+ */
+export const AUTOCOMPLETE_FIELDS: ReadonlySet<FieldKey> = new Set(["clientName", "lineDescription"]);
 
 function normalize(text: string): string {
   return text
@@ -124,11 +134,12 @@ function matchesExpectedTag(el: Element, config: FieldConfig): boolean {
   return config.expectedTags.includes(el.tagName.toLowerCase() as "input" | "textarea" | "select");
 }
 
-function findByCssSelectors(config: FieldConfig, root: ParentNode): HTMLElement | null {
+function findByCssSelectors(config: FieldConfig, root: ParentNode, excluded: ReadonlySet<Element>): HTMLElement | null {
   for (const selector of config.cssSelectors) {
     try {
       const matches = root.querySelectorAll(selector);
       for (const el of matches) {
+        if (excluded.has(el)) continue;
         if (isVisible(el) && matchesExpectedTag(el, config) && !(el as HTMLInputElement).disabled) {
           return el as HTMLElement;
         }
@@ -159,23 +170,24 @@ function resolveLabelledControl(label: HTMLLabelElement): HTMLElement | null {
   return null;
 }
 
-function findByLabelText(config: FieldConfig, root: ParentNode): HTMLElement | null {
+function findByLabelText(config: FieldConfig, root: ParentNode, excluded: ReadonlySet<Element>): HTMLElement | null {
   const labels = root.querySelectorAll("label");
   for (const label of labels) {
     const text = normalize(label.textContent || "");
     const match = config.labelKeywords.some((kw) => text.includes(normalize(kw)));
     if (!match) continue;
     const control = resolveLabelledControl(label);
-    if (control && isVisible(control) && matchesExpectedTag(control, config)) {
+    if (control && !excluded.has(control) && isVisible(control) && matchesExpectedTag(control, config)) {
       return control;
     }
   }
   return null;
 }
 
-function findByPlaceholder(config: FieldConfig, root: ParentNode): HTMLElement | null {
+function findByPlaceholder(config: FieldConfig, root: ParentNode, excluded: ReadonlySet<Element>): HTMLElement | null {
   const candidates = root.querySelectorAll("input, textarea");
   for (const el of candidates) {
+    if (excluded.has(el)) continue;
     const attrs = [el.getAttribute("placeholder"), el.getAttribute("aria-label")].filter(Boolean) as string[];
     const normalized = attrs.map(normalize);
     const match = config.placeholderKeywords.some((kw) => normalized.some((a) => a.includes(normalize(kw))));
@@ -186,20 +198,42 @@ function findByPlaceholder(config: FieldConfig, root: ParentNode): HTMLElement |
   return null;
 }
 
+/**
+ * Cherche un bouton/lien de type "+ Ajouter une description" (disclosure
+ * toggle) — courant sur Pennylane pour révéler un champ optionnel masqué.
+ * Se limite volontairement aux éléments dont le texte commence par "+" pour
+ * ne jamais risquer de matcher un bouton de validation/envoi.
+ */
+export function findExpandToggle(keywords: string[], root: ParentNode = document): HTMLElement | null {
+  const candidates = root.querySelectorAll("button, a, [role='button']");
+  for (const el of candidates) {
+    const text = normalize(el.textContent || "").trim();
+    if (!text.startsWith("+")) continue;
+    const match = keywords.some((kw) => text.includes(normalize(kw)));
+    if (match && isVisible(el)) return el as HTMLElement;
+  }
+  return null;
+}
+
 export interface FieldResolution {
   key: FieldKey;
   element: HTMLElement | null;
   strategyUsed: "css" | "label" | "placeholder" | null;
 }
 
-/** Essaie les trois stratégies dans l'ordre — retourne aussi la stratégie qui a fonctionné (utile en mode debug). */
-export function resolveField(key: FieldKey, root: ParentNode = document): FieldResolution {
+/**
+ * Essaie les trois stratégies dans l'ordre — retourne aussi la stratégie qui
+ * a fonctionné (utile en mode debug). `excluded` permet d'ignorer des
+ * éléments déjà assignés à un autre champ dans le même passage (ex: deux
+ * champs Pennylane différents partageant le même placeholder "Choisir…").
+ */
+export function resolveField(key: FieldKey, root: ParentNode = document, excluded: ReadonlySet<Element> = new Set()): FieldResolution {
   const config = FIELD_CONFIGS[key];
-  const byCss = findByCssSelectors(config, root);
+  const byCss = findByCssSelectors(config, root, excluded);
   if (byCss) return { key, element: byCss, strategyUsed: "css" };
-  const byLabel = findByLabelText(config, root);
+  const byLabel = findByLabelText(config, root, excluded);
   if (byLabel) return { key, element: byLabel, strategyUsed: "label" };
-  const byPlaceholder = findByPlaceholder(config, root);
+  const byPlaceholder = findByPlaceholder(config, root, excluded);
   if (byPlaceholder) return { key, element: byPlaceholder, strategyUsed: "placeholder" };
   return { key, element: null, strategyUsed: null };
 }

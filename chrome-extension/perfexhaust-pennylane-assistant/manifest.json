@@ -23,7 +23,10 @@
       "run_at": "document_idle"
     },
     {
-      "matches": ["https://app.pennylane.com/*"],
+      "matches": [
+        "https://app.pennylane.com/*",
+        "https://app.pennylane.com/companies/*/clients/customer_estimates/*"
+      ],
       "js": ["dist/content-scripts/pennylane.js"],
       "css": ["styles.css"],
       "run_at": "document_idle"
