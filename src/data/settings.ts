@@ -15,7 +15,7 @@ export interface SiteSettingsData {
   legalForm: string
   siret: string
   publicationDirector: string
-  /** Mode manuel Pennylane — URL ouverte par le bouton "Ouvrir Pennylane + copier les infos". */
+  /** Mode manuel Pennylane — URL ouverte par le bouton "Ouvrir Pennylane". */
   pennylaneManualUrl: string
 }
 

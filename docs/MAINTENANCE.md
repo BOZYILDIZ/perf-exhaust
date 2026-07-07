@@ -137,19 +137,37 @@ Client envoie /rendez-vous
 ```
 
 Sur `/admin/devis/[id]`, le bloc **« Pennylane manuel »** remplace la section
-API :
-- bouton **« Ouvrir Pennylane + copier les infos »** : en un clic, copie dans
-  le presse-papiers un texte prêt à coller (nom, email, téléphone, véhicule,
-  motorisation, type de projet, sonorité souhaitée, message client, ligne
-  suggérée *"Échappement sur mesure — prix à compléter"*, TVA 20 %) **et**
-  ouvre Pennylane dans un nouvel onglet, avec le message *« Les informations
-  ont été copiées. Collez-les dans la description du devis Pennylane, puis
-  ajoutez les prix. »* L'onglet s'ouvre sur l'URL configurée dans
-  `/admin/settings` (§ Pennylane) — idéalement un lien direct vers la
+API, avec deux boutons volontairement séparés (voir "Pourquoi deux boutons"
+ci-dessous) :
+- **« Copier les informations »** : copie dans le presse-papiers un texte
+  prêt à coller (nom, email, téléphone, véhicule, motorisation, type de
+  projet, sonorité souhaitée, message client, ligne suggérée *"Échappement
+  sur mesure — prix à compléter"*, TVA 20 %). Message affiché : *« Informations
+  copiées. Ouvrez Pennylane puis collez-les dans la description du devis. »*
+  Si la copie automatique est bloquée par le navigateur, une zone de texte
+  avec le contenu prérempli et pré-sélectionné apparaît, avec un bouton
+  *« Copier à nouveau »* pour retenter.
+- **« Ouvrir Pennylane »** : ouvre dans un nouvel onglet l'URL configurée
+  dans `/admin/settings` (§ Pennylane) — idéalement un lien direct vers la
   création de devis si Pennylane en expose un un jour, sinon
-  `https://app.pennylane.com/` par défaut. Aucune API, aucun scraping, aucune
-  automatisation du navigateur, aucune donnée injectée dans Pennylane : c'est
-  l'admin qui colle et chiffre lui-même ;
+  `https://app.pennylane.com/` par défaut. Message affiché : *« Pennylane est
+  ouvert dans un nouvel onglet. Collez les informations dans la description
+  du devis. »*
+
+Aucune API, aucun scraping, aucune automatisation du navigateur, aucune
+donnée injectée dans Pennylane : c'est l'admin qui colle et chiffre
+lui-même.
+
+**Pourquoi deux boutons séparés (et pas un clic combiné copie + ouverture) :**
+`window.open()` déplace le focus du navigateur vers le nouvel onglet. Si un
+appel `navigator.clipboard.writeText()` est encore en attente à ce moment,
+certains navigateurs (Chrome en particulier) le rejettent avec
+`NotAllowedError: Document is not focused` — la copie échouait donc de façon
+intermittente selon la rapidité du changement de focus, indépendamment du
+code applicatif. Séparer copie et ouverture en deux clics distincts élimine
+cette concurrence : chaque action reste un geste utilisateur direct, sans
+navigation en cours, ce qui rend la copie fiable à 100 %.
+
 - statut manuel modifiable : À créer dans Pennylane → Devis créé → Devis
   envoyé → Devis accepté / refusé → Facture créée → Payé ;
 - champs optionnels numéro de devis et lien Pennylane, à renseigner après
@@ -220,10 +238,10 @@ ailleurs sur le site.
 1. Soumettre une demande réelle via `/rendez-vous`.
 2. Ouvrir la demande sur `/admin/devis/[id]` — le bloc **« Pennylane
    manuel »** affiche le statut *« À créer dans Pennylane »*.
-3. Cliquer **« Ouvrir Pennylane + copier les infos »** : un nouvel onglet
-   Pennylane s'ouvre et le texte prêt à coller doit être dans le
-   presse-papiers — coller (Cmd/Ctrl+V) dans la description du devis pour
-   vérifier qu'il contient bien toutes les informations client/véhicule/projet.
+3. Cliquer **« Copier les informations »**, puis **« Ouvrir Pennylane »** —
+   un nouvel onglet Pennylane s'ouvre et le texte prêt à coller doit être
+   dans le presse-papiers — coller (Cmd/Ctrl+V) dans la description du devis
+   pour vérifier qu'il contient bien toutes les informations client/véhicule/projet.
 4. Créer le devis à la main dans Pennylane (en y ajoutant les prix), puis
    revenir mettre à jour le statut, le numéro et le lien depuis l'admin.
 

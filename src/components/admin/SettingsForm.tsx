@@ -108,7 +108,7 @@ export default function SettingsForm({ initial }: { initial: SiteSettingsData })
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field span>
             <label htmlFor="st-pennylane-url" className={label}>
-              URL ouverte par « Ouvrir Pennylane + copier les infos »
+              URL ouverte par le bouton « Ouvrir Pennylane »
               <span className="text-gray-600 normal-case"> (idéalement un lien direct vers la création de devis)</span>
             </label>
             <input
