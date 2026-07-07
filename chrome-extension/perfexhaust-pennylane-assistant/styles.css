@@ -1,0 +1,232 @@
+/* Partagé entre popup.html et le bandeau injecté dans app.pennylane.com.
+   Tout est préfixé "pe-" pour ne jamais entrer en collision avec les
+   styles natifs de Pennylane. */
+
+:root {
+  --pe-brand: #1266ea;
+  --pe-brand-dark: #0d54c8;
+  --pe-bg: #0f0f0f;
+  --pe-bg-elevated: #161616;
+  --pe-border: #2a2a2a;
+  --pe-text: #f5f5f5;
+  --pe-text-muted: #9ca3af;
+  --pe-success: #22c55e;
+  --pe-warning: #f59e0b;
+  --pe-danger: #ef4444;
+}
+
+/* ===================== Popup ===================== */
+
+body {
+  margin: 0;
+  width: 320px;
+  background: var(--pe-bg);
+  color: var(--pe-text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  font-size: 13px;
+}
+
+.pe-popup {
+  padding: 16px;
+}
+
+.pe-popup__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.pe-popup__title {
+  font-size: 14px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.pe-popup__status {
+  background: var(--pe-bg-elevated);
+  border: 1px solid var(--pe-border);
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  min-height: 40px;
+}
+
+.pe-popup__status-line {
+  margin: 0 0 4px;
+  font-weight: 600;
+}
+
+.pe-popup__status-line--ok { color: var(--pe-success); }
+.pe-popup__status-line--warning { color: var(--pe-warning); }
+.pe-popup__status-line--error { color: var(--pe-danger); }
+
+.pe-popup__status-detail {
+  margin: 0 0 2px;
+  color: var(--pe-text);
+}
+
+.pe-popup__status-hint {
+  margin: 4px 0 0;
+  color: var(--pe-text-muted);
+  font-size: 12px;
+}
+
+.pe-popup__button {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--pe-border);
+  background: transparent;
+  color: var(--pe-text);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  cursor: pointer;
+  margin-bottom: 12px;
+}
+
+.pe-popup__button:hover:not(:disabled) {
+  border-color: var(--pe-danger);
+  color: var(--pe-danger);
+}
+
+.pe-popup__button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pe-popup__debug {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--pe-text-muted);
+  margin-bottom: 12px;
+  cursor: pointer;
+}
+
+.pe-popup__reminder {
+  font-size: 11px;
+  color: var(--pe-text-muted);
+  line-height: 1.5;
+  margin: 0;
+  border-top: 1px solid var(--pe-border);
+  padding-top: 10px;
+}
+
+/* ===================== Bandeau flottant (Pennylane) ===================== */
+
+#perfexhaust-pennylane-banner {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 2147483647;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  box-sizing: border-box;
+}
+
+#perfexhaust-pennylane-banner * {
+  box-sizing: border-box;
+}
+
+.pe-banner {
+  width: 320px;
+  background: var(--pe-bg);
+  color: var(--pe-text);
+  border: 1px solid var(--pe-border);
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  padding: 14px;
+  font-size: 13px;
+}
+
+.pe-banner--ready {
+  border-color: rgba(18, 102, 234, 0.4);
+}
+
+.pe-banner--warning {
+  border-color: rgba(245, 158, 11, 0.4);
+}
+
+.pe-banner__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.pe-banner__title {
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.pe-banner--ready .pe-banner__title { color: var(--pe-brand); }
+.pe-banner--warning .pe-banner__title { color: var(--pe-warning); }
+
+.pe-banner__close {
+  background: transparent;
+  border: none;
+  color: var(--pe-text-muted);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 4px;
+}
+
+.pe-banner__close:hover {
+  color: var(--pe-text);
+}
+
+.pe-banner__text {
+  margin: 0 0 10px;
+  color: var(--pe-text-muted);
+  line-height: 1.4;
+}
+
+.pe-banner__button {
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: 6px;
+  border: none;
+  background: linear-gradient(135deg, var(--pe-brand), var(--pe-brand-dark));
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.pe-banner__button:hover {
+  opacity: 0.92;
+}
+
+.pe-banner__report {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--pe-border);
+}
+
+.pe-banner__summary {
+  margin: 0 0 6px;
+  font-weight: 700;
+}
+
+.pe-banner__missing {
+  margin: 0 0 8px;
+  color: var(--pe-warning);
+  line-height: 1.4;
+}
+
+.pe-banner__missing--ok {
+  color: var(--pe-success);
+}
+
+.pe-banner__reminder {
+  margin: 0;
+  color: var(--pe-text-muted);
+  font-size: 11px;
+  line-height: 1.4;
+}

@@ -1,0 +1,19 @@
+{
+  "name": "perfexhaust-pennylane-assistant",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Extension Chrome privée (Manifest V3) — assistant de préremplissage manuel Pennylane pour PERF'EXHAUST.",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "@types/chrome": "^0.0.287",
+    "esbuild": "^0.28.1",
+    "eslint": "^9.17.0",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.18.0"
+  }
+}

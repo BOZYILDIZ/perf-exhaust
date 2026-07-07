@@ -1,0 +1,41 @@
+{
+  "manifest_version": 3,
+  "name": "PERF'EXHAUST — Assistant Pennylane",
+  "version": "1.0.0",
+  "description": "Extension privée : prérempli manuellement les champs visibles d'un devis Pennylane à partir d'une demande PERF'EXHAUST. Ne valide et n'envoie jamais rien automatiquement — l'admin garde toujours le contrôle final.",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "permissions": ["storage"],
+  "host_permissions": [
+    "https://perfexhaust.fr/admin/*",
+    "https://app.pennylane.com/*"
+  ],
+  "background": {
+    "service_worker": "dist/background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://perfexhaust.fr/admin/devis/*"],
+      "js": ["dist/content-scripts/perfexhaust-admin.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://app.pennylane.com/*"],
+      "js": ["dist/content-scripts/pennylane.js"],
+      "css": ["styles.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "PERF'EXHAUST — Assistant Pennylane",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    }
+  }
+}

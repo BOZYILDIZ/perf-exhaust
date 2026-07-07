@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Loader2, Save, Trash2, Archive, CheckCircle, AlertCircle, Phone, Mail } from "lucide-react";
 import PennylaneSection from "@/components/admin/PennylaneSection";
 import PennylaneManualSection from "@/components/admin/PennylaneManualSection";
+import PennylaneExtensionSection from "@/components/admin/PennylaneExtensionSection";
 
 export interface QuoteRequestDetailData {
   id: string;
@@ -202,6 +203,8 @@ export default function QuoteRequestDetail({
           }}
         />
       )}
+
+      {pennylaneMode === "manual" && <PennylaneExtensionSection />}
 
       <section>
         <h2 className={sectionTitle}>Suivi atelier</h2>

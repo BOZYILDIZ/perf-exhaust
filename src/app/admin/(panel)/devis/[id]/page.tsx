@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { isDbConfigured, getDb } from "@/lib/db";
 import { isPennylaneConfigured, getPennylaneMode } from "@/lib/pennylane/client";
 import { getSiteSettings } from "@/lib/settings-repo";
+import { buildExtensionQuoteData, safeJsonForScriptTag } from "@/lib/pennylane/extension-data";
 import QuoteRequestDetail from "@/components/admin/QuoteRequestDetail";
 
 export const dynamic = "force-dynamic";
@@ -15,8 +16,18 @@ export default async function AdminQuoteRequestDetailPage({ params }: { params: 
   ]);
   if (!q) notFound();
 
+  // Lu par l'extension Chrome "PERF'EXHAUST — Assistant Pennylane"
+  // (chrome-extension/perfexhaust-pennylane-assistant/) — jamais exécuté,
+  // jamais envoyé à un serveur tiers. Voir src/lib/pennylane/extension-data.ts.
+  const extensionData = buildExtensionQuoteData(q);
+
   return (
     <div>
+      <script
+        type="application/json"
+        id="perfexhaust-quote-data"
+        dangerouslySetInnerHTML={{ __html: safeJsonForScriptTag(extensionData) }}
+      />
       <h1 className="text-2xl font-black text-white mb-8" style={{ fontFamily: "var(--font-oswald), sans-serif" }}>
         Demande — {q.prenom} {q.nom}
       </h1>

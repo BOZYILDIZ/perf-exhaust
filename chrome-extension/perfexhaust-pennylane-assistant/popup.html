@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <title>PERF'EXHAUST — Assistant Pennylane</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="pe-popup">
+      <header class="pe-popup__header">
+        <img src="icons/icon-48.png" alt="" width="24" height="24" />
+        <h1 class="pe-popup__title">Assistant Pennylane</h1>
+      </header>
+
+      <div id="pe-popup-status" class="pe-popup__status" aria-live="polite">Chargement...</div>
+
+      <button type="button" id="pe-popup-clear" class="pe-popup__button pe-popup__button--danger">
+        Effacer les données
+      </button>
+
+      <label class="pe-popup__debug">
+        <input type="checkbox" id="pe-popup-debug" />
+        Mode debug (journalise les détails dans la console de chaque page)
+      </label>
+
+      <p class="pe-popup__reminder">
+        Cette extension ne valide ni n'envoie jamais rien automatiquement dans Pennylane. Elle prérempli
+        uniquement les champs visibles — vous vérifiez le prix et validez vous-même.
+      </p>
+    </div>
+    <script src="dist/popup.js"></script>
+  </body>
+</html>
