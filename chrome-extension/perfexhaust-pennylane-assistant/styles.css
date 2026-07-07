@@ -132,7 +132,7 @@ body {
 }
 
 .pe-banner {
-  width: 320px;
+  width: 340px;
   background: var(--pe-bg);
   color: var(--pe-text);
   border: 1px solid var(--pe-border);
@@ -205,28 +205,109 @@ body {
 
 .pe-banner__report {
   margin-top: 10px;
-  padding-top: 10px;
+  padding-top: 12px;
   border-top: 1px solid var(--pe-border);
 }
 
-.pe-banner__summary {
-  margin: 0 0 6px;
+/* ===================== Rapport de préremplissage ===================== */
+/* Jamais de score ("2/6") : uniquement des actions concrètes, nommées. */
+
+.pe-report__lead {
+  margin: 0 0 4px;
   font-weight: 700;
-}
-
-.pe-banner__missing {
-  margin: 0 0 8px;
-  color: var(--pe-warning);
-  line-height: 1.4;
-}
-
-.pe-banner__missing--ok {
+  font-size: 13px;
   color: var(--pe-success);
 }
 
-.pe-banner__reminder {
-  margin: 0;
+.pe-report__lead--partial {
+  color: var(--pe-warning);
+}
+
+.pe-report__sub {
+  margin: 0 0 12px;
   color: var(--pe-text-muted);
-  font-size: 11px;
+  line-height: 1.45;
+  font-size: 12px;
+}
+
+.pe-report__list {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pe-report__list li {
   line-height: 1.4;
+  padding-left: 22px;
+  position: relative;
+}
+
+.pe-report__list--done li {
+  color: var(--pe-text);
+}
+
+.pe-report__list--done li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: var(--pe-success);
+  font-weight: 700;
+}
+
+.pe-report__list--warning li {
+  color: #fca5a5;
+}
+
+.pe-report__list--warning li::before {
+  content: "⚠";
+  position: absolute;
+  left: 1px;
+  top: 0;
+  color: var(--pe-danger);
+}
+
+.pe-report__list--info li {
+  color: var(--pe-text-muted);
+  font-size: 12px;
+}
+
+.pe-report__list--info li::before {
+  content: "ℹ";
+  position: absolute;
+  left: 2px;
+  top: 0;
+  color: var(--pe-brand);
+  font-weight: 700;
+}
+
+.pe-report__list--todo li {
+  color: var(--pe-text);
+  font-size: 12px;
+}
+
+.pe-report__list--todo li::before {
+  content: "•";
+  position: absolute;
+  left: 6px;
+  top: 0;
+  color: var(--pe-text-muted);
+}
+
+.pe-report__divider {
+  height: 1px;
+  background: var(--pe-border);
+  margin: 4px 0 12px;
+}
+
+.pe-report__todo-title {
+  margin: 0 0 8px;
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--pe-text-muted);
 }

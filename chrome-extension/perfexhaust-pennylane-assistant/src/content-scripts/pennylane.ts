@@ -1,5 +1,16 @@
 import { DEBUG_STORAGE_KEY, QUOTE_TTL_MS, STORAGE_KEY, isExpired, type StoredQuote } from "../shared-types";
-import { AUTOCOMPLETE_FIELDS, FIELD_CONFIGS, VAT_OPTION_TEXT_CANDIDATES, fillTextField, findExpandToggle, resolveField, selectOptionByText, type FieldKey } from "./pennylane-selectors";
+import {
+  AUTOCOMPLETE_FIELDS,
+  FIELD_CONFIGS,
+  captureVisibleSlateEditors,
+  fillRichTextField,
+  fillTextField,
+  findExpandToggle,
+  resolveDescriptionEditor,
+  resolveField,
+  selectReactSelectOptionByText,
+  type FieldKey,
+} from "./pennylane-selectors";
 
 const LOG_PREFIX = "[PERF'EXHAUST Assistant]";
 const BANNER_ID = "perfexhaust-pennylane-banner";
@@ -125,63 +136,91 @@ async function fillQuote(stored: StoredQuote, banner: HTMLDivElement): Promise<v
 
   const filled: FieldKey[] = [];
   const notFound: FieldKey[] = [];
-  const manualSelect: FieldKey[] = [];
+  // Combobox async (Client, Produit) : on distingue "recherche tapée avec
+  // succès" de "champ introuvable sur la page" — même workflow, même clic,
+  // mais un rapport honnête doit pouvoir dire lequel des deux s'est produit
+  // (voir renderReport). Aucune des deux catégories ne sélectionne jamais
+  // d'option automatiquement, conformément à AUTOCOMPLETE_FIELDS.
+  const manualSelectPrepared: FieldKey[] = [];
+  const manualSelectMissing: FieldKey[] = [];
+  const missingOnPage: FieldKey[] = [];
   let descriptionCopiedToClipboard = false;
   const usedElements = new Set<Element>();
 
   for (const key of Object.keys(FIELD_CONFIGS) as FieldKey[]) {
-    let resolution = resolveField(key, document, usedElements);
+    const config = FIELD_CONFIGS[key];
 
-    // Champ probablement masqué derrière un bouton disclosure (ex: description) :
-    // on essaie de le révéler, jamais de bouton "Enregistrer"/"Envoyer".
-    if (!resolution.element && key === "description") {
-      const toggle = findExpandToggle(["ajouter une description"]);
+    // "missing-on-page" (Email, Téléphone) : ce champ n'existe simplement pas
+    // sur le formulaire de devis Pennylane, quel que soit le sélecteur — on
+    // ne perd même pas de temps à chercher, et on l'affiche avec une
+    // explication précise plutôt qu'un "non trouvé" muet.
+    if (config.kind === "missing-on-page") {
+      missingOnPage.push(key);
+      continue;
+    }
+
+    // Description : éditeur Slate.js révélé derrière "+ Ajouter une
+    // description" — on capture les éditeurs déjà visibles AVANT le clic pour
+    // ne jamais confondre avec l'éditeur de "+ Ajouter un champ libre".
+    if (config.kind === "richtext") {
+      const previouslyVisible = captureVisibleSlateEditors();
+      const toggle = findExpandToggle(config.toggleKeywords ?? []);
       if (toggle) {
         if (debug) console.log(LOG_PREFIX, "Clic sur le bouton disclosure pour révéler la description :", toggle);
         toggle.click();
         await wait(300);
-        resolution = resolveField(key, document, usedElements);
       }
-    }
+      const editor = resolveDescriptionEditor(previouslyVisible);
+      if (debug) console.log(LOG_PREFIX, `Champ "${key}" →`, editor ? "trouvé (éditeur Slate.js)" : "non trouvé", editor);
 
-    if (debug) {
-      console.log(LOG_PREFIX, `Champ "${key}" →`, resolution.strategyUsed ? `trouvé via ${resolution.strategyUsed}` : "non trouvé", resolution.element);
-    }
-
-    if (!resolution.element) {
-      if (key === "description") {
-        // Dernier recours explicitement demandé : copier dans le presse-papiers
-        // plutôt que de laisser l'admin sans aucune info exploitable.
+      if (editor && fillRichTextField(editor, valuesByField[key])) {
+        filled.push(key);
+      } else {
         try {
           await navigator.clipboard.writeText(descriptionText);
           descriptionCopiedToClipboard = true;
         } catch (err) {
           console.error(`${LOG_PREFIX} Impossible de copier la description dans le presse-papiers :`, err);
         }
+        notFound.push(key);
       }
-      if (AUTOCOMPLETE_FIELDS.has(key)) manualSelect.push(key);
+      continue;
+    }
+
+    const resolution = resolveField(key, document, usedElements);
+    if (debug) {
+      console.log(LOG_PREFIX, `Champ "${key}" →`, resolution.strategyUsed ? `trouvé via ${resolution.strategyUsed}` : "non trouvé", resolution.element);
+    }
+
+    if (!resolution.element) {
+      if (AUTOCOMPLETE_FIELDS.has(key)) manualSelectMissing.push(key);
+      else notFound.push(key);
+      continue;
+    }
+    usedElements.add(resolution.element);
+
+    if (config.kind === "select-click") {
+      // TVA : liste fermée et connue à l'avance (20 % par défaut en France) —
+      // ouverture + clic réel sur l'option, comme un utilisateur le ferait.
+      const ok = await selectReactSelectOptionByText(resolution.element, config.optionTextCandidates ?? []);
+      if (ok) filled.push(key);
       else notFound.push(key);
       continue;
     }
 
-    usedElements.add(resolution.element);
-    const ok = key === "vatRate"
-      ? selectOptionByText(resolution.element, VAT_OPTION_TEXT_CANDIDATES)
-      : fillTextField(resolution.element, valuesByField[key]);
-
-    if (AUTOCOMPLETE_FIELDS.has(key)) {
-      // Trouvé et éventuellement pré-rempli pour aider la recherche, mais on
-      // ne prétend jamais qu'une sélection réelle a été faite dans la liste.
-      manualSelect.push(key);
-    } else if (ok) {
-      filled.push(key);
-    } else {
-      notFound.push(key);
-    }
+    // "async-combobox" (Client, Produit) : on tape le texte de recherche pour
+    // aider l'admin, mais on ne sélectionne JAMAIS d'option automatiquement —
+    // impossible de garantir la bonne entrée (et un mauvais choix sur
+    // "Produit" pourrait créer une nouvelle fiche catalogue via "Créer …").
+    fillTextField(resolution.element, valuesByField[key]);
+    manualSelectPrepared.push(key);
   }
 
-  renderReport(banner, { filled, notFound, manualSelect, descriptionCopiedToClipboard });
-  console.log(`${LOG_PREFIX} Préremplissage : ${filled.length} remplis, ${manualSelect.length} à sélectionner manuellement, ${notFound.length} non trouvés.`, { filled, manualSelect, notFound });
+  renderReport(banner, { filled, notFound, manualSelectPrepared, manualSelectMissing, missingOnPage, descriptionCopiedToClipboard });
+  console.log(
+    `${LOG_PREFIX} Préremplissage : ${filled.length} remplis, ${manualSelectPrepared.length} recherches préparées, ${manualSelectMissing.length + notFound.length} introuvables, ${missingOnPage.length} inexistants sur cette page.`,
+    { filled, manualSelectPrepared, manualSelectMissing, notFound, missingOnPage },
+  );
 }
 
 function buildDescriptionText(data: StoredQuote["data"]): string {
@@ -200,49 +239,134 @@ function buildDescriptionText(data: StoredQuote["data"]): string {
     .join("\n");
 }
 
-const MANUAL_SELECT_LABELS: Partial<Record<FieldKey, string>> = {
-  clientName: "Client à sélectionner manuellement",
-  lineDescription: "Produit à sélectionner manuellement",
+/** Ce qui a réellement été automatisé — une ligne ✓ par action concrète, jamais un score. */
+const DONE_LABELS: Partial<Record<FieldKey, string>> = {
+  description: "Description ajoutée",
+  vatRate: "TVA 20 % sélectionnée",
+  clientName: "Recherche du client préparée",
+  lineDescription: "Recherche du produit préparée",
+};
+
+/** Message explicite quand une action automatisable a concrètement échoué (jamais "champ non rempli"). */
+const FAILURE_MESSAGES: Partial<Record<FieldKey, string>> = {
+  vatRate: "Impossible de sélectionner automatiquement la TVA.",
+};
+
+/** Ce qu'il reste à faire dans Pennylane pour chaque champ à sélection manuelle, selon qu'une recherche a pu être tapée ou non. */
+const TODO_PREPARED_LABELS: Partial<Record<FieldKey, string>> = {
+  clientName: "sélectionner le client proposé",
+  lineDescription: "sélectionner le produit",
+};
+const TODO_MISSING_LABELS: Partial<Record<FieldKey, string>> = {
+  clientName: "rechercher et sélectionner le client manuellement",
+  lineDescription: "rechercher et sélectionner le produit manuellement",
+};
+
+/** Actions qui restent toujours nécessaires, quel que soit ce qui a pu être automatisé : jamais de prix, jamais d'envoi automatique. */
+const ALWAYS_TODO = ["renseigner le prix HT", "vérifier le devis", "enregistrer le devis"];
+
+/** Formulation courte pour l'admin — la justification technique détaillée reste dans FIELD_CONFIGS[key].missingReason (mode debug). */
+const MISSING_ON_PAGE_SHORT_REASONS: Partial<Record<FieldKey, string>> = {
+  email: "Non présent sur la page de création d'un devis Pennylane.",
+  phone: "Non présent sur cette page.",
 };
 
 interface FillResult {
   filled: FieldKey[];
   notFound: FieldKey[];
-  manualSelect: FieldKey[];
+  manualSelectPrepared: FieldKey[];
+  manualSelectMissing: FieldKey[];
+  missingOnPage: FieldKey[];
   descriptionCopiedToClipboard: boolean;
 }
 
-/** Rapport toujours visible et explicite — jamais de succès/échec silencieux. */
+/**
+ * Rapport toujours visible et explicite — jamais de succès/échec silencieux,
+ * et jamais de score façon "2/6 champs remplis" : Pennylane n'expose tout
+ * simplement pas certains champs à l'automatisation (Email/Téléphone) ou
+ * exige une sélection humaine dans une liste (Client/Produit) — ce n'est pas
+ * un échec de l'extension, donc ce n'est jamais présenté comme tel.
+ */
 function renderReport(banner: HTMLDivElement, result: FillResult): void {
   const report = banner.querySelector<HTMLDivElement>("[data-pe-report]");
   if (!report) return;
   report.hidden = false;
 
-  const { filled, notFound, manualSelect, descriptionCopiedToClipboard } = result;
-  const total = filled.length + notFound.length + manualSelect.length;
-  const summary = `${filled.length}/${total} champs remplis automatiquement.`;
+  const { filled, notFound, manualSelectPrepared, manualSelectMissing, missingOnPage, descriptionCopiedToClipboard } = result;
 
-  const lines: string[] = [];
-  if (manualSelect.length > 0) {
-    for (const key of manualSelect) {
-      lines.push(`<p class="pe-banner__missing">${escapeHtml(MANUAL_SELECT_LABELS[key] ?? `${FIELD_CONFIGS[key].displayName} à sélectionner manuellement`)}.</p>`);
-    }
-  }
+  // Un vrai échec = une action automatisable qui a concrètement raté (TVA).
+  // La description qui retombe sur le presse-papiers a déjà un plan B utile :
+  // ce n'est pas présenté comme un échec, juste comme une étape "info".
+  const hardFailures: FieldKey[] = notFound.filter((k) => k !== "description");
+
+  const doneItems = [...filled, ...manualSelectPrepared]
+    .filter((k) => !hardFailures.includes(k))
+    .map((k) => DONE_LABELS[k] ?? FIELD_CONFIGS[k].displayName);
+
+  const failureItems = hardFailures.map((k) => FAILURE_MESSAGES[k] ?? `Impossible de préremplir automatiquement « ${FIELD_CONFIGS[k].displayName} ».`);
+
+  const infoItems: string[] = [];
   if (descriptionCopiedToClipboard) {
-    lines.push(`<p class="pe-banner__missing">Description copiée dans le presse-papiers — cliquez sur « + Ajouter une description » dans Pennylane puis collez (Cmd/Ctrl+V).</p>`);
+    infoItems.push("Description copiée dans le presse-papiers — cliquez sur « + Ajouter une description » dans Pennylane puis collez (Cmd/Ctrl+V).");
   }
-  if (notFound.length > 0) {
-    lines.push(`<p class="pe-banner__missing">À compléter manuellement : ${notFound.map((k) => escapeHtml(FIELD_CONFIGS[k].displayName)).join(", ")}.</p>`);
-  }
-  if (lines.length === 0) {
-    lines.push(`<p class="pe-banner__missing pe-banner__missing--ok">Tous les champs détectés ont été remplis.</p>`);
+  for (const key of missingOnPage) {
+    // Reformulation courte pour l'admin — la justification technique complète
+    // (FIELD_CONFIGS[key].missingReason) reste disponible en mode debug.
+    const reason = MISSING_ON_PAGE_SHORT_REASONS[key] ?? "Non présent sur cette page.";
+    infoItems.push(`<strong>${escapeHtml(FIELD_CONFIGS[key].displayName)} :</strong> ${escapeHtml(reason)}`);
   }
 
-  report.innerHTML = `
-    <p class="pe-banner__summary">${escapeHtml(summary)}</p>
-    ${lines.join("\n")}
-    <p class="pe-banner__reminder">Vérifiez le prix et validez vous-même dans Pennylane — l'extension ne le fait jamais.</p>
-  `;
+  const todoItems = [
+    ...manualSelectPrepared.map((k) => TODO_PREPARED_LABELS[k] ?? `sélectionner « ${FIELD_CONFIGS[k].displayName} »`),
+    ...manualSelectMissing.map((k) => TODO_MISSING_LABELS[k] ?? `rechercher et sélectionner « ${FIELD_CONFIGS[k].displayName} » manuellement`),
+    ...ALWAYS_TODO,
+  ];
+
+  const headerHtml = hardFailures.length === 0
+    ? `
+      <p class="pe-report__lead">Préremplissage terminé.</p>
+      <p class="pe-report__sub">Les éléments pouvant être automatisés ont été préparés. Il reste uniquement les actions nécessitant une validation humaine.</p>
+    `
+    : `
+      <p class="pe-report__lead pe-report__lead--partial">Préremplissage partiel.</p>
+      <p class="pe-report__sub">Certains éléments n'ont pas pu être automatisés sur cette page — voir ci-dessous.</p>
+    `;
+
+  const sections: string[] = [headerHtml];
+
+  if (doneItems.length > 0) {
+    sections.push(`
+      <ul class="pe-report__list pe-report__list--done">
+        ${doneItems.map((label) => `<li>${escapeHtml(label)}</li>`).join("")}
+      </ul>
+    `);
+  }
+
+  if (failureItems.length > 0) {
+    sections.push(`
+      <ul class="pe-report__list pe-report__list--warning">
+        ${failureItems.map((label) => `<li>${escapeHtml(label)}</li>`).join("")}
+      </ul>
+    `);
+  }
+
+  if (infoItems.length > 0) {
+    sections.push(`
+      <ul class="pe-report__list pe-report__list--info">
+        ${infoItems.map((label) => `<li>${label}</li>`).join("")}
+      </ul>
+    `);
+  }
+
+  sections.push(`<div class="pe-report__divider"></div>`);
+  sections.push(`
+    <p class="pe-report__todo-title">À compléter dans Pennylane :</p>
+    <ul class="pe-report__list pe-report__list--todo">
+      ${todoItems.map((label) => `<li>${escapeHtml(label)}</li>`).join("")}
+    </ul>
+  `);
+
+  report.innerHTML = `<div class="pe-report">${sections.join("\n")}</div>`;
 }
 
 function renderForStored(stored: StoredQuote | undefined): void {
