@@ -22,6 +22,7 @@ type Status = "idle" | "waiting" | "ack" | "timeout" | "unavailable";
 
 const ACK_TIMEOUT_MS = 2500;
 const README_PATH = "chrome-extension/perfexhaust-pennylane-assistant/README.md";
+const LOG_PREFIX = "[React] Assistant Pennylane";
 
 interface QuoteData {
   clientName: string;
@@ -68,7 +69,9 @@ export default function PennylaneExtensionSection() {
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
+    console.log(`${LOG_PREFIX} : composant monté, écoute de "perfexhaust:extension-ack"`);
     const onAck = () => {
+      console.log(`${LOG_PREFIX} : ACK reçu ("perfexhaust:extension-ack") → succès`);
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
         timeoutRef.current = null;
@@ -83,18 +86,28 @@ export default function PennylaneExtensionSection() {
   }, []);
 
   const prepare = () => {
+    console.log(`${LOG_PREFIX} : clic sur "Préparer Pennylane"`);
     const data = readQuoteData();
     if (!data) {
+      console.error(`${LOG_PREFIX} : #perfexhaust-quote-data absent ou JSON invalide — impossible de continuer`);
       setStatus("unavailable");
       return;
     }
+    console.log(`${LOG_PREFIX} : données JSON lues avec succès pour`, data.clientName);
     setCopyState("idle");
     setStatus("waiting");
     window.dispatchEvent(new CustomEvent("perfexhaust:quote-ready"));
+    console.log(`${LOG_PREFIX} : événement "perfexhaust:quote-ready" envoyé, attente de l'ACK (timeout ${ACK_TIMEOUT_MS}ms)`);
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     timeoutRef.current = setTimeout(() => {
       // Ne retombe en "timeout" que si aucun ack n'est arrivé pendant l'attente.
-      setStatus((current) => (current === "waiting" ? "timeout" : current));
+      setStatus((current) => {
+        if (current === "waiting") {
+          console.warn(`${LOG_PREFIX} : aucun ACK reçu après ${ACK_TIMEOUT_MS}ms → extension non détectée (content script absent, désactivé, ou storage bloqué — voir la console de la page pour un log "[PERF'EXHAUST Assistant] content script loaded")`);
+          return "timeout";
+        }
+        return current;
+      });
     }, ACK_TIMEOUT_MS);
   };
 

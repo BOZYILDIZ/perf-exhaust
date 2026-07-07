@@ -2,6 +2,11 @@ import { DEBUG_STORAGE_KEY, STORAGE_KEY, type PerfexhaustQuoteData, type StoredQ
 
 const LOG_PREFIX = "[PERF'EXHAUST Assistant]";
 
+// Log inconditionnel (pas derrière le flag debug) : sert à prouver que le
+// content script a bien été injecté sur cette page — la première chose à
+// vérifier quand "Préparer Pennylane" semble ne rien faire.
+console.log(`${LOG_PREFIX} content script loaded (perfexhaust-admin.ts) — ${window.location.href}`);
+
 async function isDebugEnabled(): Promise<boolean> {
   try {
     const { [DEBUG_STORAGE_KEY]: debug } = await chrome.storage.local.get(DEBUG_STORAGE_KEY);
@@ -41,16 +46,20 @@ function readQuoteData(): PerfexhaustQuoteData | null {
 }
 
 async function handleQuoteReady(): Promise<void> {
+  console.log(`${LOG_PREFIX} événement "perfexhaust:quote-ready" reçu`);
   const data = readQuoteData();
   if (!data) return; // déjà journalisé dans readQuoteData — jamais d'échec silencieux
+  console.log(`${LOG_PREFIX} données JSON trouvées et valides pour`, data.clientName);
 
   const stored: StoredQuote = { data, preparedAt: Date.now() };
   try {
     await chrome.storage.session.set({ [STORAGE_KEY]: stored });
+    console.log(`${LOG_PREFIX} chrome.storage.session.set() réussi`);
     await debugLog("Données sauvegardées dans chrome.storage.session :", stored);
     // Confirme à la page React que l'extension a bien reçu les données —
     // affiche une confirmation concrète plutôt qu'un message optimiste.
     window.dispatchEvent(new CustomEvent("perfexhaust:extension-ack"));
+    console.log(`${LOG_PREFIX} événement "perfexhaust:extension-ack" envoyé à la page`);
   } catch (err) {
     console.error(`${LOG_PREFIX} Échec de la sauvegarde des données (chrome.storage.session) :`, err);
   }
