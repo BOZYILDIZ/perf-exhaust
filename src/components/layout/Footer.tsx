@@ -159,7 +159,7 @@ export default function Footer({ settings }: { settings: SiteSettingsData }) {
                   className="w-6 h-6 flex-shrink-0"
                   style={{ borderRadius: "2px" }}
                 />
-                <span className="text-white font-bold text-sm" style={{ fontFamily: "var(--font-oswald), sans-serif" }}>SHIFTECH</span>
+                <span className="text-white font-bold text-sm" style={{ fontFamily: "var(--font-oswald), sans-serif" }}>SHIFTECH Strasbourg</span>
                 <ExternalLink size={12} className="text-gray-500" />
               </div>
             </a>

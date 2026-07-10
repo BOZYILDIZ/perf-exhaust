@@ -34,7 +34,7 @@ const REASONS = [
   },
   {
     Icon: PartnerIcon,
-    title: "Partenaire officiel SHIFTECH",
+    title: "Partenaire officiel SHIFTECH Strasbourg",
     body: "PERF'EXHAUST est partenaire officiel de SHIFTECH, leader européen de la reprogrammation moteur. Nous pouvons ainsi proposer des projets complets : échappement sur mesure + reprogrammation, pour des gains de puissance cohérents et maîtrisés.",
     link: { href: "/a-propos", label: "Notre partenariat" },
   },

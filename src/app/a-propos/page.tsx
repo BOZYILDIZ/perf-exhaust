@@ -80,7 +80,8 @@ export default function AProposPage() {
                 approfondie et d&apos;un devis personnalisé gratuit.
               </p>
               <p>
-                Partenaire officiel <strong className="text-white">SHIFTECH</strong>, nous combinons
+                Partenaire officiel <strong className="text-white">SHIFTECH</strong>{" "}
+                Strasbourg, nous combinons
                 notre expertise en fabrication d&apos;échappements avec les meilleures solutions de
                 reprogrammation moteur, pour des projets de performance automobile cohérents et maîtrisés.
               </p>
