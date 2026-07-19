@@ -1,5 +1,6 @@
 import { Resend } from 'resend'
 import { getSiteSettings } from '@/lib/settings-repo'
+import { rearDiffuserLabel } from '@/lib/quote-request-options'
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
 
@@ -31,6 +32,7 @@ export interface AppointmentData {
   modele: string
   annee: string
   motorisation?: string
+  rearDiffuser: string
   typeProjet: string
   sonoritePreference: string
   description: string
@@ -60,6 +62,7 @@ export async function sendAppointmentToShop(data: AppointmentData) {
         <h3>Véhicule</h3>
         <p><strong>Véhicule:</strong> ${e.marque} ${e.modele} (${e.annee})</p>
         ${e.motorisation ? `<p><strong>Motorisation:</strong> ${e.motorisation}</p>` : ''}
+        <p><strong>Diffuseur arrière:</strong> ${escapeHtml(rearDiffuserLabel(data.rearDiffuser))}</p>
         <h3>Projet</h3>
         <p><strong>Type de projet:</strong> ${e.typeProjet}</p>
         <p><strong>Sonorité souhaitée:</strong> ${e.sonoritePreference}</p>

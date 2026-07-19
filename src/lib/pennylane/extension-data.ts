@@ -1,3 +1,5 @@
+import { rearDiffuserLabel } from '@/lib/quote-request-options'
+
 /**
  * Données structurées exposées sur /admin/devis/[id] pour l'extension
  * Chrome "PERF'EXHAUST — Assistant Pennylane" (chrome-extension/
@@ -20,6 +22,7 @@ export interface PennylaneExtensionQuoteData {
   engine: string
   projectType: string
   soundPreference: string
+  rearDiffuser: string
   message: string
   suggestedLine: string
   vatRate: number
@@ -37,6 +40,7 @@ export interface QuoteRequestLike {
   motorisation: string | null
   typeProjet: string
   sonorite: string
+  rearDiffuser: string
   message: string
 }
 
@@ -53,6 +57,7 @@ export function buildExtensionQuoteData(q: QuoteRequestLike): PennylaneExtension
     engine: q.motorisation || '',
     projectType: q.typeProjet,
     soundPreference: q.sonorite,
+    rearDiffuser: rearDiffuserLabel(q.rearDiffuser),
     message: q.message,
     suggestedLine: 'Échappement sur mesure — prix à compléter',
     vatRate: 20,

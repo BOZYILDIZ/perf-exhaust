@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { ArrowRight, CheckCircle, AlertCircle, Loader2, ChevronDown } from "lucide-react";
 import VehicleSelector, { type VehicleValue } from "./VehicleSelector";
+import { REAR_DIFFUSER_OPTIONS, REAR_DIFFUSER_VALUES, rearDiffuserLabel } from "@/lib/quote-request-options";
 
 const schema = z.object({
   nom: z.string().min(2, "Nom requis"),
@@ -16,6 +17,7 @@ const schema = z.object({
   modele: z.string().min(1, "Modèle requis"),
   annee: z.string().regex(/^(19|20)\d{2}$/, "Année invalide (ex : 2021)"),
   motorisation: z.string().optional(),
+  rearDiffuser: z.enum(REAR_DIFFUSER_VALUES, { message: "Merci d'indiquer si votre véhicule a un diffuseur arrière" }),
   typeProjet: z.string().min(1, "Type de projet requis"),
   sonoritePreference: z.string().min(1, "Préférence sonore requise"),
   description: z.string().min(10, "Description requise (10 caractères minimum)"),
@@ -48,7 +50,7 @@ const sonorities = [
 const DRAFT_KEY = "pe-devis-draft";
 const REQUIRED_FIELDS: (keyof FormData)[] = [
   "prenom", "nom", "telephone", "email",
-  "marque", "modele", "annee",
+  "marque", "modele", "annee", "rearDiffuser",
   "typeProjet", "sonoritePreference", "description", "rgpd",
 ];
 
@@ -240,6 +242,33 @@ export default function AppointmentForm() {
         />
       </div>
 
+      {/* Diffuseur arrière */}
+      <fieldset>
+        <legend className={labelStyle}>Votre véhicule est-il équipé d&apos;un diffuseur arrière ? *</legend>
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-6">
+          {REAR_DIFFUSER_OPTIONS.map((opt) => (
+            <label
+              key={opt.value}
+              htmlFor={`rv-rear-diffuser-${opt.value}`}
+              className="flex items-center gap-2 text-sm text-gray-300 cursor-pointer"
+            >
+              <input
+                type="radio"
+                id={`rv-rear-diffuser-${opt.value}`}
+                value={opt.value}
+                {...register("rearDiffuser")}
+                className="accent-brand-500 w-4 h-4 cursor-pointer flex-shrink-0"
+              />
+              {opt.label}
+            </label>
+          ))}
+        </div>
+        <p className="text-gray-600 text-xs mt-2">
+          Le diffuseur est la partie située sous le pare-chocs arrière, autour des sorties d&apos;échappement.
+        </p>
+        {errors.rearDiffuser && <p className={errorStyle}><AlertCircle size={10} />{errors.rearDiffuser.message}</p>}
+      </fieldset>
+
       {/* Section projet */}
       <div>
         <h2 className="text-white font-bold text-sm tracking-widest uppercase mb-4 pb-2" style={{ borderBottom: "1px solid #1e1e1e" }}>
@@ -300,6 +329,7 @@ export default function AppointmentForm() {
           <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5 text-sm">
             <div className="flex gap-2"><dt className="text-gray-500 shrink-0">Véhicule :</dt><dd className="text-white">{[values.marque, values.modele, values.annee].filter(Boolean).join(" · ")}</dd></div>
             {values.motorisation && <div className="flex gap-2"><dt className="text-gray-500 shrink-0">Motorisation :</dt><dd className="text-white">{values.motorisation}</dd></div>}
+            {values.rearDiffuser && <div className="flex gap-2"><dt className="text-gray-500 shrink-0">Diffuseur arrière :</dt><dd className="text-white">{rearDiffuserLabel(values.rearDiffuser)}</dd></div>}
             <div className="flex gap-2"><dt className="text-gray-500 shrink-0">Projet :</dt><dd className="text-white">{values.typeProjet}</dd></div>
             {values.sonoritePreference && <div className="flex gap-2"><dt className="text-gray-500 shrink-0">Sonorité :</dt><dd className="text-white">{values.sonoritePreference}</dd></div>}
           </dl>

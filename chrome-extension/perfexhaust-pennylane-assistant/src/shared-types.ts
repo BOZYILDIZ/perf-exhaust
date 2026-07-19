@@ -15,6 +15,7 @@ export interface PerfexhaustQuoteData {
   engine: string;
   projectType: string;
   soundPreference: string;
+  rearDiffuser: string;
   message: string;
   suggestedLine: string;
   vatRate: number;

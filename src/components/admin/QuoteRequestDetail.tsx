@@ -6,6 +6,7 @@ import { Loader2, Save, Trash2, Archive, CheckCircle, AlertCircle, Phone, Mail }
 import PennylaneSection from "@/components/admin/PennylaneSection";
 import PennylaneManualSection from "@/components/admin/PennylaneManualSection";
 import PennylaneExtensionSection from "@/components/admin/PennylaneExtensionSection";
+import { rearDiffuserLabel } from "@/lib/quote-request-options";
 
 export interface QuoteRequestDetailData {
   id: string;
@@ -19,6 +20,7 @@ export interface QuoteRequestDetailData {
   motorisation: string | null;
   typeProjet: string;
   sonorite: string;
+  rearDiffuser: string;
   message: string;
   status: string;
   notes: string;
@@ -155,6 +157,7 @@ export default function QuoteRequestDetail({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <InfoRow label="Véhicule" value={`${request.marque} ${request.modele} (${request.annee})`} />
           <InfoRow label="Motorisation" value={request.motorisation || "Non précisée"} />
+          <InfoRow label="Diffuseur arrière" value={rearDiffuserLabel(request.rearDiffuser)} />
           <InfoRow label="Type de projet" value={request.typeProjet} />
           <InfoRow label="Sonorité souhaitée" value={request.sonorite} />
         </div>
@@ -179,6 +182,7 @@ export default function QuoteRequestDetail({
             modele: request.modele,
             annee: request.annee,
             motorisation: request.motorisation,
+            rearDiffuser: request.rearDiffuser,
             typeProjet: request.typeProjet,
             sonorite: request.sonorite,
             message: request.message,

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Copy, CheckCircle, AlertCircle, Loader2, Save, ExternalLink } from "lucide-react";
+import { rearDiffuserLabel } from "@/lib/quote-request-options";
 
 const DEFAULT_PENNYLANE_URL = "https://app.pennylane.com/";
 
@@ -17,6 +18,7 @@ export interface PennylaneManualSource {
   motorisation: string | null;
   typeProjet: string;
   sonorite: string;
+  rearDiffuser: string;
   message: string;
 }
 
@@ -57,6 +59,7 @@ function buildClipboardText(r: PennylaneManualSource): string {
     `Téléphone : ${r.telephone}`,
     `Véhicule : ${r.marque} ${r.modele} (${r.annee})`,
     `Motorisation : ${r.motorisation || "Non précisée"}`,
+    `Diffuseur arrière : ${rearDiffuserLabel(r.rearDiffuser)}`,
     `Type de projet : ${r.typeProjet}`,
     `Sonorité souhaitée : ${r.sonorite}`,
     "",

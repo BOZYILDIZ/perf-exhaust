@@ -42,6 +42,7 @@ export default async function AdminQuoteRequestDetailPage({ params }: { params: 
           modele: q.modele,
           annee: q.annee,
           motorisation: q.motorisation,
+          rearDiffuser: q.rearDiffuser,
           typeProjet: q.typeProjet,
           sonorite: q.sonorite,
           message: q.message,

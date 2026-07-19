@@ -6,6 +6,7 @@ import { isDbConfigured, getDb } from "@/lib/db";
 import { createDraftQuoteFromRequest } from "@/lib/pennylane/client";
 import { getPennylaneMode } from "@/lib/pennylane/mode";
 import { PennylaneError } from "@/lib/pennylane/types";
+import { REAR_DIFFUSER_VALUES } from "@/lib/quote-request-options";
 
 const schema = z.object({
   nom: z.string().min(2),
@@ -16,6 +17,7 @@ const schema = z.object({
   modele: z.string().min(1),
   annee: z.string().regex(/^(19|20)\d{2}$/, "Année invalide"),
   motorisation: z.string().optional(),
+  rearDiffuser: z.enum(REAR_DIFFUSER_VALUES),
   typeProjet: z.string().min(1),
   sonoritePreference: z.string().min(1),
   description: z.string().min(10),
@@ -57,6 +59,7 @@ export async function POST(req: NextRequest) {
             modele: data.modele,
             annee: data.annee,
             motorisation: data.motorisation || null,
+            rearDiffuser: data.rearDiffuser,
             typeProjet: data.typeProjet,
             sonorite: data.sonoritePreference,
             message: data.description,
@@ -97,6 +100,7 @@ export async function POST(req: NextRequest) {
           modele: data.modele,
           annee: data.annee,
           motorisation: data.motorisation,
+          rearDiffuser: data.rearDiffuser,
           typeProjet: data.typeProjet,
           sonorite: data.sonoritePreference,
           message: data.description,

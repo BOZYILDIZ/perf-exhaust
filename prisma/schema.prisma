@@ -76,6 +76,7 @@ model QuoteRequest {
   motorisation String?
   typeProjet   String
   sonorite     String
+  rearDiffuser String  @default("je_ne_sais_pas") // "oui" | "non" | "je_ne_sais_pas"
   message      String
 
   status String @default("new") // "new" | "contacted" | "in_progress" | "completed" | "archived"

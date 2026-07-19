@@ -55,6 +55,7 @@ export async function POST(req: NextRequest, ctx: Ctx) {
         modele: quoteRequest.modele,
         annee: quoteRequest.annee,
         motorisation: quoteRequest.motorisation,
+        rearDiffuser: quoteRequest.rearDiffuser,
         typeProjet: quoteRequest.typeProjet,
         sonorite: quoteRequest.sonorite,
         message: quoteRequest.message,

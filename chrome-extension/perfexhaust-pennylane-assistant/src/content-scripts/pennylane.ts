@@ -232,6 +232,7 @@ function buildDescriptionText(data: StoredQuote["data"]): string {
     data.engine ? `Motorisation : ${data.engine}` : null,
     `Type de projet : ${data.projectType}`,
     `Sonorité souhaitée : ${data.soundPreference}`,
+    `Diffuseur arrière : ${data.rearDiffuser}`,
     "",
     `Message client : ${data.message}`,
   ]

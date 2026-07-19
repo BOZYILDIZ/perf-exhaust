@@ -8,6 +8,7 @@ import {
 } from './types'
 import { buildBillingAddress, type PartialBillingAddress } from './billing-address'
 import { getPennylaneMode, isPennylaneApiMode, isPennylaneManualMode, type PennylaneMode } from './mode'
+import { rearDiffuserLabel } from '@/lib/quote-request-options'
 
 export type { PartialBillingAddress, PennylaneMode }
 export { getPennylaneMode, isPennylaneApiMode, isPennylaneManualMode }
@@ -175,6 +176,7 @@ export interface DraftQuoteSourceRequest extends PartialBillingAddress {
   motorisation?: string | null
   typeProjet: string
   sonorite: string
+  rearDiffuser: string
   message: string
 }
 
@@ -196,6 +198,7 @@ function buildDraftQuoteDescription(r: DraftQuoteSourceRequest): string {
     r.motorisation ? `Motorisation : ${r.motorisation}` : null,
     `Type de projet : ${r.typeProjet}`,
     `Sonorité souhaitée : ${r.sonorite}`,
+    `Diffuseur arrière : ${rearDiffuserLabel(r.rearDiffuser)}`,
     '',
     `Message du client : ${r.message}`,
     '',
