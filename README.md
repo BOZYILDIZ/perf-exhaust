@@ -313,6 +313,8 @@ Le site est accessible sur **[http://localhost:3000](http://localhost:3000)**.
 | `PENNYLANE_API_KEY` | Token [Company API Pennylane](https://pennylane.readme.io/) pour créer des devis depuis `/admin/devis` | ❌ |
 | `PENNYLANE_BASE_URL` | URL de base Pennylane si différente de la production standard (sandbox...) | ❌ |
 | `PENNYLANE_COMPANY_ID` | Réservé aux configurations multi-entreprises (cabinet comptable) | ❌ |
+| `PENNYLANE_API_TOKEN` | Token API Pennylane **v2** (synchronisation client automatique, scopes customers/quotes/customer_invoices) — voir section dédiée ci-dessous | ❌ |
+| `PENNYLANE_FALLBACK_ADDRESS` / `_POSTAL_CODE` / `_CITY` | Adresse de repli (atelier) requise par Pennylane pour créer un client — voir `docs/MAINTENANCE.md` | ❌ |
 
 <br />
 
@@ -349,6 +351,16 @@ nécessite qu'une variable d'environnement, jamais une modification de code.
 Procédure complète (génération de la clé, variables, test, limites
 connues) : voir [`docs/MAINTENANCE.md`](docs/MAINTENANCE.md), section
 « Intégration Pennylane ».
+
+### 🔌 Nouvelle intégration API v2 (synchronisation client)
+
+En parallèle des modes ci-dessus, une intégration API v2 server-side
+recherche/crée automatiquement le client Pennylane à chaque demande (avec
+déduplication stricte) et affiche ses devis/factures dans le panel admin —
+sans jamais créer de devis/facture automatiquement. Testée en conditions
+réelles (authentification, recherche, création, absence de doublon).
+Détail complet : [`docs/MAINTENANCE.md`](docs/MAINTENANCE.md), section
+« Intégration Pennylane API v2 ».
 
 <br />
 

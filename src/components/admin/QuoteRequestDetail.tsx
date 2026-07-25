@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Loader2, Save, Trash2, Archive, CheckCircle, AlertCircle, Phone, Mail } from "lucide-react";
 import PennylaneSection from "@/components/admin/PennylaneSection";
 import PennylaneManualSection from "@/components/admin/PennylaneManualSection";
-import PennylaneExtensionSection from "@/components/admin/PennylaneExtensionSection";
+import PennylaneV2Section, { type PennylaneV2SectionProps } from "@/components/admin/PennylaneV2Section";
 import { rearDiffuserLabel } from "@/lib/quote-request-options";
 
 export interface QuoteRequestDetailData {
@@ -60,11 +60,13 @@ export default function QuoteRequestDetail({
   pennylaneConfigured,
   pennylaneMode,
   pennylaneManualUrl,
+  pennylaneV2,
 }: {
   request: QuoteRequestDetailData;
   pennylaneConfigured: boolean;
   pennylaneMode: "api" | "manual";
   pennylaneManualUrl: string;
+  pennylaneV2: Omit<PennylaneV2SectionProps, "quoteRequestId" | "pennylaneHomeUrl">;
 }) {
   const router = useRouter();
   const [status, setStatus] = useState(request.status);
@@ -169,6 +171,12 @@ export default function QuoteRequestDetail({
         </div>
       </section>
 
+      <PennylaneV2Section
+        quoteRequestId={request.id}
+        pennylaneHomeUrl={pennylaneManualUrl}
+        {...pennylaneV2}
+      />
+
       {pennylaneMode === "manual" ? (
         <PennylaneManualSection
           quoteRequestId={request.id}
@@ -207,8 +215,6 @@ export default function QuoteRequestDetail({
           }}
         />
       )}
-
-      {pennylaneMode === "manual" && <PennylaneExtensionSection />}
 
       <section>
         <h2 className={sectionTitle}>Suivi atelier</h2>

@@ -7,6 +7,8 @@ import { createDraftQuoteFromRequest } from "@/lib/pennylane/client";
 import { getPennylaneMode } from "@/lib/pennylane/mode";
 import { PennylaneError } from "@/lib/pennylane/types";
 import { REAR_DIFFUSER_VALUES } from "@/lib/quote-request-options";
+import { isPennylaneV2Configured } from "@/lib/pennylane-v2/config";
+import { syncCustomerForQuoteRequest } from "@/lib/pennylane-v2/sync";
 
 const schema = z.object({
   nom: z.string().min(2),
@@ -77,9 +79,29 @@ export async function POST(req: NextRequest) {
       console.warn("[API/rendez-vous] DATABASE_URL absente — demande non persistée, email envoyé quand même.");
     }
 
+    // Synchronisation CLIENT Pennylane API v2 (nouvelle intégration,
+    // indépendante du flux "quote" ci-dessous) — recherche/déduplication
+    // puis création si besoin, jamais bloquante : un échec ici ne doit
+    // jamais transformer une demande par ailleurs réussie en erreur pour le
+    // client (voir syncCustomerForQuoteRequest, qui ne lève jamais). Le
+    // résultat est uniquement visible dans le panel admin (section
+    // Pennylane sur /admin/devis/[id]), jamais côté public.
+    // Les envois d'e-mail sont eux aussi best-effort : la demande est déjà
+    // enregistrée en base à ce stade (priorité absolue) — un e-mail rejeté
+    // (ex: adresse invalide côté fournisseur) ne doit jamais transformer une
+    // demande par ailleurs réussie en erreur 500 pour le client.
     await Promise.all([
-      sendAppointmentToShop(data),
-      sendConfirmationToClient(data),
+      sendAppointmentToShop(data).catch((err) => {
+        console.error("[API/rendez-vous] Échec de l'e-mail atelier (demande non affectée) :", err);
+      }),
+      sendConfirmationToClient(data).catch((err) => {
+        console.error("[API/rendez-vous] Échec de l'e-mail de confirmation client (demande non affectée) :", err);
+      }),
+      quoteRequestId && isPennylaneV2Configured()
+        ? syncCustomerForQuoteRequest(quoteRequestId).catch((err) => {
+            console.error("[API/rendez-vous] Erreur inattendue lors de la synchronisation client Pennylane (demande non affectée) :", err);
+          })
+        : Promise.resolve(),
     ]);
 
     // Pennylane est la source unique pour les devis. En mode "api", un

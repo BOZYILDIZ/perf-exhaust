@@ -86,6 +86,34 @@ exclusivement dans Pennylane.
         automatique du brouillon (statut, ID, numéro/lien) sur `/admin/devis/[id]`
 - [ ] Voir `docs/MAINTENANCE.md` § "Intégration Pennylane" pour la procédure complète
 
+### 🔌 Intégration Pennylane API v2 (synchronisation client — 2026-07-25)
+
+Nouvelle intégration server-side, indépendante de l'extension Chrome et du
+mode manuel ci-dessus — voir `docs/MAINTENANCE.md` § "Intégration Pennylane
+API v2" pour le détail complet. Phase A (implémentation + validation) :
+terminée et testée en conditions réelles. Phase B (suppression de l'ancien
+système) : non déclenchée à ce jour.
+
+- [x] Token API Pennylane V2 obtenu (scopes `customers`, `quotes`,
+      `customer_invoices` en lecture + écriture) et posé sur Vercel
+      (Production, Development — jamais Preview sans accord explicite)
+- [x] `PENNYLANE_FALLBACK_ADDRESS`/`_POSTAL_CODE`/`_CITY` posées (adresse de
+      l'atelier — requise par Pennylane pour créer un nouveau client, voir
+      limites connues)
+- [x] Authentification réelle vérifiée (`GET /me`)
+- [x] Recherche client réelle vérifiée (positive et négative)
+- [x] Création client réelle vérifiée + absence de doublon confirmée (relance
+      retrouve le même identifiant)
+- [x] Récupération devis/factures réelle vérifiée
+- [x] Affichage dans le panel admin vérifié (`/admin/devis/[id]`)
+- [x] 15 scénarios automatisés (mocks) validés — voir MAINTENANCE.md
+- [ ] Client de test créé lors de la validation (« Test Validation 2
+      PERFEXHAUST », #1381226967040) à nettoyer manuellement dans Pennylane
+- [ ] Étendre le formulaire public pour collecter l'adresse postale du
+      client (supprimerait le besoin de l'adresse de repli atelier)
+- [ ] Décider du calendrier de la Phase B (suppression extension Chrome +
+      ancien workflow manuel) après une période d'usage réel sans incident
+
 ## 🔍 Google Search Console
 
 - [ ] Ajouter la propriété (domaine final)
