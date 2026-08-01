@@ -12,8 +12,6 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
-    // Sous-projet indépendant avec son propre lint (chrome-extension/perfexhaust-pennylane-assistant).
-    "chrome-extension/**",
   ]),
 ]);
 

@@ -86,6 +86,37 @@ exclusivement dans Pennylane.
         automatique du brouillon (statut, ID, numéro/lien) sur `/admin/devis/[id]`
 - [ ] Voir `docs/MAINTENANCE.md` § "Intégration Pennylane" pour la procédure complète
 
+### 🔌 Intégration Pennylane API v2 (synchronisation client — 2026-07-25)
+
+Nouvelle intégration server-side, indépendante de l'extension Chrome et du
+mode manuel ci-dessus — voir `docs/MAINTENANCE.md` § "Intégration Pennylane
+API v2" pour le détail complet. Phase A (implémentation + validation) :
+terminée et testée en conditions réelles. Phase B (suppression de l'extension
+Chrome et du bouton "Préparer Pennylane") : exécutée sur cette branche (même
+commit) — le mode manuel presse-papiers (`PennylaneManualSection`) et l'ancien
+mode API v1 (`src/lib/pennylane/`) restent en place, non concernés par cette
+suppression.
+
+- [x] Token API Pennylane V2 obtenu (scopes `customers`, `quotes`,
+      `customer_invoices` en lecture + écriture) et posé sur Vercel
+      (Production, Development — jamais Preview sans accord explicite)
+- [x] `PENNYLANE_FALLBACK_ADDRESS`/`_POSTAL_CODE`/`_CITY` posées (adresse de
+      l'atelier — requise par Pennylane pour créer un nouveau client, voir
+      limites connues)
+- [x] Authentification réelle vérifiée (`GET /me`)
+- [x] Recherche client réelle vérifiée (positive et négative)
+- [x] Création client réelle vérifiée + absence de doublon confirmée (relance
+      retrouve le même identifiant)
+- [x] Récupération devis/factures réelle vérifiée
+- [x] Affichage dans le panel admin vérifié (`/admin/devis/[id]`)
+- [x] 15 scénarios automatisés (mocks) validés — voir MAINTENANCE.md
+- [ ] Client de test créé lors de la validation (« Test Validation 2
+      PERFEXHAUST », #1381226967040) à nettoyer manuellement dans Pennylane
+- [ ] Étendre le formulaire public pour collecter l'adresse postale du
+      client (supprimerait le besoin de l'adresse de repli atelier)
+- [x] Phase B exécutée : extension Chrome et `PennylaneExtensionSection`
+      supprimées (le mode manuel presse-papiers reste disponible)
+
 ## 🔍 Google Search Console
 
 - [ ] Ajouter la propriété (domaine final)

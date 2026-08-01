@@ -321,6 +321,228 @@ comptabilité.
   avec toute l'UI et les routes associées, pour que PERF'EXHAUST reste un
   CRM simple et non un second outil de devis.
 
+## 🔌 Intégration Pennylane API v2 (synchronisation client automatique)
+
+**Statut (2026-07-25) : Phase A implémentée et validée. Phase B exécutée
+partiellement** — l'extension Chrome et le bouton "Préparer Pennylane" ont
+été supprimés ; le mode manuel presse-papiers (`PennylaneManualSection`) et
+l'ancien mode API v1 (`src/lib/pennylane/`) restent en place, non touchés
+(voir § "Transition").
+
+Contrairement à l'ancienne intégration (`src/lib/pennylane/`, hypothèses
+jamais vérifiées contre un vrai compte), cette couche (`src/lib/pennylane-v2/`)
+a été construite et testée directement contre la documentation officielle
+vérifiée (pennylane.readme.io) puis contre un vrai compte Pennylane avec
+permissions réelles.
+
+### Ce qu'elle fait
+
+À chaque demande reçue via `/rendez-vous` :
+1. La demande est enregistrée dans `QuoteRequest` (**toujours en premier,
+   priorité absolue** — jamais perdue si Pennylane est indisponible).
+2. Le client est recherché dans Pennylane (jamais créé en double) :
+   1. identifiant Pennylane déjà connu localement pour cette personne
+      (autre demande déjà synchronisée, même email/téléphone) ;
+   2. e-mail normalisé (`filter=[{"field":"emails","operator":"in",...}]`,
+      seul champ réellement filtrable côté serveur — voir limites) ;
+   3. téléphone normalisé (Pennylane n'expose aucun filtre serveur sur le
+      téléphone — parcours borné de la liste des clients, voir limites) ;
+   4. nom/prénom **en dernier recours, jamais choisi automatiquement** —
+      toute correspondance par nom déclenche `AMBIGUOUS`, jamais un choix
+      silencieux.
+3. Si aucune correspondance : création d'un client individuel
+   (`POST /individual_customers`).
+4. Si plusieurs correspondances : statut `AMBIGUOUS`, candidats affichés
+   dans `/admin/devis/[id]` — **aucune création automatique tant que
+   l'admin n'a pas choisi manuellement**.
+5. Le résultat (identifiant, statut, erreur, dates) est stocké sur la
+   demande — jamais montré au client public, uniquement dans le panel admin.
+
+Elle récupère aussi, à l'ouverture de la fiche admin (avec cache — voir
+§ "Cache"), les devis et factures Pennylane du client synchronisé.
+
+**Elle ne crée jamais de devis ni de facture** — volontairement, tant que
+le mapping lignes/TVA/prix/produits n'a pas été validé (voir mission
+d'origine). Le bouton "Créer un devis Pennylane" n'existe pas encore.
+
+### Fichiers
+
+```
+src/lib/pennylane-v2/
+  config.ts             Token, URL de base, TTL cache, timeout (tous lisibles/surchargeables via env)
+  types.ts               Types des réponses API v2 (clients, devis, factures)
+  errors.ts               PennylaneApiError / PennylaneTimeoutError / PennylanePreconditionError
+  http-client.ts           Client HTTP centralisé : auth, timeout, retry 429/5xx (GET only), pagination
+  filter.ts                Construction du paramètre `filter` (tableau JSON documenté)
+  normalize.ts             Normalisation email/téléphone FR/nom pour la déduplication
+  billing-address.ts       Adresse de facturation (client ou repli atelier — voir limites)
+  customers.ts             Recherche (email/téléphone) + création client
+  quotes.ts / invoices.ts   Récupération devis/factures d'un client + dérivation de statut d'affichage
+  format.ts                 Formats FR (montants, dates)
+  cache.ts                  TTL du cache devis/factures
+  web-links.ts               "Ouvrir dans Pennylane" (voir limites — pas de format d'URL documenté)
+  sync.ts                    Orchestration complète (recherche → dédup → création → écriture DB)
+  financials.ts               Lecture devis/factures avec cache (voir § Cache)
+
+src/components/admin/PennylaneV2Section.tsx   Section admin (statut, résumé, tableaux devis/factures)
+src/app/api/admin/quote-requests/[id]/pennylane-v2/
+  sync/route.ts              Relancer la synchronisation (bouton "Relancer")
+  resolve-ambiguity/route.ts  Choisir manuellement le bon client (statut AMBIGUOUS)
+  financials/route.ts         Actualiser les devis/factures (bouton "Actualiser", contourne le cache)
+```
+
+### Variables d'environnement
+
+```
+PENNYLANE_API_TOKEN=            # Token "Company API" — scopes requis : customers, quotes, customer_invoices (lecture + écriture)
+PENNYLANE_FALLBACK_ADDRESS=      # Adresse de repli pour la création client — voir "Limites connues"
+PENNYLANE_FALLBACK_POSTAL_CODE=
+PENNYLANE_FALLBACK_CITY=
+```
+
+Génération du token : Pennylane → **Management → Settings → Connectivity →
+Developers → Generate an API Token** — cocher les 3 scopes ci-dessus en
+lecture ET écriture. Le token n'est affiché qu'une fois : le copier
+immédiatement. Posé uniquement sur Vercel (Production, Development — jamais
+Preview sans accord explicite) et dans `.env.local`, jamais commité.
+
+**Procédure de rotation du token :** générer un nouveau token dans
+Pennylane (les anciens tokens continuent de fonctionner jusqu'à révocation
+explicite ou expiration), le poser sur Vercel (`vercel env add
+PENNYLANE_API_TOKEN production` — **toujours via une valeur lue depuis un
+fichier ou passée par stdin, jamais en argument littéral de commande**),
+redéployer, vérifier `/admin/devis/[id]` sur une demande synchronisée
+(bouton "Actualiser"), puis révoquer l'ancien token dans Pennylane.
+
+### Endpoints Pennylane API v2 réellement utilisés
+
+Vérifiés contre pennylane.readme.io (juillet 2026) puis contre un vrai
+compte — voir § "Test réel" du rapport de mission pour le détail complet.
+
+| Endpoint | Usage |
+|---|---|
+| `GET /customers?filter=...` | Recherche par e-mail (`in`) ; parcours paginé pour le téléphone |
+| `GET /customers/{id}` | Relecture d'un client (affichage admin) |
+| `POST /individual_customers` | Création — jamais réessayée automatiquement (non idempotent) |
+| `GET /quotes?filter=[{"field":"customer_id","operator":"eq",...}]` | Devis d'un client |
+| `GET /customer_invoices?filter=...` | Factures d'un client |
+
+Authentification : `Authorization: Bearer <token>`. Pagination par curseur :
+`{ items, has_more, next_cursor }` — le filtre doit être renvoyé à chaque
+page (le curseur seul ne le conserve pas).
+
+### Stratégie anti-doublons
+
+Voir § "Ce qu'elle fait" ci-dessus pour l'ordre exact. Points clés :
+- La recherche a TOUJOURS lieu avant toute création, y compris lors d'une
+  relance manuelle après échec — aucun risque de doublon même après
+  plusieurs tentatives.
+- Une correspondance par nom, même unique, ne sélectionne jamais
+  automatiquement — c'est le seul critère de la mission explicitement
+  interdit comme critère automatique.
+- Sans table `Client` locale dédiée (décision produit du 2026-07-25 — le
+  schéma actuel garde les champs sur `QuoteRequest`), le critère "identifiant
+  déjà connu localement" est approximé en cherchant, parmi les demandes déjà
+  synchronisées, une correspondance par e-mail/téléphone normalisé — évite
+  un appel Pennylane superflu quand la même personne resoumet une demande.
+
+### Statuts de synchronisation
+
+`pennylaneCustomerSyncStatus` : `PENDING` (jamais tenté) · `SYNCED` ·
+`FAILED` · `AMBIGUOUS`. Affichés dans `/admin/devis/[id]` avec un badge de
+couleur (vert/rouge/orange/gris) et les actions correspondantes (Relancer /
+Choisir manuellement).
+
+### Cache devis/factures
+
+Les devis/factures ne sont **jamais** rechargés à chaque rendu de page :
+`pennylaneQuotesCache`/`pennylaneInvoicesCache` (JSON) + `pennylaneFinancialsSyncedAt`
+sur `QuoteRequest`. Rechargés automatiquement si le cache dépasse 15 minutes
+(`PENNYLANE_V2_FINANCIALS_TTL_MS`), ou immédiatement via le bouton
+**"Actualiser"** (contourne le TTL).
+
+### Comment tester
+
+**Automatisé (mocks) :** un faux serveur Pennylane local (voir historique
+de la session du 2026-07-25) permet de rejouer les 15 scénarios suivants
+sans jamais appeler le vrai Pennylane : nouveau client absent, client par
+e-mail, client par téléphone, ambiguïté (+ résolution manuelle), panne API
+(5xx), token invalide, rate limit 429 (retry honoré), client sans devis,
+client avec plusieurs devis, client avec plusieurs factures (payée /
+partiellement payée / impayée + en retard), demande créée même si Pennylane
+échoue, relance manuelle réussie. Non conservé dans le dépôt (script
+ponctuel) — à reconstruire si besoin sur le même principe : serveur HTTP
+local + `PENNYLANE_BASE_URL_V2`/`PENNYLANE_API_TOKEN` pointés dessus.
+
+**Réel limité (validation finale) :** contre le vrai compte Pennylane, avec
+le vrai token — authentification (`GET /me`), recherche (positive et
+négative), création d'un client de test avec adresse de repli, relance
+(confirme l'absence de doublon), récupération devis/factures (vides pour un
+client neuf), affichage dans le panel admin. **Ne jamais créer de vrais
+devis/factures sans accord explicite** — cette intégration ne le fait de
+toute façon jamais (voir § "Ce qu'elle fait").
+
+### Comportement en cas de panne
+
+Une panne Pennylane (réseau, 5xx, 429 persistant) ne bloque et ne perd
+jamais la demande : elle est déjà enregistrée en base avant tout appel
+Pennylane. Le statut passe à `FAILED` avec un message admin clair (jamais
+le corps brut de l'erreur API). Le client public ne voit jamais rien de
+tout cela — sa demande est toujours confirmée normalement. Depuis le panel,
+le bouton **"Relancer la synchronisation"** répète la recherche complète
+(donc sans risque de doublon) dès que Pennylane est de nouveau disponible.
+
+### Limites connues de l'API (vérifiées, pas supposées)
+
+- **Adresse postale obligatoire pour créer un client individuel** —
+  confirmé en conditions réelles le 2026-07-25 : `POST /individual_customers`
+  avec `billing_address: { country_alpha2: "FR" }` seul est rejeté en 400
+  (*"Missing required fields: billing_address.address,
+  billing_address.postal_code, billing_address.city"*). Le formulaire
+  public PERF'EXHAUST ne collecte aujourd'hui aucune adresse client : par
+  accord explicite, l'adresse de **l'atelier lui-même** sert de repli
+  (`PENNYLANE_FALLBACK_*`) uniquement pour satisfaire cette exigence
+  technique — jamais l'adresse réelle du client. À corriger manuellement
+  dans Pennylane dès que l'adresse réelle est connue. Sans ces variables
+  configurées, la création échoue explicitement (statut `FAILED`, message
+  clair) plutôt que d'envoyer une adresse partielle.
+- **Aucun filtre serveur sur le téléphone** — confirmé dans la référence de
+  l'endpoint `GET /customers` et le guide de filtrage dédié : seuls `id`,
+  `customer_type`, `ledger_account_id`, `name`, `external_reference`,
+  `reg_no`, `emails` sont filtrables. La recherche par téléphone parcourt
+  donc la liste des clients côté serveur PERF'EXHAUST (bornée à 10 pages de
+  100 — `PENNYLANE_V2_PHONE_SEARCH_MAX_PAGES`/`_PAGE_SIZE`) ; au-delà, la
+  recherche est signalée incomplète dans les logs plutôt que de manquer
+  silencieusement un client.
+- **Aucun format d'URL "ouvrir dans Pennylane" documenté** — ni pour un
+  client, ni pour un devis, ni pour une facture. Seul un `public_file_url`
+  (PDF public, non authentifié) est confirmé pour les devis/factures. La
+  stratégie retenue (`web-links.ts`) : utiliser une URL réellement renvoyée
+  par l'API si présente, sinon ouvrir la page d'accueil authentifiée de
+  Pennylane plutôt que de deviner un lien profond non vérifié.
+- **Rate limit confirmé** : 25 requêtes / 5 secondes par token (~5 req/s),
+  429 avec en-tête `retry-after` (secondes). Les lectures (GET) réessaient
+  automatiquement une fois en respectant ce délai ; les créations (POST)
+  ne sont jamais réessayées automatiquement.
+- **Statut des factures non normalisé par l'API** — contrairement aux
+  devis (`pending`/`accepted`/`denied`/`expired`/`invoiced`, documentés),
+  les factures n'exposent qu'un `status` fiable pour `"draft"` ; le
+  paiement se lit via `is_paid` + `outstanding_balance`. Le statut affiché
+  (payée/partiellement payée/impayée/en retard/brouillon) est donc dérivé
+  côté PERF'EXHAUST (`invoices.ts` → `deriveDisplayStatus`), pas renvoyé
+  tel quel par Pennylane.
+
+### Transition — devenir de l'ancien système
+
+L'extension Chrome et le bouton "Préparer Pennylane" ont été supprimés
+(Phase B). Le mode manuel presse-papiers (`PennylaneManualSection`) et
+l'ancien mode API v1 (`src/lib/pennylane/`, actif uniquement si
+`PENNYLANE_MODE=api` ou `PENNYLANE_API_KEY` est configurée) restent
+**entièrement fonctionnels et non touchés** — ils cohabitent avec la nouvelle
+intégration v2 tant qu'aucune décision de suppression complète n'a été prise.
+Voir le rapport de mission du 2026-07-25 pour le statut exact au moment de la
+livraison.
+
 ## 📞 Modifier le téléphone
 
 Le numéro apparaît à plusieurs endroits. Rechercher l'ancien numéro et remplacer partout :

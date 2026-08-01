@@ -79,6 +79,12 @@ model QuoteRequest {
   rearDiffuser String  @default("je_ne_sais_pas") // "oui" | "non" | "je_ne_sais_pas"
   message      String
 
+  // Photos du véhicule (upload public, hors périmètre de la mission Pennylane
+  // — feature en pause, migration déjà appliquée en base) — champ conservé
+  // ici pour rester fidèle à l'état réel de la base, jamais utilisé par
+  // l'intégration Pennylane (les images ne sont jamais envoyées à Pennylane).
+  photos Json @default("[]")
+
   status String @default("new") // "new" | "contacted" | "in_progress" | "completed" | "archived"
   notes  String @default("") // notes internes atelier, jamais exposées publiquement
 
@@ -101,6 +107,31 @@ model QuoteRequest {
   pennylaneSyncError   String?
   pennylaneSyncedAt    DateTime?
   pennylaneManualStatus String?  // mode "manual" : "a_creer" | "devis_cree" | "devis_envoye" | "devis_accepte" | "devis_refuse" | "facture_creee" | "paye"
+
+  // Intégration Pennylane API v2 (src/lib/pennylane-v2/) — synchronisation
+  // CLIENT automatique à la réception de chaque demande, indépendante des
+  // champs "quote" ci-dessus (qui suivent la création manuelle/automatique
+  // d'un DEVIS dans l'ancien flux). pennylaneCustomerId (ci-dessus) reste
+  // l'identifiant client Pennylane commun aux deux intégrations — jamais
+  // dupliqué, réutilisé tel quel. Statuts : "PENDING" | "SYNCED" | "FAILED"
+  // | "AMBIGUOUS". Voir docs/MAINTENANCE.md § "Intégration Pennylane API v2".
+  pennylaneCustomerSyncStatus  String?   @default("PENDING")
+  pennylaneCustomerSyncError   String?
+  pennylaneCustomerSyncedAt    DateTime? // dernière synchronisation RÉUSSIE
+  pennylaneCustomerLastSyncAt  DateTime? // dernière TENTATIVE (réussie ou non)
+  pennylaneCustomerType        String?   // "individual" | "company" une fois synchronisé
+  // Candidats ambigus détectés lors de la recherche (statut AMBIGUOUS) —
+  // snapshot au moment de la détection : [{ id, name, email, phone }].
+  // L'admin choisit manuellement le bon client depuis le panel.
+  pennylaneAmbiguousCandidates Json?
+
+  // Cache des devis/factures Pennylane du client — évite un appel API à
+  // chaque rendu de la fiche admin. Rafraîchi automatiquement si expiré à
+  // l'ouverture, ou à la demande via le bouton "Actualiser" (voir
+  // src/lib/pennylane-v2/cache.ts pour le délai d'expiration).
+  pennylaneQuotesCache        Json?
+  pennylaneInvoicesCache      Json?
+  pennylaneFinancialsSyncedAt DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
