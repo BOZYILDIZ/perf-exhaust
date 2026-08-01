@@ -16,6 +16,7 @@ export interface AmbiguousCandidate {
   name: string
   email: string | null
   phone: string | null
+  type: 'individual' | 'company'
 }
 
 function toCandidateSnapshot(c: PennylaneCustomer): AmbiguousCandidate {
@@ -24,6 +25,11 @@ function toCandidateSnapshot(c: PennylaneCustomer): AmbiguousCandidate {
     name: customerDisplayName(c),
     email: c.emails?.[0] ?? null,
     phone: c.phone ?? null,
+    // L'ancien système v1 crée exclusivement des "company_customers" — un
+    // candidat ambigu peut donc être une entreprise, jamais présumée
+    // "individual" (voir bug corrigé : resolvePennylaneCustomerAmbiguity
+    // recevait auparavant un type toujours forcé à "individual" côté admin).
+    type: 'first_name' in c ? 'individual' : 'company',
   }
 }
 

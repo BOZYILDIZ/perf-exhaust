@@ -111,7 +111,16 @@ export async function POST(req: NextRequest) {
     // /admin/devis/[id]). En mode "manual" (plan gratuit, pas d'API), aucun
     // appel réseau n'est effectué : l'admin crée le devis à la main depuis le
     // bloc "Pennylane manuel" (bouton "Copier pour Pennylane").
-    if (quoteRequestId && pennylaneMode === "api") {
+    // Désactivé quand l'intégration API v2 est configurée : ce flux appelle
+    // sa propre recherche/création de client (createOrFindCustomer, en
+    // "company_customer") indépendamment de syncCustomerForQuoteRequest
+    // ci-dessus, et écrirait ensuite dans la même colonne pennylaneCustomerId
+    // — créant un second client Pennylane et écrasant l'identifiant que la v2
+    // vient de résoudre. pennylaneCustomerId doit rester "commun aux deux
+    // intégrations, jamais dupliqué" (voir schema.prisma) : tant que le flux
+    // v1 n'a pas été adapté pour réutiliser cet identifiant, il ne doit pas
+    // tourner en parallèle de la v2.
+    if (quoteRequestId && pennylaneMode === "api" && !isPennylaneV2Configured()) {
       try {
         const draft = await createDraftQuoteFromRequest({
           nom: data.nom,

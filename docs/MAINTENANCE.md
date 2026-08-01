@@ -323,11 +323,11 @@ comptabilité.
 
 ## 🔌 Intégration Pennylane API v2 (synchronisation client automatique)
 
-**Statut (2026-07-25) : Phase A implémentée et validée — coexiste avec
-l'ancien système ci-dessus (extension Chrome, mode manuel, mode API v1) sans
-rien y toucher.** L'objectif final est de remplacer entièrement l'ancien
-workflow manuel/extension une fois cette nouvelle intégration éprouvée en
-usage réel (Phase B, non déclenchée à ce jour — voir § "Transition").
+**Statut (2026-07-25) : Phase A implémentée et validée. Phase B exécutée
+partiellement** — l'extension Chrome et le bouton "Préparer Pennylane" ont
+été supprimés ; le mode manuel presse-papiers (`PennylaneManualSection`) et
+l'ancien mode API v1 (`src/lib/pennylane/`) restent en place, non touchés
+(voir § "Transition").
 
 Contrairement à l'ancienne intégration (`src/lib/pennylane/`, hypothèses
 jamais vérifiées contre un vrai compte), cette couche (`src/lib/pennylane-v2/`)
@@ -534,11 +534,14 @@ le bouton **"Relancer la synchronisation"** répète la recherche complète
 
 ### Transition — devenir de l'ancien système
 
-L'ancien système (extension Chrome, mode manuel, ancien mode API v1) reste
-**entièrement fonctionnel et non touché**. Il sera supprimé (Phase B)
-uniquement après une période d'usage réel de cette nouvelle intégration
-sans problème constaté. Voir le rapport de mission du 2026-07-25 pour le
-statut exact au moment de la livraison.
+L'extension Chrome et le bouton "Préparer Pennylane" ont été supprimés
+(Phase B). Le mode manuel presse-papiers (`PennylaneManualSection`) et
+l'ancien mode API v1 (`src/lib/pennylane/`, actif uniquement si
+`PENNYLANE_MODE=api` ou `PENNYLANE_API_KEY` est configurée) restent
+**entièrement fonctionnels et non touchés** — ils cohabitent avec la nouvelle
+intégration v2 tant qu'aucune décision de suppression complète n'a été prise.
+Voir le rapport de mission du 2026-07-25 pour le statut exact au moment de la
+livraison.
 
 ## 📞 Modifier le téléphone
 

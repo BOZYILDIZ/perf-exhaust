@@ -73,7 +73,7 @@ export default async function AdminQuoteRequestDetailPage({ params }: { params: 
           customerName: pennylaneCustomerName,
           syncedAt: q.pennylaneCustomerSyncedAt ? q.pennylaneCustomerSyncedAt.toISOString() : null,
           lastSyncAt: q.pennylaneCustomerLastSyncAt ? q.pennylaneCustomerLastSyncAt.toISOString() : null,
-          ambiguousCandidates: (q.pennylaneAmbiguousCandidates as unknown as { id: number; name: string; email: string | null; phone: string | null }[] | null) ?? null,
+          ambiguousCandidates: (q.pennylaneAmbiguousCandidates as unknown as { id: number; name: string; email: string | null; phone: string | null; type: "individual" | "company" }[] | null) ?? null,
           financials: financials
             ? {
                 notSynced: financials.notSynced,

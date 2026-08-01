@@ -17,6 +17,7 @@ export interface PennylaneV2Candidate {
   name: string;
   email: string | null;
   phone: string | null;
+  type: "individual" | "company";
 }
 
 export interface PennylaneV2QuoteSummary {
@@ -184,7 +185,7 @@ export default function PennylaneV2Section(props: PennylaneV2SectionProps) {
       const res = await fetch(`/api/admin/quote-requests/${props.quoteRequestId}/pennylane-v2/resolve-ambiguity`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ customerId: candidate.id, customerType: "individual" }),
+        body: JSON.stringify({ customerId: candidate.id, customerType: candidate.type }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Échec de la résolution");
