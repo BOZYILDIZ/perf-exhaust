@@ -3,12 +3,13 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, Car, Wrench, FileQuestion, MessageSquareText, Settings, ExternalLink, LogOut } from "lucide-react";
+import { LayoutDashboard, Car, Wrench, FileQuestion, MessageSquareText, CalendarDays, Settings, ExternalLink, LogOut } from "lucide-react";
 
 const links = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { href: "/admin/realisations", label: "Réalisations", icon: Car, exact: false },
   { href: "/admin/devis", label: "Devis", icon: MessageSquareText, exact: false, badgeKey: "newQuotesCount" as const },
+  { href: "/admin/agenda", label: "Agenda", icon: CalendarDays, exact: false },
   { href: "/admin/services", label: "Services", icon: Wrench, exact: false },
   { href: "/admin/faq", label: "FAQ", icon: FileQuestion, exact: false },
   { href: "/admin/settings", label: "Paramètres", icon: Settings, exact: false },
