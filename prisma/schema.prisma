@@ -70,6 +70,16 @@ model QuoteRequest {
   prenom       String
   email        String
   telephone    String
+
+  // Adresse de facturation — collectée depuis /rendez-vous sur une branche
+  // distincte (feat/pennylane-billing-address, non mergée à ce jour). Champ
+  // conservé ici pour rester fidèle à l'état réel de la base partagée (même
+  // principe que `photos` ci-dessous) — hors périmètre de la mission Agenda,
+  // jamais utilisé par le code de cette branche.
+  billingAddress    String?
+  billingPostalCode String?
+  billingCity       String?
+
   marque       String
   modele       String
   annee        String
@@ -136,7 +146,98 @@ model QuoteRequest {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // Agenda atelier (2026-08) — une demande a au maximum un rendez-vous.
+  // Suppression en cascade : un rendez-vous n'a de sens que rattaché à sa
+  // demande ; côté applicatif, la suppression d'une demande ayant un
+  // rendez-vous ACTIF (CONFIRMED) est bloquée explicitement avant même
+  // d'atteindre la base (voir /api/admin/quote-requests/[id] DELETE) — cette
+  // cascade ne joue donc que si l'admin a explicitement annulé le rendez-vous
+  // au préalable, ou pour les statuts terminaux (CANCELLED/COMPLETED/NO_SHOW).
+  appointment Appointment?
+
   @@index([status, createdAt])
+}
+
+// Rendez-vous atelier — agenda entièrement interne, aucune dépendance externe
+// (pas de Google/Apple Calendar). Voir src/lib/agenda/ pour toute la logique
+// métier (moteur de disponibilités, services, emails, ICS).
+model Appointment {
+  id             String       @id @default(cuid())
+  quoteRequestId String       @unique
+  quoteRequest   QuoteRequest @relation(fields: [quoteRequestId], references: [id], onDelete: Cascade)
+
+  // Snapshot au moment de la planification — l'agenda reste lisible même si
+  // la demande est modifiée/désynchronisée ensuite (même principe que les
+  // caches Pennylane : jamais de recalcul implicite silencieux).
+  customerName  String
+  customerEmail String
+  customerPhone String
+  vehicle       String // "Marque Modèle (Année)"
+
+  startAt         DateTime
+  endAt           DateTime
+  durationMinutes Int
+
+  // "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCELLED" | "NO_SHOW"
+  // PENDING n'est atteint par aucun flux actuel — réservé à une évolution
+  // future (proposition de créneau avant accord client). La planification
+  // admin crée toujours directement en CONFIRMED (décision produit validée).
+  // Statuts propres au rendez-vous, jamais mélangés avec QuoteRequest.status.
+  status String @default("PENDING")
+  notes  String @default("")
+
+  confirmationSentAt DateTime?
+  reminderSentAt     DateTime? // posé dès maintenant, jamais renseigné avant la phase 2 (rappel 48h)
+  cancelledAt        DateTime?
+  cancelledBy        String? // "CUSTOMER" | "WORKSHOP"
+  cancellationReason String? // saisi par le client sur la page publique, 500 caractères max — jamais par l'admin
+
+  // Annulation client sécurisée — jamais le token brut en base, uniquement
+  // son hash SHA-256 (voir src/lib/agenda/cancellation-token.ts). Régénéré à
+  // chaque confirmation ET à chaque déplacement (l'ancien est invalidé).
+  cancellationTokenHash      String?   @unique
+  cancellationTokenExpiresAt DateTime? // = startAt : un lien n'a plus de sens après l'heure du rendez-vous
+  cancellationRequestedAt    DateTime?
+  cancellationEmailSentAt    DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([startAt])
+  @@index([status])
+}
+
+// Paramètres de l'agenda atelier — ligne unique (singleton), éditable depuis
+// /admin/settings § "Agenda atelier". Voir src/lib/agenda/settings.ts pour le
+// repli sur des valeurs par défaut tant qu'aucune ligne n'existe (même
+// pattern que SiteSettings ci-dessous).
+model AgendaSettings {
+  id String @id @default("singleton")
+
+  // Horaires hebdomadaires — JSON :
+  // { mon: { enabled, morningStart, morningEnd, afternoonStart, afternoonEnd }, tue: {...}, ... sun }
+  // Le "trou" entre morningEnd et afternoonStart EST la pause déjeuner.
+  // Valeurs par défaut posées par settings.ts (pas ici, pour rester lisible).
+  weeklyHours Json @default("{}")
+
+  defaultDurationMinutes Int @default(60)
+  // Demi-journée/journée : valeurs fixes configurables (décision produit
+  // validée) — pas dérivées des horaires réels du jour choisi.
+  halfDayDurationMinutes Int @default(240)
+  fullDayDurationMinutes Int @default(480)
+  bufferMinutes          Int @default(15) // marge entre deux véhicules
+
+  updatedAt DateTime @updatedAt
+}
+
+// Fermetures exceptionnelles de l'atelier (jours fériés, congés...) — liste,
+// pas un singleton. Une date fermée bloque tous les créneaux ce jour-là,
+// quels que soient les horaires habituels.
+model WorkshopClosure {
+  id        String   @id @default(cuid())
+  date      String   @unique // "AAAA-MM-JJ"
+  reason    String   @default("")
+  createdAt DateTime @default(now())
 }
 
 // Paramètres globaux du site, éditables depuis /admin/settings.
