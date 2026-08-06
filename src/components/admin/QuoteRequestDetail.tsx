@@ -6,6 +6,8 @@ import { Loader2, Save, Trash2, Archive, CheckCircle, AlertCircle, Phone, Mail }
 import PennylaneSection from "@/components/admin/PennylaneSection";
 import PennylaneManualSection from "@/components/admin/PennylaneManualSection";
 import PennylaneV2Section, { type PennylaneV2SectionProps } from "@/components/admin/PennylaneV2Section";
+import AppointmentSection, { type AppointmentData } from "@/components/admin/agenda/AppointmentSection";
+import type { DurationOption } from "@/components/admin/agenda/ScheduleAppointmentModal";
 import { rearDiffuserLabel } from "@/lib/quote-request-options";
 
 export interface QuoteRequestDetailData {
@@ -61,12 +63,18 @@ export default function QuoteRequestDetail({
   pennylaneMode,
   pennylaneManualUrl,
   pennylaneV2,
+  appointment,
+  durationOptions,
+  defaultDurationMinutes,
 }: {
   request: QuoteRequestDetailData;
   pennylaneConfigured: boolean;
   pennylaneMode: "api" | "manual";
   pennylaneManualUrl: string;
   pennylaneV2: Omit<PennylaneV2SectionProps, "quoteRequestId" | "pennylaneHomeUrl">;
+  appointment: AppointmentData | null;
+  durationOptions: DurationOption[];
+  defaultDurationMinutes: number;
 }) {
   const router = useRouter();
   const [status, setStatus] = useState(request.status);
@@ -170,6 +178,13 @@ export default function QuoteRequestDetail({
           </p>
         </div>
       </section>
+
+      <AppointmentSection
+        quoteRequestId={request.id}
+        appointment={appointment}
+        durationOptions={durationOptions}
+        defaultDurationMinutes={defaultDurationMinutes}
+      />
 
       <PennylaneV2Section
         quoteRequestId={request.id}

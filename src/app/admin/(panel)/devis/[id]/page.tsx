@@ -4,22 +4,33 @@ import { isPennylaneConfigured, getPennylaneMode } from "@/lib/pennylane/client"
 import { getSiteSettings } from "@/lib/settings-repo";
 import QuoteRequestDetail from "@/components/admin/QuoteRequestDetail";
 import { getClientProfile } from "@/lib/pennylane-v2/client-profile";
+import { getAgendaSettings } from "@/lib/agenda/settings";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminQuoteRequestDetailPage({ params }: { params: Promise<{ id: string }> }) {
   if (!isDbConfigured()) notFound();
   const { id } = await params;
-  const [q, settings, clientProfile] = await Promise.all([
-    getDb().quoteRequest.findUnique({ where: { id } }),
+  const [q, settings, clientProfile, agendaSettings] = await Promise.all([
+    getDb().quoteRequest.findUnique({ where: { id }, include: { appointment: true } }),
     getSiteSettings(),
     // Agrège client Pennylane + demandes locales soeurs (véhicules, historique,
     // statistiques) — un seul appel Pennylane pour le nom/date de création du
     // client, le reste réutilise le cache devis/factures existant (voir
     // src/lib/pennylane-v2/client-profile.ts).
     getClientProfile(id),
+    getAgendaSettings(),
   ]);
   if (!q) notFound();
+
+  const durationOptions = [
+    { label: "30 min", minutes: 30 },
+    { label: "1 heure", minutes: 60 },
+    { label: "2 heures", minutes: 120 },
+    { label: "3 heures", minutes: 180 },
+    { label: "Demi-journée", minutes: agendaSettings.halfDayDurationMinutes },
+    { label: "Journée", minutes: agendaSettings.fullDayDurationMinutes },
+  ];
 
   return (
     <div>
@@ -86,6 +97,21 @@ export default async function AdminQuoteRequestDetailPage({ params }: { params: 
               }
             : null,
         }}
+        appointment={
+          q.appointment
+            ? {
+                id: q.appointment.id,
+                startAt: q.appointment.startAt.toISOString(),
+                endAt: q.appointment.endAt.toISOString(),
+                durationMinutes: q.appointment.durationMinutes,
+                status: q.appointment.status,
+                notes: q.appointment.notes,
+                cancelledBy: q.appointment.cancelledBy,
+              }
+            : null
+        }
+        durationOptions={durationOptions}
+        defaultDurationMinutes={agendaSettings.defaultDurationMinutes}
       />
     </div>
   );
