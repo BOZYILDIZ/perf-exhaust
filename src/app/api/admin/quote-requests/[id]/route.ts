@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { isAdminAuthenticated } from "@/lib/admin-auth";
 import { isDbConfigured, getDb } from "@/lib/db";
 import { quoteRequestUpdateSchema, sanitizeStrings } from "@/lib/admin-validation";
+import { ACTIVE_APPOINTMENT_STATUSES } from "@/lib/agenda/appointments";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -56,15 +57,28 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
   }
 }
 
-/** Suppression définitive (l'archivage se fait via PATCH status=archived). */
+/**
+ * Suppression définitive (l'archivage se fait via PATCH status=archived).
+ * Bloquée si un rendez-vous ACTIF (PENDING/CONFIRMED) est rattaché — annuler
+ * le rendez-vous au préalable lève le blocage (voir src/lib/agenda/).
+ */
 export async function DELETE(req: NextRequest, ctx: Ctx) {
   try {
     const denied = await guard(req);
     if (denied) return denied;
     const { id } = await ctx.params;
     const db = getDb();
-    const exists = await db.quoteRequest.findUnique({ where: { id }, select: { id: true } });
+    const exists = await db.quoteRequest.findUnique({
+      where: { id },
+      select: { id: true, appointment: { select: { status: true } } },
+    });
     if (!exists) return NextResponse.json({ error: "Demande introuvable" }, { status: 404 });
+    if (exists.appointment && (ACTIVE_APPOINTMENT_STATUSES as readonly string[]).includes(exists.appointment.status)) {
+      return NextResponse.json(
+        { error: "Impossible de supprimer : un rendez-vous actif est rattaché à cette demande. Annulez-le d'abord." },
+        { status: 409 }
+      );
+    }
     await db.quoteRequest.delete({ where: { id } });
     return NextResponse.json({ success: true });
   } catch (error) {
