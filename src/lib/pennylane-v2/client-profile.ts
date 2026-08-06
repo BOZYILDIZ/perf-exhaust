@@ -12,6 +12,10 @@ export interface ClientCard {
   nom: string
   email: string
   telephone: string
+  /** Adresse de facturation de la demande consultée — null si créée avant le 2026-08-07 (voir "Adresse non renseignée" côté UI). */
+  billingAddress: string | null
+  billingPostalCode: string | null
+  billingCity: string | null
   vehicleCount: number
   quoteCount: number
   invoiceCount: number
@@ -52,6 +56,7 @@ export async function getClientProfile(quoteRequestId: string): Promise<ClientPr
     where: { id: quoteRequestId },
     select: {
       id: true, nom: true, prenom: true, email: true, telephone: true,
+      billingAddress: true, billingPostalCode: true, billingCity: true,
       marque: true, modele: true, annee: true, motorisation: true,
       createdAt: true, pennylaneCustomerId: true, pennylaneCustomerSyncedAt: true,
       pennylaneCustomerLastSyncAt: true,
@@ -112,6 +117,9 @@ export async function getClientProfile(quoteRequestId: string): Promise<ClientPr
     nom: `${current.prenom} ${current.nom}`,
     email: current.email,
     telephone: current.telephone,
+    billingAddress: current.billingAddress,
+    billingPostalCode: current.billingPostalCode,
+    billingCity: current.billingCity,
     vehicleCount: vehicles.length,
     quoteCount: financials.quotesStats.count,
     invoiceCount: financials.summary.count,

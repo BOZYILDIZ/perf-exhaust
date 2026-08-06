@@ -70,6 +70,17 @@ model QuoteRequest {
   prenom       String
   email        String
   telephone    String
+
+  // Adresse de facturation — collectée depuis /rendez-vous (2026-08-07),
+  // utilisée comme billing_address réelle du client lors de la création
+  // Pennylane (voir src/lib/pennylane-v2/billing-address.ts). Nullable pour
+  // les demandes créées avant cette date, qui n'ont jamais collecté
+  // d'adresse : ne jamais planter dessus, afficher "Adresse non renseignée".
+  // Toujours France (country_alpha2 "FR") — jamais demandé au client.
+  billingAddress    String?
+  billingPostalCode String?
+  billingCity       String?
+
   marque       String
   modele       String
   annee        String

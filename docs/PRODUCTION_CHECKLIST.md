@@ -100,9 +100,9 @@ suppression.
 - [x] Token API Pennylane V2 obtenu (scopes `customers`, `quotes`,
       `customer_invoices` en lecture + écriture) et posé sur Vercel
       (Production, Development — jamais Preview sans accord explicite)
-- [x] `PENNYLANE_FALLBACK_ADDRESS`/`_POSTAL_CODE`/`_CITY` posées (adresse de
-      l'atelier — requise par Pennylane pour créer un nouveau client, voir
-      limites connues)
+- [x] ~~`PENNYLANE_FALLBACK_ADDRESS`/`_POSTAL_CODE`/`_CITY`~~ — supprimées le
+      2026-08-07, plus aucun repli : l'adresse de facturation vient du
+      formulaire `/rendez-vous` (voir plus bas)
 - [x] Authentification réelle vérifiée (`GET /me`)
 - [x] Recherche client réelle vérifiée (positive et négative)
 - [x] Création client réelle vérifiée + absence de doublon confirmée (relance
@@ -112,8 +112,8 @@ suppression.
 - [x] 15 scénarios automatisés (mocks) validés — voir MAINTENANCE.md
 - [ ] Client de test créé lors de la validation (« Test Validation 2
       PERFEXHAUST », #1381226967040) à nettoyer manuellement dans Pennylane
-- [ ] Étendre le formulaire public pour collecter l'adresse postale du
-      client (supprimerait le besoin de l'adresse de repli atelier)
+- [x] Formulaire public étendu pour collecter l'adresse postale réelle du
+      client (2026-08-07) — l'adresse de repli atelier n'existe plus
 - [x] Phase B exécutée : extension Chrome et `PennylaneExtensionSection`
       supprimées (le mode manuel presse-papiers reste disponible)
 

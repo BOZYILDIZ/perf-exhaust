@@ -395,10 +395,11 @@ src/app/api/admin/quote-requests/[id]/pennylane-v2/
 
 ```
 PENNYLANE_API_TOKEN=            # Token "Company API" — scopes requis : customers, quotes, customer_invoices (lecture + écriture)
-PENNYLANE_FALLBACK_ADDRESS=      # Adresse de repli pour la création client — voir "Limites connues"
-PENNYLANE_FALLBACK_POSTAL_CODE=
-PENNYLANE_FALLBACK_CITY=
 ```
+
+`PENNYLANE_FALLBACK_ADDRESS`/`_POSTAL_CODE`/`_CITY` ont été supprimées le
+2026-08-07 : l'adresse de facturation vient désormais du formulaire
+`/rendez-vous` (voir "Limites connues" ci-dessous).
 
 Génération du token : Pennylane → **Management → Settings → Connectivity →
 Developers → Generate an API Token** — cocher les 3 scopes ci-dessus en
@@ -498,14 +499,16 @@ le bouton **"Relancer la synchronisation"** répète la recherche complète
   confirmé en conditions réelles le 2026-07-25 : `POST /individual_customers`
   avec `billing_address: { country_alpha2: "FR" }` seul est rejeté en 400
   (*"Missing required fields: billing_address.address,
-  billing_address.postal_code, billing_address.city"*). Le formulaire
-  public PERF'EXHAUST ne collecte aujourd'hui aucune adresse client : par
-  accord explicite, l'adresse de **l'atelier lui-même** sert de repli
-  (`PENNYLANE_FALLBACK_*`) uniquement pour satisfaire cette exigence
-  technique — jamais l'adresse réelle du client. À corriger manuellement
-  dans Pennylane dès que l'adresse réelle est connue. Sans ces variables
-  configurées, la création échoue explicitement (statut `FAILED`, message
-  clair) plutôt que d'envoyer une adresse partielle.
+  billing_address.postal_code, billing_address.city"*). **Depuis le
+  2026-08-07**, le formulaire public `/rendez-vous` collecte la véritable
+  adresse du client (`billingAddress`/`billingPostalCode`/`billingCity`,
+  obligatoires) — l'ancien repli sur l'adresse de l'atelier
+  (`PENNYLANE_FALLBACK_*`) a été **entièrement supprimé** du code
+  (`billing-address.ts` n'accepte plus d'appel sans adresse). Pour les
+  demandes créées avant cette date (aucune adresse en base), la création
+  échoue explicitement (statut `FAILED`, message clair invitant à renseigner
+  l'adresse manuellement dans Pennylane puis relancer la synchronisation)
+  plutôt que d'envoyer une adresse inventée ou empruntée.
 - **Aucun filtre serveur sur le téléphone** — confirmé dans la référence de
   l'endpoint `GET /customers` et le guide de filtrage dédié : seuls `id`,
   `customer_type`, `ledger_account_id`, `name`, `external_reference`,

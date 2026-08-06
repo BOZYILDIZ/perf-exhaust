@@ -314,7 +314,7 @@ Le site est accessible sur **[http://localhost:3000](http://localhost:3000)**.
 | `PENNYLANE_BASE_URL` | URL de base Pennylane si différente de la production standard (sandbox...) | ❌ |
 | `PENNYLANE_COMPANY_ID` | Réservé aux configurations multi-entreprises (cabinet comptable) | ❌ |
 | `PENNYLANE_API_TOKEN` | Token API Pennylane **v2** (synchronisation client automatique, scopes customers/quotes/customer_invoices) — voir section dédiée ci-dessous | ❌ |
-| `PENNYLANE_FALLBACK_ADDRESS` / `_POSTAL_CODE` / `_CITY` | Adresse de repli (atelier) requise par Pennylane pour créer un client — voir `docs/MAINTENANCE.md` | ❌ |
+| ~~`PENNYLANE_FALLBACK_ADDRESS` / `_POSTAL_CODE` / `_CITY`~~ | Supprimées le 2026-08-07 — l'adresse de facturation vient désormais du formulaire `/rendez-vous` | — |
 
 <br />
 
