@@ -13,6 +13,7 @@ export interface QuoteRequestRow {
   marque: string;
   modele: string;
   annee: string;
+  motorisation: string | null;
   typeProjet: string;
   status: string;
   createdAt: string;
@@ -20,6 +21,9 @@ export interface QuoteRequestRow {
   pennylaneQuoteUrl: string | null;
   pennylaneManualStatus: string | null;
   pennylaneQuoteNumber: string | null;
+  pennylaneCustomerId: string | null;
+  quoteNumbers: string[];
+  invoiceNumbers: string[];
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -81,9 +85,13 @@ export default function QuoteRequestsTable({ initialRows, pennylaneMode }: { ini
     return initialRows.filter((r) => {
       if (statusFilter !== "all" && r.status !== statusFilter) return false;
       if (!q) return true;
-      return [r.nom, r.prenom, r.email, r.telephone, r.marque, r.modele].some((v) =>
-        v.toLowerCase().includes(q)
-      );
+      const textFields = [
+        r.nom, r.prenom, r.email, r.telephone,
+        r.marque, r.modele, r.annee, r.motorisation ?? "",
+        r.pennylaneCustomerId ?? "",
+        ...r.quoteNumbers, ...r.invoiceNumbers,
+      ];
+      return textFields.some((v) => v.toLowerCase().includes(q));
     });
   }, [initialRows, query, statusFilter]);
 
@@ -95,7 +103,7 @@ export default function QuoteRequestsTable({ initialRows, pennylaneMode }: { ini
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Rechercher (nom, email, téléphone, véhicule...)"
+            placeholder="Rechercher (nom, email, téléphone, véhicule, n° devis/facture, ID Pennylane...)"
             aria-label="Rechercher une demande"
             className="w-full bg-transparent border border-gray-800 text-white text-sm pl-9 pr-4 py-2.5 focus:outline-none focus:border-brand-500 transition-colors placeholder-gray-700"
           />

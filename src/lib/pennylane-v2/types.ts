@@ -33,10 +33,11 @@ interface PennylaneCustomerBase {
   external_reference?: string | null
   reg_no?: string | null
   vat_number?: string | null
-  // Champ éventuel exposant une URL directe (non confirmé par la doc,
-  // exploité en repli défensif — voir buildPennylaneWebUrl()).
-  url?: string
-  public_url?: string
+  // Confirmés par un appel réel (2026-08-06, GET /customers/{id}) : aucun
+  // champ `url`/`public_url` n'existe sur l'objet client — Pennylane
+  // n'expose aucun lien direct vers la fiche client dans l'app web.
+  created_at?: string
+  updated_at?: string
 }
 
 export interface PennylaneIndividualCustomer extends PennylaneCustomerBase {
@@ -74,50 +75,78 @@ export interface CreateCompanyCustomerInput {
   external_reference?: string
 }
 
-/** Statuts de devis documentés (référence PUT /quotes/{id}/update_status). */
+/**
+ * Statuts de devis — confirmés par la référence officielle
+ * (pennylane.readme.io/reference/listquotes, vérifiée le 2026-08-06).
+ */
 export type PennylaneQuoteStatus = 'pending' | 'accepted' | 'denied' | 'expired' | 'invoiced'
 
 export interface PennylaneQuote {
   id: number
   number?: string | null
   status: PennylaneQuoteStatus
-  date?: string
+  date?: string | null
   deadline?: string | null
   customer_id: number
   currency?: string
   currency_amount?: string
   currency_amount_before_tax?: string
   currency_tax?: string
+  created_at?: string
+  updated_at?: string
+  /** Expire 30 minutes après génération (documenté) — jamais mis en cache au-delà de sa durée de vie réelle. */
   public_file_url?: string
-  url?: string
 }
 
 /**
- * Statut de facture client — l'API v2 documentée n'expose pas d'énumération
- * `status` propre pour les factures (contrairement aux devis) : le modèle de
- * données observé (data-sharing.pennylane.com) donne `is_paid` (booléen) et
- * `outstanding_balance` (reste dû), à partir desquels un statut d'affichage
- * est dérivé côté PERF'EXHAUST (voir invoices.ts `deriveInvoiceDisplayStatus`).
- * `status: "draft"` est en revanche confirmé (exemple de réponse officiel).
+ * Statut de facture client — confirmé par un appel réel contre le compte de
+ * production (2026-08-06, GET /customer_invoices) ET la référence officielle
+ * (pennylane.readme.io/reference/getcustomerinvoices) : l'énumération réelle
+ * est bien plus riche que "draft" seul (précédemment supposé faute de
+ * données réelles). Les champs de paiement réellement renvoyés sont `paid`
+ * et `remaining_amount_with_tax`/`remaining_amount_without_tax` — PAS
+ * `is_paid`/`outstanding_balance` (champs jamais confirmés, corrigés ici).
  */
+export type PennylaneInvoiceStatus =
+  | 'draft'
+  | 'upcoming'
+  | 'late'
+  | 'paid'
+  | 'partially_paid'
+  | 'partially_cancelled'
+  | 'cancelled'
+  | 'archived'
+  | 'incomplete'
+  | 'credit_note'
+  | 'proforma'
+  | 'shipping_order'
+  | 'purchasing_order'
+  | 'estimate_pending'
+  | 'estimate_accepted'
+  | 'estimate_invoiced'
+  | 'estimate_denied'
+
 export interface PennylaneCustomerInvoice {
   id: number
   invoice_number?: string | null
-  status?: string // "draft" confirmé ; autres valeurs non documentées formellement
-  issue_date?: string
+  status?: PennylaneInvoiceStatus | string
+  date?: string | null
   deadline?: string | null
   customer_id: number
   currency?: string
   currency_amount?: string
   currency_amount_before_tax?: string
   currency_tax?: string
-  is_paid?: boolean
-  outstanding_balance?: string | number | null
+  paid?: boolean
+  remaining_amount_with_tax?: string | number | null
+  remaining_amount_without_tax?: string | number | null
+  created_at?: string
+  updated_at?: string
+  /** Aucune mention d'expiration trouvée dans la doc pour les factures (contrairement aux devis) — traité prudemment comme potentiellement temporaire. */
   public_file_url?: string
-  url?: string
 }
 
-export type InvoiceDisplayStatus = 'paid' | 'partially_paid' | 'unpaid' | 'overdue' | 'draft'
+export type InvoiceDisplayStatus = 'paid' | 'partially_paid' | 'unpaid' | 'overdue' | 'draft' | 'cancelled' | 'other'
 
 export interface PennylaneListMeta {
   has_more: boolean

@@ -12,7 +12,10 @@ export interface QuoteSummary {
   date: string | null
   deadline: string | null
   status: PennylaneQuote['status']
+  amountHT: string | null
   amountTTC: string | null
+  createdAt: string | null
+  updatedAt: string | null
   webUrl: string
 }
 
@@ -23,7 +26,10 @@ function toSummary(q: PennylaneQuote): QuoteSummary {
     date: q.date ?? null,
     deadline: q.deadline ?? null,
     status: q.status,
+    amountHT: q.currency_amount_before_tax ?? null,
     amountTTC: q.currency_amount ?? null,
+    createdAt: q.created_at ?? null,
+    updatedAt: q.updated_at ?? null,
     webUrl: resolveWebUrl(q),
   }
 }
@@ -37,4 +43,26 @@ export async function listQuotesForCustomer(customerId: number): Promise<{ quote
     MAX_QUOTE_PAGES
   )
   return { quotes: items.map(toSummary), truncated }
+}
+
+export interface QuotesStatsSummary {
+  count: number
+  accepted: number
+  denied: number
+  expired: number
+  pending: number
+  invoiced: number
+}
+
+/** Statuts confirmés par la référence officielle (pennylane.readme.io/reference/listquotes) — aucun autre statut n'est supposé exister. */
+export function summarizeQuotes(quotes: QuoteSummary[]): QuotesStatsSummary {
+  const stats: QuotesStatsSummary = { count: quotes.length, accepted: 0, denied: 0, expired: 0, pending: 0, invoiced: 0 }
+  for (const q of quotes) {
+    if (q.status === 'accepted') stats.accepted += 1
+    else if (q.status === 'denied') stats.denied += 1
+    else if (q.status === 'expired') stats.expired += 1
+    else if (q.status === 'pending') stats.pending += 1
+    else if (q.status === 'invoiced') stats.invoiced += 1
+  }
+  return stats
 }

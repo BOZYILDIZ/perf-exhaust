@@ -1,7 +1,7 @@
 import 'server-only'
 import type { Prisma } from '@prisma/client'
 import { getDb } from '@/lib/db'
-import { listQuotesForCustomer, type QuoteSummary } from './quotes'
+import { listQuotesForCustomer, summarizeQuotes, type QuoteSummary, type QuotesStatsSummary } from './quotes'
 import { listInvoicesForCustomer, summarizeInvoices, type InvoiceSummary, type InvoicesFinancialSummary } from './invoices'
 import { isFinancialsCacheStale } from './cache'
 import { pennylaneErrorToAdminMessage } from './errors'
@@ -11,6 +11,7 @@ export interface CustomerFinancials {
   quotes: QuoteSummary[]
   invoices: InvoiceSummary[]
   summary: InvoicesFinancialSummary
+  quotesStats: QuotesStatsSummary
   fetchedAt: Date | null
   stale: boolean
   error: string | null
@@ -18,12 +19,16 @@ export interface CustomerFinancials {
 
 const EMPTY_SUMMARY: InvoicesFinancialSummary = {
   count: 0,
+  paidCount: 0,
+  unpaidCount: 0,
   totalBilled: 0,
   totalPaid: 0,
   totalRemaining: 0,
   lastInvoiceDate: null,
   hasUnpaid: false,
 }
+
+const EMPTY_QUOTES_STATS: QuotesStatsSummary = { count: 0, accepted: 0, denied: 0, expired: 0, pending: 0, invoiced: 0 }
 
 /**
  * Récupère les devis/factures d'un client Pennylane pour une demande, avec
@@ -44,14 +49,14 @@ export async function getCustomerFinancials(quoteRequestId: string, opts: { forc
   })
 
   if (!q?.pennylaneCustomerId) {
-    return { notSynced: true, quotes: [], invoices: [], summary: EMPTY_SUMMARY, fetchedAt: null, stale: false, error: null }
+    return { notSynced: true, quotes: [], invoices: [], summary: EMPTY_SUMMARY, quotesStats: EMPTY_QUOTES_STATS, fetchedAt: null, stale: false, error: null }
   }
 
   const stale = isFinancialsCacheStale(q.pennylaneFinancialsSyncedAt)
   if (!opts.forceRefresh && !stale && q.pennylaneQuotesCache && q.pennylaneInvoicesCache) {
     const quotes = q.pennylaneQuotesCache as unknown as QuoteSummary[]
     const invoices = q.pennylaneInvoicesCache as unknown as InvoiceSummary[]
-    return { notSynced: false, quotes, invoices, summary: summarizeInvoices(invoices), fetchedAt: q.pennylaneFinancialsSyncedAt, stale: false, error: null }
+    return { notSynced: false, quotes, invoices, summary: summarizeInvoices(invoices), quotesStats: summarizeQuotes(quotes), fetchedAt: q.pennylaneFinancialsSyncedAt, stale: false, error: null }
   }
 
   try {
@@ -69,7 +74,7 @@ export async function getCustomerFinancials(quoteRequestId: string, opts: { forc
         pennylaneFinancialsSyncedAt: now,
       },
     })
-    return { notSynced: false, quotes, invoices, summary: summarizeInvoices(invoices), fetchedAt: now, stale: false, error: null }
+    return { notSynced: false, quotes, invoices, summary: summarizeInvoices(invoices), quotesStats: summarizeQuotes(quotes), fetchedAt: now, stale: false, error: null }
   } catch (err) {
     console.error(`[pennylane-v2] Échec de récupération des devis/factures pour la demande ${quoteRequestId} :`, err)
     const message = pennylaneErrorToAdminMessage(err)
@@ -78,8 +83,8 @@ export async function getCustomerFinancials(quoteRequestId: string, opts: { forc
     if (q.pennylaneQuotesCache && q.pennylaneInvoicesCache) {
       const quotes = q.pennylaneQuotesCache as unknown as QuoteSummary[]
       const invoices = q.pennylaneInvoicesCache as unknown as InvoiceSummary[]
-      return { notSynced: false, quotes, invoices, summary: summarizeInvoices(invoices), fetchedAt: q.pennylaneFinancialsSyncedAt, stale: true, error: message }
+      return { notSynced: false, quotes, invoices, summary: summarizeInvoices(invoices), quotesStats: summarizeQuotes(quotes), fetchedAt: q.pennylaneFinancialsSyncedAt, stale: true, error: message }
     }
-    return { notSynced: false, quotes: [], invoices: [], summary: EMPTY_SUMMARY, fetchedAt: null, stale: false, error: message }
+    return { notSynced: false, quotes: [], invoices: [], summary: EMPTY_SUMMARY, quotesStats: EMPTY_QUOTES_STATS, fetchedAt: null, stale: false, error: message }
   }
 }

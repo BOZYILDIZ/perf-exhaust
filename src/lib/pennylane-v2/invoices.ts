@@ -11,10 +11,15 @@ export interface InvoiceSummary {
   number: string | null
   date: string | null
   deadline: string | null
+  /** Statut réel Pennylane, non traduit — conservé pour ne perdre aucune information (ex: "estimate_pending"). */
+  rawStatus: string | null
   displayStatus: InvoiceDisplayStatus
+  amountHT: number | null
   amountTTC: number | null
   amountPaid: number | null
   amountRemaining: number | null
+  createdAt: string | null
+  updatedAt: string | null
   webUrl: string
 }
 
@@ -25,36 +30,44 @@ function toNumber(value: string | number | null | undefined): number | null {
 }
 
 /**
- * Dérive un statut d'affichage lisible à partir des champs réellement
- * documentés pour les factures (`status` ne contient qu'une énumération
- * confirmée pour "draft" ; le paiement se lit via `is_paid` et
- * `outstanding_balance` — voir types.ts pour le détail de cette limite de
- * l'API). Ne prétend jamais à une précision que l'API ne garantit pas.
+ * Statut d'affichage — dérivé du champ `status` réel de Pennylane (confirmé
+ * par un appel réel contre le compte de production le 2026-08-06 et par la
+ * référence officielle GET /customer_invoices), PAS deviné à partir des
+ * montants. L'énumération réelle est plus riche que nos 5 catégories
+ * d'affichage : les statuts non mappés explicitement tombent dans "other"
+ * plutôt que d'être présumés à tort.
  */
-function deriveDisplayStatus(inv: PennylaneCustomerInvoice, amountTTC: number | null, remaining: number | null): InvoiceDisplayStatus {
-  if (inv.status === 'draft') return 'draft'
-  if (inv.is_paid === true || remaining === 0) return 'paid'
-  if (remaining !== null && amountTTC !== null && remaining > 0 && remaining < amountTTC) return 'partially_paid'
-  if (inv.deadline && remaining !== null && remaining > 0) {
-    const isOverdue = new Date(inv.deadline).getTime() < Date.now()
-    if (isOverdue) return 'overdue'
+function deriveDisplayStatus(inv: PennylaneCustomerInvoice): InvoiceDisplayStatus {
+  switch (inv.status) {
+    case 'draft': return 'draft'
+    case 'cancelled':
+    case 'partially_cancelled': return 'cancelled'
+    case 'paid': return 'paid'
+    case 'partially_paid': return 'partially_paid'
+    case 'late': return 'overdue'
+    case 'upcoming': return 'unpaid'
+    default: return inv.paid ? 'paid' : 'other'
   }
-  return 'unpaid'
 }
 
 function toSummary(inv: PennylaneCustomerInvoice): InvoiceSummary {
+  const amountHT = toNumber(inv.currency_amount_before_tax)
   const amountTTC = toNumber(inv.currency_amount)
-  const amountRemaining = toNumber(inv.outstanding_balance)
+  const amountRemaining = toNumber(inv.remaining_amount_with_tax)
   const amountPaid = amountTTC !== null && amountRemaining !== null ? amountTTC - amountRemaining : null
   return {
     id: inv.id,
     number: inv.invoice_number ?? null,
-    date: inv.issue_date ?? null,
+    date: inv.date ?? null,
     deadline: inv.deadline ?? null,
-    displayStatus: deriveDisplayStatus(inv, amountTTC, amountRemaining),
+    rawStatus: inv.status ?? null,
+    displayStatus: deriveDisplayStatus(inv),
+    amountHT,
     amountTTC,
     amountPaid,
     amountRemaining,
+    createdAt: inv.created_at ?? null,
+    updatedAt: inv.updated_at ?? null,
     webUrl: resolveWebUrl(inv),
   }
 }
@@ -71,6 +84,8 @@ export async function listInvoicesForCustomer(customerId: number): Promise<{ inv
 
 export interface InvoicesFinancialSummary {
   count: number
+  paidCount: number
+  unpaidCount: number
   totalBilled: number
   totalPaid: number
   totalRemaining: number
@@ -78,21 +93,31 @@ export interface InvoicesFinancialSummary {
   hasUnpaid: boolean
 }
 
+/** Statuts qui ne représentent pas une facture réellement due (brouillon, annulée) — exclus des totaux monétaires. */
+const NON_BILLABLE_STATUSES: InvoiceDisplayStatus[] = ['draft', 'cancelled']
+
 export function summarizeInvoices(invoices: InvoiceSummary[]): InvoicesFinancialSummary {
   let totalBilled = 0
   let totalPaid = 0
   let totalRemaining = 0
   let lastInvoiceDate: string | null = null
   let hasUnpaid = false
+  let paidCount = 0
+  let unpaidCount = 0
 
   for (const inv of invoices) {
-    if (inv.displayStatus === 'draft') continue // pas encore facturé pour de bon
+    if (NON_BILLABLE_STATUSES.includes(inv.displayStatus)) continue
     totalBilled += inv.amountTTC ?? 0
     totalPaid += inv.amountPaid ?? 0
     totalRemaining += inv.amountRemaining ?? 0
-    if (inv.displayStatus === 'unpaid' || inv.displayStatus === 'overdue' || inv.displayStatus === 'partially_paid') hasUnpaid = true
+    if (inv.displayStatus === 'paid') {
+      paidCount += 1
+    } else {
+      unpaidCount += 1
+      hasUnpaid = true
+    }
     if (inv.date && (!lastInvoiceDate || inv.date > lastInvoiceDate)) lastInvoiceDate = inv.date
   }
 
-  return { count: invoices.length, totalBilled, totalPaid, totalRemaining, lastInvoiceDate, hasUnpaid }
+  return { count: invoices.length, paidCount, unpaidCount, totalBilled, totalPaid, totalRemaining, lastInvoiceDate, hasUnpaid }
 }

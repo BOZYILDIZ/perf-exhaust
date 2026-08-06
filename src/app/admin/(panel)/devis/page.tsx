@@ -30,10 +30,11 @@ export default async function AdminQuoteRequestsPage() {
         orderBy: { createdAt: "desc" },
         select: {
           id: true, nom: true, prenom: true, email: true, telephone: true,
-          marque: true, modele: true, annee: true, typeProjet: true,
+          marque: true, modele: true, annee: true, motorisation: true, typeProjet: true,
           status: true, createdAt: true,
           pennylaneSyncStatus: true, pennylaneQuoteUrl: true,
           pennylaneManualStatus: true, pennylaneQuoteNumber: true,
+          pennylaneCustomerId: true, pennylaneQuotesCache: true, pennylaneInvoicesCache: true,
         },
       }),
       db.quoteRequest.count({ where: { status: "new" } }),
@@ -42,7 +43,18 @@ export default async function AdminQuoteRequestsPage() {
       db.quoteRequest.count({ where: { status: "completed" } }),
       db.quoteRequest.count({ where: { status: "archived" } }),
     ]);
-    rows = items.map((r) => ({ ...r, createdAt: r.createdAt.toISOString() }));
+    rows = items.map((r) => {
+      const { pennylaneQuotesCache, pennylaneInvoicesCache, ...rest } = r;
+      const quotes = (pennylaneQuotesCache as unknown as { number: string | null }[] | null) ?? [];
+      const invoices = (pennylaneInvoicesCache as unknown as { number: string | null }[] | null) ?? [];
+      return {
+        ...rest,
+        createdAt: r.createdAt.toISOString(),
+        // Numéros extraits du cache local (jamais un nouvel appel Pennylane pour la recherche) — voir QuoteRequestsTable.
+        quoteNumbers: quotes.map((q) => q.number).filter((n): n is string => Boolean(n)),
+        invoiceNumbers: invoices.map((i) => i.number).filter((n): n is string => Boolean(n)),
+      };
+    });
     counts = { new: newCount, inProgress: contactedCount + inProgressCount, completed: completedCount, archived: archivedCount };
   }
 
