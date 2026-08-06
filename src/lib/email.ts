@@ -1,6 +1,15 @@
 import { Resend } from 'resend'
 import { getSiteSettings } from '@/lib/settings-repo'
 import { rearDiffuserLabel } from '@/lib/quote-request-options'
+import { buildAppointmentIcs } from '@/lib/agenda/ics'
+import {
+  buildAppointmentConfirmationEmailHtml,
+  buildAppointmentModifiedEmailHtml,
+  buildAppointmentCancelledByWorkshopEmailHtml,
+  buildAppointmentCancelledByCustomerEmailHtml,
+  buildAppointmentCancelledNotificationToShopHtml,
+  type AppointmentEmailContext,
+} from '@/lib/agenda/email-templates'
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
 
@@ -99,5 +108,132 @@ export async function sendConfirmationToClient(data: AppointmentData) {
     `,
   })
   if (error) throw new Error(`Resend (confirmation client): ${error.message}`)
+  return { success: true }
+}
+
+export interface AppointmentEmailInput {
+  customerEmail: string
+  customerFirstName: string
+  vehicle: string
+  startAt: Date
+  endAt: Date
+  durationMinutes: number
+  appointmentId: string
+  /** null = pas de lien d'annulation dans l'email (ex: rendez-vous créé sans configuration agenda encore complète). */
+  cancellationUrl: string | null
+}
+
+async function buildIcsAttachment(input: AppointmentEmailInput) {
+  const ics = buildAppointmentIcs({
+    uid: input.appointmentId,
+    startAt: input.startAt,
+    endAt: input.endAt,
+    summary: `Rendez-vous PERF'EXHAUST — ${input.vehicle}`,
+    description: `Rendez-vous atelier PERF'EXHAUST pour ${input.vehicle}.`,
+    location: '', // renseigné par le contexte email (adresse déjà dans le corps du message)
+  })
+  return { filename: 'rendez-vous-perfexhaust.ics', content: ics, contentType: 'text/calendar; charset=utf-8; method=PUBLISH' }
+}
+
+async function emailContext(input: AppointmentEmailInput): Promise<AppointmentEmailContext> {
+  const settings = await getSiteSettings()
+  return {
+    customerFirstName: input.customerFirstName,
+    vehicle: input.vehicle,
+    startAt: input.startAt,
+    endAt: input.endAt,
+    durationMinutes: input.durationMinutes,
+    workshopAddress: `${settings.address}, ${settings.postalCode} ${settings.city}`,
+    workshopPhone: settings.phone,
+    cancellationUrl: input.cancellationUrl,
+  }
+}
+
+/** Envoyée par createAppointment (src/lib/agenda/appointments.ts) — best-effort, ne bloque jamais la création du rendez-vous en cas d'échec (voir appelant). */
+export async function sendAppointmentConfirmationEmail(input: AppointmentEmailInput) {
+  const ctx = await emailContext(input)
+  if (!resend) {
+    console.log('[EMAIL MOCK] Appointment confirmation:', input.customerEmail, input.startAt.toISOString())
+    return { success: true, mock: true }
+  }
+  const { error } = await resend.emails.send({
+    from: FROM_EMAIL,
+    to: input.customerEmail,
+    subject: "Votre rendez-vous PERF'EXHAUST est confirmé",
+    html: buildAppointmentConfirmationEmailHtml(ctx),
+    attachments: [await buildIcsAttachment(input)],
+  })
+  if (error) throw new Error(`Resend (confirmation rendez-vous): ${error.message}`)
+  return { success: true }
+}
+
+/** Envoyée par rescheduleAppointment — nouveau créneau, nouveau lien d'annulation (l'ancien token est déjà invalidé côté appelant). */
+export async function sendAppointmentModifiedEmail(input: AppointmentEmailInput) {
+  const ctx = await emailContext(input)
+  if (!resend) {
+    console.log('[EMAIL MOCK] Appointment modified:', input.customerEmail, input.startAt.toISOString())
+    return { success: true, mock: true }
+  }
+  const { error } = await resend.emails.send({
+    from: FROM_EMAIL,
+    to: input.customerEmail,
+    subject: "Votre rendez-vous PERF'EXHAUST a été déplacé",
+    html: buildAppointmentModifiedEmailHtml(ctx),
+    attachments: [await buildIcsAttachment(input)],
+  })
+  if (error) throw new Error(`Resend (modification rendez-vous): ${error.message}`)
+  return { success: true }
+}
+
+/** Annulation initiée par l'atelier (admin) — voir sendAppointmentCancelledByCustomerEmail pour l'annulation initiée par le client. */
+export async function sendAppointmentCancelledByWorkshopEmail(input: Omit<AppointmentEmailInput, 'cancellationUrl'>) {
+  const ctx = await emailContext({ ...input, cancellationUrl: null })
+  if (!resend) {
+    console.log('[EMAIL MOCK] Appointment cancelled by workshop:', input.customerEmail)
+    return { success: true, mock: true }
+  }
+  const { error } = await resend.emails.send({
+    from: FROM_EMAIL,
+    to: input.customerEmail,
+    subject: "Votre rendez-vous PERF'EXHAUST a été annulé",
+    html: buildAppointmentCancelledByWorkshopEmailHtml(ctx),
+  })
+  if (error) throw new Error(`Resend (annulation atelier): ${error.message}`)
+  return { success: true }
+}
+
+/** Confirmation envoyée au CLIENT après une annulation qu'il a lui-même demandée (page publique sécurisée, étape 7). */
+export async function sendAppointmentCancelledByCustomerEmail(input: Omit<AppointmentEmailInput, 'cancellationUrl'>) {
+  const ctx = await emailContext({ ...input, cancellationUrl: null })
+  if (!resend) {
+    console.log('[EMAIL MOCK] Appointment cancelled by customer (client email):', input.customerEmail)
+    return { success: true, mock: true }
+  }
+  const { error } = await resend.emails.send({
+    from: FROM_EMAIL,
+    to: input.customerEmail,
+    subject: "Votre rendez-vous PERF'EXHAUST a été annulé",
+    html: buildAppointmentCancelledByCustomerEmailHtml(ctx),
+  })
+  if (error) throw new Error(`Resend (annulation client, email client): ${error.message}`)
+  return { success: true }
+}
+
+/** Notification interne à l'atelier (BUSINESS_EMAIL) quand un client annule lui-même en ligne. */
+export async function sendAppointmentCancelledNotificationToShop(
+  input: Omit<AppointmentEmailInput, 'cancellationUrl' | 'customerEmail'> & { customerFullName: string; reason: string | null }
+) {
+  const ctx = await emailContext({ ...input, cancellationUrl: null, customerEmail: BUSINESS_EMAIL })
+  if (!resend) {
+    console.log('[EMAIL MOCK] Appointment cancelled by customer (shop notification):', input.customerFullName)
+    return { success: true, mock: true }
+  }
+  const { error } = await resend.emails.send({
+    from: FROM_EMAIL,
+    to: BUSINESS_EMAIL,
+    subject: `Rendez-vous annulé par le client — ${input.customerFullName}`,
+    html: buildAppointmentCancelledNotificationToShopHtml({ ...ctx, customerFullName: input.customerFullName, reason: input.reason }),
+  })
+  if (error) throw new Error(`Resend (annulation client, notification atelier): ${error.message}`)
   return { success: true }
 }

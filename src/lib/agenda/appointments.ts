@@ -5,6 +5,15 @@ import { getAgendaSettings, getWorkshopClosureDates } from './settings'
 import { generateCancellationToken } from './cancellation-token'
 import { BLOCKING_APPOINTMENT_STATUSES } from './types'
 import type { TimeSlot } from './types'
+import {
+  sendAppointmentConfirmationEmail,
+  sendAppointmentModifiedEmail,
+  sendAppointmentCancelledByWorkshopEmail,
+} from '@/lib/email'
+
+function cancellationUrlFor(token: string): string {
+  return `https://perfexhaust.fr/rendez-vous/annuler/${token}`
+}
 
 /** Statuts considérés "actifs" — bloquent la suppression de la QuoteRequest et occupent un créneau. */
 export const ACTIVE_APPOINTMENT_STATUSES = ['PENDING', 'CONFIRMED'] as const
@@ -103,13 +112,14 @@ export async function createAppointment(input: CreateAppointmentInput): Promise<
 
   const { token, hash } = generateCancellationToken()
 
+  const vehicle = `${quoteRequest.marque} ${quoteRequest.modele} (${quoteRequest.annee})`
   const created = await db.appointment.create({
     data: {
       quoteRequestId: quoteRequest.id,
       customerName: `${quoteRequest.prenom} ${quoteRequest.nom}`,
       customerEmail: quoteRequest.email,
       customerPhone: quoteRequest.telephone,
-      vehicle: `${quoteRequest.marque} ${quoteRequest.modele} (${quoteRequest.annee})`,
+      vehicle,
       startAt: input.startAt,
       endAt,
       durationMinutes: input.durationMinutes,
@@ -119,6 +129,24 @@ export async function createAppointment(input: CreateAppointmentInput): Promise<
       cancellationTokenExpiresAt: input.startAt,
     },
   })
+
+  // Best-effort : un échec d'email ne doit jamais faire échouer la création
+  // du rendez-vous déjà enregistrée (même principe que /api/rendez-vous).
+  try {
+    await sendAppointmentConfirmationEmail({
+      customerEmail: created.customerEmail,
+      customerFirstName: quoteRequest.prenom,
+      vehicle,
+      startAt: created.startAt,
+      endAt: created.endAt,
+      durationMinutes: created.durationMinutes,
+      appointmentId: created.id,
+      cancellationUrl: cancellationUrlFor(token),
+    })
+    await db.appointment.update({ where: { id: created.id }, data: { confirmationSentAt: new Date() } })
+  } catch (err) {
+    console.error(`[agenda] Échec de l'email de confirmation pour le rendez-vous ${created.id} (rendez-vous non affecté) :`, err)
+  }
 
   return { id: created.id, startAt: created.startAt, endAt: created.endAt, rawCancellationToken: token }
 }
@@ -147,9 +175,26 @@ export async function rescheduleAppointment(appointmentId: string, startAt: Date
       startAt, endAt, durationMinutes,
       cancellationTokenHash: hash,
       cancellationTokenExpiresAt: startAt,
-      confirmationSentAt: null, // un nouvel email de "modification" sera envoyé (étape 6) — pas encore compté comme "confirmation envoyée" pour ce nouveau créneau
+      confirmationSentAt: null, // un nouvel email de "modification" sera envoyé ci-dessous — pas encore compté comme "confirmation envoyée" pour ce nouveau créneau
     },
   })
+
+  try {
+    await sendAppointmentModifiedEmail({
+      customerEmail: updated.customerEmail,
+      customerFirstName: updated.customerName.split(' ')[0] || updated.customerName,
+      vehicle: updated.vehicle,
+      startAt: updated.startAt,
+      endAt: updated.endAt,
+      durationMinutes: updated.durationMinutes,
+      appointmentId: updated.id,
+      cancellationUrl: cancellationUrlFor(token),
+    })
+    await db.appointment.update({ where: { id: updated.id }, data: { confirmationSentAt: new Date() } })
+  } catch (err) {
+    console.error(`[agenda] Échec de l'email de modification pour le rendez-vous ${updated.id} (rendez-vous non affecté) :`, err)
+  }
+
   return { id: updated.id, startAt: updated.startAt, endAt: updated.endAt, rawCancellationToken: token }
 }
 
@@ -168,6 +213,20 @@ export async function cancelAppointmentByWorkshop(appointmentId: string): Promis
       cancellationTokenExpiresAt: null,
     },
   })
+
+  try {
+    await sendAppointmentCancelledByWorkshopEmail({
+      customerEmail: existing.customerEmail,
+      customerFirstName: existing.customerName.split(' ')[0] || existing.customerName,
+      vehicle: existing.vehicle,
+      startAt: existing.startAt,
+      endAt: existing.endAt,
+      durationMinutes: existing.durationMinutes,
+      appointmentId: existing.id,
+    })
+  } catch (err) {
+    console.error(`[agenda] Échec de l'email d'annulation (atelier) pour le rendez-vous ${appointmentId} (annulation non affectée) :`, err)
+  }
 }
 
 export async function markAppointmentCompleted(appointmentId: string): Promise<void> {
