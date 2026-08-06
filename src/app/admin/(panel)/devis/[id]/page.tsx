@@ -3,31 +3,23 @@ import { isDbConfigured, getDb } from "@/lib/db";
 import { isPennylaneConfigured, getPennylaneMode } from "@/lib/pennylane/client";
 import { getSiteSettings } from "@/lib/settings-repo";
 import QuoteRequestDetail from "@/components/admin/QuoteRequestDetail";
-import { isPennylaneV2Configured } from "@/lib/pennylane-v2/config";
-import { getCustomerFinancials } from "@/lib/pennylane-v2/financials";
-import { customerDisplayName } from "@/lib/pennylane-v2/types";
-import { getCustomer } from "@/lib/pennylane-v2/customers";
+import { getClientProfile } from "@/lib/pennylane-v2/client-profile";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminQuoteRequestDetailPage({ params }: { params: Promise<{ id: string }> }) {
   if (!isDbConfigured()) notFound();
   const { id } = await params;
-  const [q, settings] = await Promise.all([
+  const [q, settings, clientProfile] = await Promise.all([
     getDb().quoteRequest.findUnique({ where: { id } }),
     getSiteSettings(),
+    // Agrège client Pennylane + demandes locales soeurs (véhicules, historique,
+    // statistiques) — un seul appel Pennylane pour le nom/date de création du
+    // client, le reste réutilise le cache devis/factures existant (voir
+    // src/lib/pennylane-v2/client-profile.ts).
+    getClientProfile(id),
   ]);
   if (!q) notFound();
-
-  // Nouvelle intégration Pennylane API v2 — chargée uniquement à l'ouverture
-  // de la fiche (jamais à chaque interaction), voir src/lib/pennylane-v2/.
-  const pennylaneV2Configured = isPennylaneV2Configured();
-  const [financials, pennylaneCustomerName] = await Promise.all([
-    pennylaneV2Configured ? getCustomerFinancials(id) : Promise.resolve(null),
-    pennylaneV2Configured && q.pennylaneCustomerId
-      ? getCustomer(Number(q.pennylaneCustomerId)).then(customerDisplayName).catch(() => null)
-      : Promise.resolve(null),
-  ]);
 
   return (
     <div>
@@ -65,26 +57,34 @@ export default async function AdminQuoteRequestDetailPage({ params }: { params: 
         pennylaneMode={getPennylaneMode()}
         pennylaneManualUrl={settings.pennylaneManualUrl}
         pennylaneV2={{
-          configured: pennylaneV2Configured,
+          configured: clientProfile?.configured ?? false,
           syncStatus: q.pennylaneCustomerSyncStatus,
           syncError: q.pennylaneCustomerSyncError,
-          customerId: q.pennylaneCustomerId,
           customerType: q.pennylaneCustomerType,
-          customerName: pennylaneCustomerName,
-          syncedAt: q.pennylaneCustomerSyncedAt ? q.pennylaneCustomerSyncedAt.toISOString() : null,
-          lastSyncAt: q.pennylaneCustomerLastSyncAt ? q.pennylaneCustomerLastSyncAt.toISOString() : null,
           ambiguousCandidates: (q.pennylaneAmbiguousCandidates as unknown as { id: number; name: string; email: string | null; phone: string | null; type: "individual" | "company" }[] | null) ?? null,
-          financials: financials
+          profile: clientProfile
             ? {
-                notSynced: financials.notSynced,
-                quotes: financials.quotes,
-                invoices: financials.invoices,
-                summary: financials.summary,
-                fetchedAt: financials.fetchedAt ? financials.fetchedAt.toISOString() : null,
-                stale: financials.stale,
-                error: financials.error,
+                pennylaneCustomerId: clientProfile.pennylaneCustomerId,
+                pennylaneCustomerName: clientProfile.pennylaneCustomerName,
+                pennylaneCreatedAt: clientProfile.pennylaneCreatedAt,
+                customerFetchError: clientProfile.customerFetchError,
+                requestCount: clientProfile.requestCount,
+                vehicles: clientProfile.vehicles,
+                badge: clientProfile.badge,
+                timeline: clientProfile.timeline,
+                card: clientProfile.card,
+                financials: {
+                  notSynced: clientProfile.financials.notSynced,
+                  quotes: clientProfile.financials.quotes,
+                  invoices: clientProfile.financials.invoices,
+                  summary: clientProfile.financials.summary,
+                  quotesStats: clientProfile.financials.quotesStats,
+                  fetchedAt: clientProfile.financials.fetchedAt ? clientProfile.financials.fetchedAt.toISOString() : null,
+                  stale: clientProfile.financials.stale,
+                  error: clientProfile.financials.error,
+                },
               }
-            : { notSynced: true, quotes: [], invoices: [], summary: { count: 0, totalBilled: 0, totalPaid: 0, totalRemaining: 0, lastInvoiceDate: null, hasUnpaid: false }, fetchedAt: null, stale: false, error: null },
+            : null,
         }}
       />
     </div>

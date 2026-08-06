@@ -524,13 +524,63 @@ le bouton **"Relancer la synchronisation"** répète la recherche complète
   429 avec en-tête `retry-after` (secondes). Les lectures (GET) réessaient
   automatiquement une fois en respectant ce délai ; les créations (POST)
   ne sont jamais réessayées automatiquement.
-- **Statut des factures non normalisé par l'API** — contrairement aux
-  devis (`pending`/`accepted`/`denied`/`expired`/`invoiced`, documentés),
-  les factures n'exposent qu'un `status` fiable pour `"draft"` ; le
-  paiement se lit via `is_paid` + `outstanding_balance`. Le statut affiché
-  (payée/partiellement payée/impayée/en retard/brouillon) est donc dérivé
-  côté PERF'EXHAUST (`invoices.ts` → `deriveDisplayStatus`), pas renvoyé
-  tel quel par Pennylane.
+- **Statut des factures — corrigé le 2026-08-06** : contrairement à ce qui
+  était supposé précédemment (seul `"draft"` confirmé), un appel réel contre
+  le compte de production ET la référence officielle
+  (pennylane.readme.io/reference/getcustomerinvoices) confirment une
+  énumération `status` bien plus riche : `draft`, `upcoming`, `late`, `paid`,
+  `partially_paid`, `partially_cancelled`, `cancelled`, `archived`,
+  `incomplete`, `credit_note`, `proforma`, `shipping_order`,
+  `purchasing_order`, `estimate_pending/accepted/invoiced/denied`. Les
+  champs de paiement réels sont `paid` (booléen) et
+  `remaining_amount_with_tax`/`remaining_amount_without_tax` — **pas**
+  `is_paid`/`outstanding_balance` (anciens noms jamais confirmés, utilisés
+  par erreur avant cette correction, ce qui faussait silencieusement le
+  statut/montant restant affichés). Le statut d'affichage PERF'EXHAUST
+  (`invoices.ts` → `deriveDisplayStatus`) mappe désormais directement le
+  `status` réel de Pennylane plutôt que de le deviner à partir des montants.
+- **`currency_amount_before_tax` (montant HT)** confirmé réel pour les
+  devis et les factures (doc + appel réel) — exposé dans le tableau de bord
+  CRM pour les devis (voir plus bas).
+- **`created_at`/`updated_at` du client** confirmés réels (appel direct
+  `GET /customers/{id}`, 2026-08-06) — aucun champ `url`/`public_url` en
+  revanche sur l'objet client (aucun lien direct vers la fiche client dans
+  l'app web Pennylane).
+- **Aucune date de paiement/acceptation dédiée** : ni les devis ni les
+  factures n'exposent de champ `accepted_at`/`paid_at`. La timeline CRM
+  utilise `updated_at` comme date la plus proche disponible pour "devis
+  accepté"/"facture payée", explicitement marquée comme approximative dans
+  l'interface plutôt que présentée comme une date exacte inventée.
+- **`public_file_url` des devis expire 30 minutes après génération**
+  (documenté) — non garanti au-delà pour les factures (non précisé). Le lien
+  "Ouvrir" peut donc expirer si l'onglet reste ouvert longtemps sans
+  actualisation ; utiliser le bouton "Actualiser Pennylane" régénère un lien
+  frais.
+
+### 📊 CRM Pennylane — tableau de bord client (2026-08-06)
+
+La fiche `/admin/devis/[id]` agrège désormais, autour d'un même
+`pennylaneCustomerId` : historique véhicules (dédupliqué, marque+modèle+année),
+badge client calculé (🔴 facture impayée > 🟠 devis en attente > 🟣 fidèle
+≥3 demandes > 🔵 existant ≥2 > 🟢 nouveau), statistiques commerciales
+(devis/factures par statut, montants), fiche client récapitulative, et une
+timeline chronologique. Nouveaux modules purs et testables :
+`src/lib/pennylane-v2/{vehicles,badge,timeline,client-profile}.ts`. Aucune
+table `Client` créée : l'agrégation se fait par regroupement des
+`QuoteRequest` partageant le même `pennylaneCustomerId` (même décision
+produit qu'en juillet 2026, voir plus haut). Aucun nouvel appel Pennylane
+côté agrégation : réutilise le cache devis/factures existant
+(`getCustomerFinancials`) et le seul appel `getCustomer` déjà fait pour le
+nom (auquel `created_at` a été ajouté, sans appel supplémentaire).
+Recherche étendue sur `/admin/devis` (numéro de devis/facture, ID
+Pennylane) : les numéros sont extraits du cache local déjà en base, jamais
+d'appel Pennylane dédié à la recherche.
+
+**Limite connue** : l'appel `GET /customers/{id}` (nom + date de création)
+n'est pas mis en cache — il s'exécute à chaque ouverture de fiche
+synchronisée (contrairement aux devis/factures, mis en cache 15 min). Impact
+réel négligeable (un seul GET non paginé, ~200 ms) au volume de ce site,
+mais reste une optimisation possible si le volume augmente.
 
 ### Transition — devenir de l'ancien système
 
