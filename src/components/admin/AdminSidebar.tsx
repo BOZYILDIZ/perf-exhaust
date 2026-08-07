@@ -27,7 +27,7 @@ export default function AdminSidebar({ newQuotesCount = 0 }: { newQuotesCount?: 
 
   return (
     <aside
-      className="w-16 sm:w-56 flex-shrink-0 flex flex-col border-r"
+      className="hidden sm:flex sm:w-56 flex-shrink-0 flex-col border-r"
       style={{ background: "#0d0d0d", borderColor: "#1e1e1e" }}
     >
       <Link href="/admin" className="flex items-center gap-3 px-3 sm:px-5 py-5 border-b" style={{ borderColor: "#1e1e1e" }}>

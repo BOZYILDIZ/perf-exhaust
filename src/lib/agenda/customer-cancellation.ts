@@ -27,7 +27,7 @@ interface FullAppointmentRow {
   vehicle: string
   durationMinutes: number
   customerName: string
-  customerEmail: string
+  customerEmail: string | null
   cancellationTokenExpiresAt: Date | null
 }
 
@@ -112,10 +112,12 @@ export async function cancelAppointmentByCustomer(token: string, reason: string 
     durationMinutes: appt.durationMinutes,
     appointmentId: appt.id,
   }
-  try {
-    await sendAppointmentCancelledByCustomerEmail(emailInput)
-  } catch (err) {
-    console.error(`[agenda] Échec de l'email client (annulation par le client) pour le rendez-vous ${appt.id} :`, err)
+  if (appt.customerEmail) {
+    try {
+      await sendAppointmentCancelledByCustomerEmail({ ...emailInput, customerEmail: appt.customerEmail })
+    } catch (err) {
+      console.error(`[agenda] Échec de l'email client (annulation par le client) pour le rendez-vous ${appt.id} :`, err)
+    }
   }
   try {
     await sendAppointmentCancelledNotificationToShop({ ...emailInput, customerFullName: appt.customerName, reason: reason ? reason.slice(0, 500) : null })

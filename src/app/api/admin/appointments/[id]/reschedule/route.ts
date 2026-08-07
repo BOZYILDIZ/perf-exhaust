@@ -38,7 +38,11 @@ export async function POST(req: NextRequest, ctx: Ctx) {
     }
 
     const updated = await rescheduleAppointment(id, startAt, parsed.data.durationMinutes);
-    return NextResponse.json({ success: true, appointment: { id: updated.id, startAt: updated.startAt.toISOString(), endAt: updated.endAt.toISOString() } });
+    return NextResponse.json({
+      success: true,
+      changed: updated.changed,
+      appointment: { id: updated.id, startAt: updated.startAt.toISOString(), endAt: updated.endAt.toISOString() },
+    });
   } catch (error) {
     if (error instanceof AppointmentConflictError) return NextResponse.json({ error: error.message }, { status: 409 });
     if (error instanceof AppointmentNotFoundError) return NextResponse.json({ error: error.message }, { status: 404 });

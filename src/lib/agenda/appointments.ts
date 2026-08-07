@@ -10,6 +10,8 @@ import {
   sendAppointmentModifiedEmail,
   sendAppointmentCancelledByWorkshopEmail,
 } from '@/lib/email'
+import { isPennylaneV2Configured } from '@/lib/pennylane-v2/config'
+import { searchCustomersByEmail, searchCustomersByPhone } from '@/lib/pennylane-v2/customers'
 
 function cancellationUrlFor(token: string): string {
   return `https://perfexhaust.fr/rendez-vous/annuler/${token}`
@@ -59,12 +61,19 @@ async function loadBlockingAppointments(from: Date, to: Date, excludeAppointment
   return [...appts, ...blocks]
 }
 
-/** Calcule les créneaux disponibles pour une fenêtre et une durée données — lit les paramètres/fermetures/rendez-vous existants en base, délègue le calcul pur à availability.ts. */
-export async function getAvailableSlots(params: { from: Date; to: Date; durationMinutes: number; now?: Date }): Promise<TimeSlot[]> {
+/**
+ * Calcule les créneaux disponibles pour une fenêtre et une durée données —
+ * lit les paramètres/fermetures/rendez-vous existants en base, délègue le
+ * calcul pur à availability.ts. `excludeAppointmentId` permet d'exclure le
+ * rendez-vous en cours de modification de ses propres conflits (sinon son
+ * créneau actuel n'apparaîtrait jamais comme disponible lors d'une
+ * modification de date/heure).
+ */
+export async function getAvailableSlots(params: { from: Date; to: Date; durationMinutes: number; now?: Date; excludeAppointmentId?: string }): Promise<TimeSlot[]> {
   const [settings, closures, existing] = await Promise.all([
     getAgendaSettings(),
     getWorkshopClosureDates(),
-    loadBlockingAppointments(params.from, params.to),
+    loadBlockingAppointments(params.from, params.to, params.excludeAppointmentId),
   ])
   return computeAvailableSlots({
     from: params.from,
@@ -167,7 +176,7 @@ export async function createAppointment(input: CreateAppointmentInput): Promise<
   // du rendez-vous déjà enregistrée (même principe que /api/rendez-vous).
   try {
     await sendAppointmentConfirmationEmail({
-      customerEmail: created.customerEmail,
+      customerEmail: quoteRequest.email,
       customerFirstName: quoteRequest.prenom,
       vehicle,
       startAt: created.startAt,
@@ -184,20 +193,171 @@ export async function createAppointment(input: CreateAppointmentInput): Promise<
   return { id: created.id, startAt: created.startAt, endAt: created.endAt, rawCancellationToken: token }
 }
 
-export interface RescheduleResult {
+/**
+ * Recherche best-effort d'un client Pennylane existant par email puis
+ * téléphone (jamais de création, jamais bloquant) — pour lier un rendez-vous
+ * manuel à sa fiche Pennylane si elle existe déjà. Réutilise les mêmes
+ * fonctions de recherche que la synchronisation automatique
+ * (src/lib/pennylane-v2/sync.ts) plutôt que de dupliquer la logique. Ignore
+ * volontairement les correspondances ambiguës (plusieurs résultats) : un
+ * RDV manuel n'a pas d'interface pour résoudre une ambiguïté comme le fait
+ * /admin/devis/[id], donc on ne lie jamais automatiquement dans ce cas.
+ */
+async function findExistingPennylaneCustomerForManualAppointment(
+  email: string | null,
+  telephone: string
+): Promise<{ id: number; type: 'individual' | 'company' } | null> {
+  try {
+    if (email) {
+      const byEmail = await searchCustomersByEmail(email)
+      if (byEmail.length === 1) return { id: byEmail[0].id, type: 'first_name' in byEmail[0] ? 'individual' : 'company' }
+    }
+    const { matches: byPhone } = await searchCustomersByPhone(telephone)
+    if (byPhone.length === 1) return { id: byPhone[0].id, type: 'first_name' in byPhone[0] ? 'individual' : 'company' }
+  } catch (err) {
+    console.error('[agenda] Recherche Pennylane best-effort échouée pour un rendez-vous manuel (rendez-vous non affecté) :', err)
+  }
+  return null
+}
+
+export interface CreateManualAppointmentInput {
+  prenom: string
+  nom: string
+  telephone: string
+  email?: string | null
+  address?: string | null
+  marque: string
+  modele: string
+  annee: string
+  motorisation?: string | null
+  rearDiffuser?: string | null
+  vehicleNotes?: string
+  startAt: Date
+  durationMinutes: number
+  notes?: string
+}
+
+export interface CreatedManualAppointment {
   id: string
   startAt: Date
   endAt: Date
   rawCancellationToken: string
+  /** Faux si aucun email n'était renseigné — l'appelant doit alors afficher "Confirmation email non envoyée...", jamais une erreur. */
+  emailSent: boolean
+  pennylaneCustomerId: number | null
 }
 
-/** Déplace un rendez-vous existant — revalide la disponibilité (en s'excluant lui-même), régénère un nouveau token d'annulation (l'ancien lien devient invalide). */
+/**
+ * Crée un rendez-vous CONFIRMED sans demande de devis associée — client
+ * passé au comptoir ou par téléphone (voir schema.prisma § Appointment,
+ * champs snapshot dédiés). Réutilise exactement le même moteur de
+ * disponibilité que createAppointment() (isSlotStillFree, lui-même appuyé
+ * sur availability.ts) : aucune duplication de la logique horaires/
+ * buffer/blocs/fermetures.
+ */
+export async function createManualAppointment(input: CreateManualAppointmentInput): Promise<CreatedManualAppointment> {
+  const db = getDb()
+  const endAt = new Date(input.startAt.getTime() + input.durationMinutes * 60000)
+
+  const stillFree = await isSlotStillFree(input.startAt, endAt)
+  if (!stillFree) throw new AppointmentConflictError()
+
+  const { token, hash } = generateCancellationToken()
+  const vehicle = `${input.marque} ${input.modele} (${input.annee})`
+  const email = input.email?.trim() || null
+
+  let pennylane: { id: number; type: 'individual' | 'company' } | null = null
+  if (isPennylaneV2Configured()) {
+    pennylane = await findExistingPennylaneCustomerForManualAppointment(email, input.telephone)
+  }
+
+  const created = await db.appointment.create({
+    data: {
+      quoteRequestId: null,
+      customerName: `${input.prenom} ${input.nom}`,
+      customerEmail: email,
+      customerPhone: input.telephone,
+      customerAddress: input.address?.trim() || null,
+      vehicle,
+      motorisation: input.motorisation?.trim() || null,
+      rearDiffuser: input.rearDiffuser ?? null,
+      vehicleNotes: input.vehicleNotes ?? '',
+      startAt: input.startAt,
+      endAt,
+      durationMinutes: input.durationMinutes,
+      status: 'CONFIRMED',
+      notes: input.notes ?? '',
+      cancellationTokenHash: hash,
+      cancellationTokenExpiresAt: input.startAt,
+      pennylaneCustomerId: pennylane ? String(pennylane.id) : null,
+      pennylaneCustomerType: pennylane?.type ?? null,
+    },
+  })
+
+  let emailSent = false
+  if (email) {
+    try {
+      await sendAppointmentConfirmationEmail({
+        customerEmail: email,
+        customerFirstName: input.prenom,
+        vehicle,
+        startAt: created.startAt,
+        endAt: created.endAt,
+        durationMinutes: created.durationMinutes,
+        appointmentId: created.id,
+        cancellationUrl: cancellationUrlFor(token),
+      })
+      await db.appointment.update({ where: { id: created.id }, data: { confirmationSentAt: new Date() } })
+      emailSent = true
+    } catch (err) {
+      console.error(`[agenda] Échec de l'email de confirmation (rendez-vous manuel) pour ${created.id} (rendez-vous non affecté) :`, err)
+    }
+  }
+
+  return {
+    id: created.id,
+    startAt: created.startAt,
+    endAt: created.endAt,
+    rawCancellationToken: token,
+    emailSent,
+    pennylaneCustomerId: pennylane?.id ?? null,
+  }
+}
+
+export interface RescheduleResult {
+  id: string
+  startAt: Date
+  endAt: Date
+  /** Faux si la date/heure/durée demandées sont strictement identiques à l'existant — voir garde-fou ci-dessous. */
+  changed: boolean
+  /** Absent quand `changed` est faux : aucun nouveau token n'est généré, l'ancien reste valide. */
+  rawCancellationToken?: string
+}
+
+/**
+ * Déplace un rendez-vous existant — revalide la disponibilité (en
+ * s'excluant lui-même), régénère un nouveau token d'annulation (l'ancien
+ * lien devient invalide).
+ *
+ * Garde-fou (Phase 4, bug réel observé en production) : si la nouvelle
+ * date/heure/durée sont strictement identiques à l'existant, ne rien
+ * modifier en base et ne jamais envoyer d'email de modification — même si
+ * l'appelant (UI ou script) invoque cette route par erreur. Avant ce
+ * garde-fou, un glisser-déposer qui « revenait visuellement » à sa position
+ * d'origine appelait quand même cette route avec les mêmes valeurs,
+ * déclenchant un email « rendez-vous déplacé » trompeur pour le client.
+ */
 export async function rescheduleAppointment(appointmentId: string, startAt: Date, durationMinutes: number): Promise<RescheduleResult> {
   const db = getDb()
   const existing = await db.appointment.findUnique({ where: { id: appointmentId } })
   if (!existing) throw new AppointmentNotFoundError()
 
   const endAt = new Date(startAt.getTime() + durationMinutes * 60000)
+
+  if (existing.startAt.getTime() === startAt.getTime() && existing.endAt.getTime() === endAt.getTime()) {
+    return { id: existing.id, startAt: existing.startAt, endAt: existing.endAt, changed: false }
+  }
+
   const stillFree = await isSlotStillFree(startAt, endAt, appointmentId)
   if (!stillFree) throw new AppointmentConflictError()
 
@@ -212,23 +372,25 @@ export async function rescheduleAppointment(appointmentId: string, startAt: Date
     },
   })
 
-  try {
-    await sendAppointmentModifiedEmail({
-      customerEmail: updated.customerEmail,
-      customerFirstName: updated.customerName.split(' ')[0] || updated.customerName,
-      vehicle: updated.vehicle,
-      startAt: updated.startAt,
-      endAt: updated.endAt,
-      durationMinutes: updated.durationMinutes,
-      appointmentId: updated.id,
-      cancellationUrl: cancellationUrlFor(token),
-    })
-    await db.appointment.update({ where: { id: updated.id }, data: { confirmationSentAt: new Date() } })
-  } catch (err) {
-    console.error(`[agenda] Échec de l'email de modification pour le rendez-vous ${updated.id} (rendez-vous non affecté) :`, err)
+  if (updated.customerEmail) {
+    try {
+      await sendAppointmentModifiedEmail({
+        customerEmail: updated.customerEmail,
+        customerFirstName: updated.customerName.split(' ')[0] || updated.customerName,
+        vehicle: updated.vehicle,
+        startAt: updated.startAt,
+        endAt: updated.endAt,
+        durationMinutes: updated.durationMinutes,
+        appointmentId: updated.id,
+        cancellationUrl: cancellationUrlFor(token),
+      })
+      await db.appointment.update({ where: { id: updated.id }, data: { confirmationSentAt: new Date() } })
+    } catch (err) {
+      console.error(`[agenda] Échec de l'email de modification pour le rendez-vous ${updated.id} (rendez-vous non affecté) :`, err)
+    }
   }
 
-  return { id: updated.id, startAt: updated.startAt, endAt: updated.endAt, rawCancellationToken: token }
+  return { id: updated.id, startAt: updated.startAt, endAt: updated.endAt, changed: true, rawCancellationToken: token }
 }
 
 /** Annulation côté atelier (admin) — distincte de l'annulation client sécurisée (étape 7), mais partage le même effet : libère le créneau, invalide le token. */
@@ -247,18 +409,20 @@ export async function cancelAppointmentByWorkshop(appointmentId: string): Promis
     },
   })
 
-  try {
-    await sendAppointmentCancelledByWorkshopEmail({
-      customerEmail: existing.customerEmail,
-      customerFirstName: existing.customerName.split(' ')[0] || existing.customerName,
-      vehicle: existing.vehicle,
-      startAt: existing.startAt,
-      endAt: existing.endAt,
-      durationMinutes: existing.durationMinutes,
-      appointmentId: existing.id,
-    })
-  } catch (err) {
-    console.error(`[agenda] Échec de l'email d'annulation (atelier) pour le rendez-vous ${appointmentId} (annulation non affectée) :`, err)
+  if (existing.customerEmail) {
+    try {
+      await sendAppointmentCancelledByWorkshopEmail({
+        customerEmail: existing.customerEmail,
+        customerFirstName: existing.customerName.split(' ')[0] || existing.customerName,
+        vehicle: existing.vehicle,
+        startAt: existing.startAt,
+        endAt: existing.endAt,
+        durationMinutes: existing.durationMinutes,
+        appointmentId: existing.id,
+      })
+    } catch (err) {
+      console.error(`[agenda] Échec de l'email d'annulation (atelier) pour le rendez-vous ${appointmentId} (annulation non affectée) :`, err)
+    }
   }
 }
 
