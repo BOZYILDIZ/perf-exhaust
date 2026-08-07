@@ -1,6 +1,6 @@
 import 'server-only'
 import { getDb } from '@/lib/db'
-import { computeAvailableSlots } from './availability'
+import { computeAvailableSlots, isWithinOpenHours, overlapsExisting } from './availability'
 import { getAgendaSettings, getWorkshopClosureDates } from './settings'
 import { generateCancellationToken } from './cancellation-token'
 import { BLOCKING_APPOINTMENT_STATUSES } from './types'
@@ -78,14 +78,34 @@ export async function getAvailableSlots(params: { from: Date; to: Date; duration
   })
 }
 
-/** Vrai si [startAt, endAt) est encore réellement libre — revalidé juste avant écriture pour empêcher tout double-réservation, y compris entre deux clics simultanés. */
+/**
+ * Vrai si [startAt, endAt) est encore réellement libre — revalidé juste
+ * avant écriture pour empêcher tout double-réservation, y compris entre
+ * deux clics simultanés. Vérifie explicitement les horaires d'ouverture, le
+ * temps tampon ET les fermetures exceptionnelles (pas seulement le
+ * chevauchement direct) : à la différence d'une création depuis un créneau
+ * proposé par `computeAvailableSlots` (déjà borné par construction), un
+ * déplacement/redimensionnement (drag & drop, resize) peut déposer un
+ * rendez-vous n'importe où sur la grille — la revalidation doit donc
+ * refaire ces vérifications elle-même. Bugs corrigés lors de la mission de
+ * consolidation Phase 3 (confirmés en conditions réelles) : (1) un
+ * glisser-déposer/redimensionnement pouvait dépasser l'heure de fermeture
+ * sans être rejeté ; (2) le temps tampon était systématiquement ignoré, car
+ * `loadBlockingAppointments` ne chargeait que les rendez-vous en
+ * chevauchement DIRECT avec la fenêtre exacte visée — un rendez-vous voisin
+ * mais non chevauchant n'était même pas récupéré en base, donc jamais
+ * soumis à la marge tampon d'`overlapsExisting`. Fixé en élargissant la
+ * fenêtre de la requête de la marge tampon de chaque côté.
+ */
 async function isSlotStillFree(startAt: Date, endAt: Date, excludeAppointmentId?: string): Promise<boolean> {
-  const existing = await loadBlockingAppointments(startAt, endAt, excludeAppointmentId)
-  // Un chevauchement direct suffit ici : la marge tampon a déjà été prise en
-  // compte lors du calcul des créneaux proposés à l'admin ; la revalidation
-  // ne fait que confirmer qu'aucun AUTRE rendez-vous n'a été créé entre
-  // l'affichage des créneaux et la confirmation.
-  return !existing.some((e) => startAt.getTime() < e.endAt.getTime() && endAt.getTime() > e.startAt.getTime())
+  const settings = await getAgendaSettings()
+  const bufferMs = settings.bufferMinutes * 60000
+  const [closures, existing] = await Promise.all([
+    getWorkshopClosureDates(),
+    loadBlockingAppointments(new Date(startAt.getTime() - bufferMs), new Date(endAt.getTime() + bufferMs), excludeAppointmentId),
+  ])
+  if (!isWithinOpenHours(startAt, endAt, settings.weeklyHours, closures)) return false
+  return !overlapsExisting(startAt, endAt, existing, settings.bufferMinutes)
 }
 
 export interface CreateAppointmentInput {

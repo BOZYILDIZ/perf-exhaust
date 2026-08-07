@@ -61,7 +61,7 @@ function shiftsOf(day: DayHours, durationMinutes: number): { start: string; end:
 }
 
 /** Vrai si [start, end) chevauche un rendez-vous existant, marge tampon appliquée symétriquement de part et d'autre de CHAQUE rendez-vous existant. */
-function overlapsExisting(start: Date, end: Date, existing: ExistingAppointmentWindow[], bufferMinutes: number): boolean {
+export function overlapsExisting(start: Date, end: Date, existing: ExistingAppointmentWindow[], bufferMinutes: number): boolean {
   const bufferMs = bufferMinutes * 60000
   return existing.some((e) => {
     const expandedStart = e.startAt.getTime() - bufferMs
@@ -114,6 +114,34 @@ export function computeAvailableSlots(params: ComputeAvailableSlotsParams): Time
   }
 
   return slots
+}
+
+/**
+ * Vrai si [startAt, endAt) tient entièrement dans un service ouvert (matin
+ * OU après-midi, ou la journée continue si la durée l'exige — voir
+ * shiftsOf) d'un jour ouvré non fermé exceptionnellement. Utilisée pour
+ * revalider un déplacement/redimensionnement (drag & drop, resize) qui peut
+ * déposer un rendez-vous n'importe où sur la grille — contrairement à
+ * `computeAvailableSlots` (créneaux proposés à la création, déjà bornés par
+ * construction), cette revalidation doit vérifier les horaires
+ * explicitement car l'admin peut glisser-déposer en dehors des heures
+ * d'ouverture ou faire chevaucher une fermeture exceptionnelle.
+ */
+export function isWithinOpenHours(startAt: Date, endAt: Date, weeklyHours: WeeklyHours, closures: Set<string>): boolean {
+  const dateStr = parisDateString(startAt)
+  if (parisDateString(endAt) !== dateStr) return false // ne franchit jamais un jour civil Paris (ex: pas de RDV à cheval sur minuit)
+  if (closures.has(dateStr)) return false
+
+  const weekday = parisWeekday(parisWallTimeToUtc(dateStr, '12:00'))
+  const dayHours = weeklyHours[weekday]
+  if (!dayHours?.enabled) return false
+
+  const durationMinutes = Math.round((endAt.getTime() - startAt.getTime()) / 60000)
+  return shiftsOf(dayHours, durationMinutes).some((shift) => {
+    const shiftStart = parisWallTimeToUtc(dateStr, shift.start)
+    const shiftEnd = parisWallTimeToUtc(dateStr, shift.end)
+    return startAt.getTime() >= shiftStart.getTime() && endAt.getTime() <= shiftEnd.getTime()
+  })
 }
 
 /** Regroupe des créneaux par date ("AAAA-MM-JJ", calendrier Paris) — pour l'affichage "Lundi : 08:00, 10:30, 14:00". */
