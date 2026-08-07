@@ -15,10 +15,13 @@ import { rearDiffuserLabel } from "@/lib/quote-request-options";
 
 interface DetailAppointment {
   id: string;
-  quoteRequestId: string;
+  /** Null pour un rendez-vous manuel (Phase 4, sans demande de devis) — voir customerAddress/vehicleNotes ci-dessous, alors renseignés directement. */
+  quoteRequestId: string | null;
   customerName: string;
-  customerEmail: string;
+  customerEmail: string | null;
   customerPhone: string;
+  /** Uniquement pour un rendez-vous manuel — pour un RDV lié à une demande, l'adresse vient de `profile` (Pennylane). */
+  customerAddress: string | null;
   vehicle: string;
   startAt: string;
   endAt: string;
@@ -28,7 +31,8 @@ interface DetailAppointment {
   cancelledBy: string | null;
   cancellationReason: string | null;
   motorisation: string | null;
-  rearDiffuser: string;
+  rearDiffuser: string | null;
+  vehicleNotes: string | null;
   photos: VehiclePhoto[];
 }
 
@@ -71,6 +75,10 @@ function frDateTime(iso: string): string {
 function fullBillingAddress(profile: DetailProfile | undefined): string | null {
   if (!profile?.billingAddress || !profile.billingPostalCode || !profile.billingCity) return null;
   return `${profile.billingAddress}, ${profile.billingPostalCode} ${profile.billingCity}, France`;
+}
+/** Adresse à afficher : celle de la demande (Pennylane) si liée, sinon celle saisie manuellement pour un RDV manuel. */
+function displayAddress(appointment: DetailAppointment, profile: DetailProfile | undefined): string | null {
+  return fullBillingAddress(profile) ?? appointment.customerAddress;
 }
 
 export interface AppointmentDetailPanelProps {
@@ -185,12 +193,14 @@ export default function AppointmentDetailPanel({ appointmentId, onClose, onChang
               <a href={`tel:${data.appointment.customerPhone}`} className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-gray-300 border border-gray-700 hover:border-gray-500 transition-colors">
                 <Phone size={12} /> Appeler
               </a>
-              <a href={`mailto:${data.appointment.customerEmail}`} className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-gray-300 border border-gray-700 hover:border-gray-500 transition-colors">
-                <Mail size={12} /> Email
-              </a>
-              {fullBillingAddress(data.profile ?? undefined) && (
+              {data.appointment.customerEmail && (
+                <a href={`mailto:${data.appointment.customerEmail}`} className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-gray-300 border border-gray-700 hover:border-gray-500 transition-colors">
+                  <Mail size={12} /> Email
+                </a>
+              )}
+              {displayAddress(data.appointment, data.profile ?? undefined) && (
                 <a
-                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullBillingAddress(data.profile ?? undefined)!)}`}
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(displayAddress(data.appointment, data.profile ?? undefined)!)}`}
                   target="_blank" rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-gray-300 border border-gray-700 hover:border-gray-500 transition-colors"
                 >
@@ -202,12 +212,20 @@ export default function AppointmentDetailPanel({ appointmentId, onClose, onChang
                   <ExternalLink size={12} /> Pennylane
                 </a>
               )}
-              <Link href={`/admin/devis/${data.appointment.quoteRequestId}`} className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-gray-300 border border-gray-700 hover:border-gray-500 transition-colors">
-                <FileText size={12} /> Ouvrir la demande
-              </Link>
+              {data.appointment.quoteRequestId && (
+                <Link href={`/admin/devis/${data.appointment.quoteRequestId}`} className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-gray-300 border border-gray-700 hover:border-gray-500 transition-colors">
+                  <FileText size={12} /> Ouvrir la demande
+                </Link>
+              )}
             </div>
             <p className="text-gray-600 text-xs -mt-4 mb-6">
-              {fullBillingAddress(data.profile ?? undefined) ?? "Adresse non renseignée."}
+              {displayAddress(data.appointment, data.profile ?? undefined) ?? "Adresse non renseignée."}
+              {!data.appointment.quoteRequestId && (
+                <span className="block text-gray-700 mt-0.5">Rendez-vous créé manuellement (sans demande de devis).</span>
+              )}
+              {!data.appointment.customerEmail && (
+                <span className="block text-gray-700 mt-0.5">Confirmation email non envoyée — aucune adresse email renseignée.</span>
+              )}
             </p>
 
             {/* Infos rendez-vous */}
@@ -218,7 +236,12 @@ export default function AppointmentDetailPanel({ appointmentId, onClose, onChang
               {data.appointment.motorisation && (
                 <div className="pl-5 text-gray-500 text-xs">Motorisation : {data.appointment.motorisation}</div>
               )}
-              <div className="pl-5 text-gray-500 text-xs">Diffuseur arrière : {rearDiffuserLabel(data.appointment.rearDiffuser)}</div>
+              <div className="pl-5 text-gray-500 text-xs">
+                Diffuseur arrière : {data.appointment.rearDiffuser ? rearDiffuserLabel(data.appointment.rearDiffuser) : "Non précisé"}
+              </div>
+              {data.appointment.vehicleNotes && (
+                <div className="pl-5 text-gray-500 text-xs">Notes véhicule : {data.appointment.vehicleNotes}</div>
+              )}
             </div>
 
             {actions.error && (
@@ -230,7 +253,7 @@ export default function AppointmentDetailPanel({ appointmentId, onClose, onChang
             {(data.appointment.status === "PENDING" || data.appointment.status === "CONFIRMED") && (
               <div className="flex flex-wrap gap-2 mb-6">
                 <button type="button" onClick={() => setRescheduleOpen(true)} className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-gray-300 border border-gray-700 hover:border-gray-500 transition-colors">
-                  <CalendarClock size={12} /> Déplacer
+                  <CalendarClock size={12} /> Modifier le rendez-vous
                 </button>
                 <button type="button" disabled={actions.busy !== null} onClick={actions.complete} className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-green-400 border border-green-500/30 hover:border-green-400 disabled:opacity-40 transition-colors">
                   {actions.busy === "complete" ? <Loader2 size={12} className="animate-spin" /> : <CheckCircle2 size={12} />} Terminer
@@ -377,8 +400,8 @@ export default function AppointmentDetailPanel({ appointmentId, onClose, onChang
           open={rescheduleOpen}
           onOpenChange={setRescheduleOpen}
           mode="reschedule"
-          quoteRequestId={data.appointment.quoteRequestId}
           appointmentId={data.appointment.id}
+          current={{ startAt: data.appointment.startAt, durationMinutes: data.appointment.durationMinutes }}
           durationOptions={durationOptions}
           defaultDurationMinutes={data.appointment.durationMinutes}
           onScheduled={() => { onChanged(); load(); }}

@@ -165,17 +165,41 @@ model QuoteRequest {
 // (pas de Google/Apple Calendar). Voir src/lib/agenda/ pour toute la logique
 // métier (moteur de disponibilités, services, emails, ICS).
 model Appointment {
-  id             String       @id @default(cuid())
-  quoteRequestId String       @unique
-  quoteRequest   QuoteRequest @relation(fields: [quoteRequestId], references: [id], onDelete: Cascade)
+  id             String        @id @default(cuid())
+  // Nullable depuis la Phase 4 (RDV manuels, ex: client au téléphone/comptoir
+  // sans demande de devis) — @unique reste valide sur une colonne nullable en
+  // Postgres (NULL n'est jamais considéré égal à un autre NULL), donc
+  // plusieurs RDV manuels peuvent coexister sans conflit d'unicité.
+  quoteRequestId String?       @unique
+  quoteRequest   QuoteRequest? @relation(fields: [quoteRequestId], references: [id], onDelete: Cascade)
 
   // Snapshot au moment de la planification — l'agenda reste lisible même si
   // la demande est modifiée/désynchronisée ensuite (même principe que les
   // caches Pennylane : jamais de recalcul implicite silencieux).
   customerName  String
-  customerEmail String
+  // Nullable depuis la Phase 4 : un RDV manuel peut n'avoir aucun email
+  // (client passé au comptoir/téléphone) — voir sendAppointment*Email, tous
+  // les envois sont conditionnés à sa présence, jamais une erreur bloquante.
+  customerEmail String?
   customerPhone String
   vehicle       String // "Marque Modèle (Année)"
+
+  // Champs snapshot RDV MANUEL uniquement (quoteRequestId null) — jamais
+  // dupliqués depuis QuoteRequest pour un RDV lié à une demande : dans ce
+  // cas motorisation/rearDiffuser/adresse continuent d'être lus depuis
+  // QuoteRequest (voir src/lib/pennylane-v2/client-profile.ts), exactement
+  // comme avant la Phase 4.
+  customerAddress String?
+  motorisation    String?
+  rearDiffuser    String?
+  vehicleNotes    String  @default("")
+
+  // Résolution Pennylane optionnelle pour un RDV manuel (recherche par
+  // email/téléphone, jamais de création, jamais bloquant — voir
+  // findExistingPennylaneCustomerForManualAppointment). Toujours null pour
+  // un RDV lié à une demande (le lien Pennylane vit sur QuoteRequest).
+  pennylaneCustomerId   String?
+  pennylaneCustomerType String? // "individual" | "company"
 
   startAt         DateTime
   endAt           DateTime

@@ -26,8 +26,12 @@ export async function GET(req: NextRequest, ctx: Ctx) {
     });
     if (!appointment) return NextResponse.json({ error: "Rendez-vous introuvable" }, { status: 404 });
 
+    // Un rendez-vous manuel (Phase 4, sans demande de devis) n'a pas de
+    // quoteRequest — motorisation/diffuseur/adresse viennent alors des
+    // champs snapshot propres à Appointment, jamais de la demande (il n'y
+    // en a pas) ; aucun profil Pennylane à agréger dans ce cas non plus.
     const [profile, settings] = await Promise.all([
-      getClientProfile(appointment.quoteRequestId),
+      appointment.quoteRequestId ? getClientProfile(appointment.quoteRequestId) : Promise.resolve(null),
       getSiteSettings(),
     ]);
 
@@ -38,6 +42,7 @@ export async function GET(req: NextRequest, ctx: Ctx) {
         customerName: appointment.customerName,
         customerEmail: appointment.customerEmail,
         customerPhone: appointment.customerPhone,
+        customerAddress: appointment.quoteRequestId ? null : appointment.customerAddress,
         vehicle: appointment.vehicle,
         startAt: appointment.startAt.toISOString(),
         endAt: appointment.endAt.toISOString(),
@@ -46,9 +51,10 @@ export async function GET(req: NextRequest, ctx: Ctx) {
         notes: appointment.notes,
         cancelledBy: appointment.cancelledBy,
         cancellationReason: appointment.cancellationReason,
-        motorisation: appointment.quoteRequest.motorisation,
-        rearDiffuser: appointment.quoteRequest.rearDiffuser,
-        photos: Array.isArray(appointment.quoteRequest.photos) ? (appointment.quoteRequest.photos as unknown as VehiclePhoto[]) : [],
+        motorisation: appointment.quoteRequest?.motorisation ?? appointment.motorisation,
+        rearDiffuser: appointment.quoteRequest?.rearDiffuser ?? appointment.rearDiffuser,
+        vehicleNotes: appointment.quoteRequestId ? null : appointment.vehicleNotes,
+        photos: Array.isArray(appointment.quoteRequest?.photos) ? (appointment.quoteRequest.photos as unknown as VehiclePhoto[]) : [],
       },
       profile: profile
         ? {

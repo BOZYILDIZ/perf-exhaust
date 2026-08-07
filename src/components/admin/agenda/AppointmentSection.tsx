@@ -112,7 +112,7 @@ export default function AppointmentSection({ quoteRequestId, appointment, durati
                 onClick={() => setRescheduleOpen(true)}
                 className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold tracking-widest uppercase text-gray-300 border border-gray-700 hover:border-gray-500 transition-colors"
               >
-                <CalendarClock size={13} /> Déplacer
+                <CalendarClock size={13} /> Modifier
               </button>
               <button
                 type="button"
@@ -146,8 +146,8 @@ export default function AppointmentSection({ quoteRequestId, appointment, durati
             open={rescheduleOpen}
             onOpenChange={setRescheduleOpen}
             mode="reschedule"
-            quoteRequestId={quoteRequestId}
             appointmentId={appointment.id}
+            current={{ startAt: appointment.startAt, durationMinutes: appointment.durationMinutes }}
             durationOptions={durationOptions}
             defaultDurationMinutes={appointment.durationMinutes}
             onScheduled={() => router.refresh()}

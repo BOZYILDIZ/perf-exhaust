@@ -3,18 +3,19 @@
 import { useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
-  Search, ChevronLeft, ChevronRight, CalendarDays, Printer, Download, Plus, X, AlertCircle,
+  Search, ChevronLeft, ChevronRight, CalendarDays, Printer, Download, Plus, X, AlertCircle, UserPlus,
 } from "lucide-react";
 import type { AgendaView } from "@/lib/agenda/calendar-range";
 import { pixelsToMinutes, snapMinutes, applyMinutesDelta, columnIndexAtX, clampDuration } from "@/lib/agenda/drag-math";
 import { APPOINTMENT_STATUS_LABELS, APPOINTMENT_STATUS_HEX, AGENDA_BLOCK_HEX } from "./AppointmentSection";
 import AppointmentDetailPanel from "./AppointmentDetailPanel";
 import CreateBlockModal, { type BlockCategoryOption } from "./CreateBlockModal";
+import CreateManualAppointmentModal from "./CreateManualAppointmentModal";
 import type { DurationOption } from "./ScheduleAppointmentModal";
 
 export interface AgendaAppointment {
   id: string;
-  quoteRequestId: string;
+  quoteRequestId: string | null;
   customerName: string;
   vehicle: string;
   startAt: string;
@@ -70,6 +71,14 @@ function minutesFromGridStart(iso: string, startHour: number): number {
 }
 
 type DragKind = "appointment" | "block";
+// Le glisser-déposer (déplacement) des rendez-vous a été retiré (Phase 4) :
+// un déplacement pouvait visuellement "revenir" à sa position d'origine tout
+// en appelant quand même la route de reschedule, déclenchant un email
+// "rendez-vous déplacé" trompeur pour le client (garde-fou serveur ajouté en
+// complément, voir rescheduleAppointment). Les rendez-vous ne supportent
+// donc plus que le mode "resize" (encore pertinent : ajuster rapidement une
+// durée). Les blocs atelier, eux, conservent move ET resize — jamais de
+// notification client associée à un bloc.
 type DragMode = "move" | "resize";
 interface DragState {
   kind: DragKind;
@@ -90,6 +99,7 @@ export default function AgendaCalendar({ view, dateStr, label, appointments, blo
   const [activeFilters, setActiveFilters] = useState<Set<string>>(new Set());
   const [detailId, setDetailId] = useState<string | null>(null);
   const [createBlockOpen, setCreateBlockOpen] = useState(false);
+  const [createAppointmentOpen, setCreateAppointmentOpen] = useState(false);
   const [drag, setDrag] = useState<DragState | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -116,7 +126,7 @@ export default function AgendaCalendar({ view, dateStr, label, appointments, blo
         if (statusFilters.length === 0 && activeFilters.has("BLOCK")) return false; // "Bloc atelier" seul coché : masquer tous les rendez-vous
       }
       if (!q) return true;
-      return [a.customerName, a.vehicle, a.quoteRequestId].some((v) => v.toLowerCase().includes(q));
+      return [a.customerName, a.vehicle, a.quoteRequestId ?? ""].some((v) => v.toLowerCase().includes(q));
     });
   }, [appointments, query, activeFilters]);
 
@@ -283,6 +293,9 @@ export default function AgendaCalendar({ view, dateStr, label, appointments, blo
           ))}
         </div>
         <div className="flex flex-wrap gap-2">
+          <button type="button" onClick={() => setCreateAppointmentOpen(true)} className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold uppercase tracking-wider text-white" style={{ background: "linear-gradient(135deg, #1266ea, #0d54c8)" }}>
+            <UserPlus size={13} /> Nouveau rendez-vous
+          </button>
           <button type="button" onClick={() => setCreateBlockOpen(true)} className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold uppercase tracking-wider text-white" style={{ background: "linear-gradient(135deg, #7c3aed, #6d28d9)" }}>
             <Plus size={13} /> Bloc atelier
           </button>
@@ -371,14 +384,14 @@ export default function AgendaCalendar({ view, dateStr, label, appointments, blo
                       const height = Math.max(24, (durMin / 60) * HOUR_HEIGHT);
                       const colors = APPOINTMENT_STATUS_HEX[a.status] ?? APPOINTMENT_STATUS_HEX.PENDING;
                       const isDragging = drag?.kind === "appointment" && drag.id === a.id;
-                      const canEdit = a.status === "PENDING" || a.status === "CONFIRMED";
+                      const canResize = a.status === "PENDING" || a.status === "CONFIRMED";
                       return (
                         <div
                           key={a.id}
-                          onPointerDown={(e) => canEdit ? startDrag(e, "appointment", a.id, a.startAt, durMin, dayIdx, "move") : setDetailId(a.id)}
-                          className={`absolute left-0.5 right-0.5 px-1.5 py-0.5 overflow-hidden select-none ${canEdit ? "cursor-grab active:cursor-grabbing" : "cursor-pointer"}`}
+                          onClick={() => setDetailId(a.id)}
+                          className="absolute left-0.5 right-0.5 px-1.5 py-0.5 overflow-hidden select-none cursor-pointer"
                           style={{
-                            top: isDragging && drag.mode === "move" ? top + (drag.currentDeltaMinutes / 60) * HOUR_HEIGHT : top,
+                            top,
                             height: isDragging && drag.mode === "resize" ? Math.max(24, height + (drag.currentDeltaMinutes / 60) * HOUR_HEIGHT) : height,
                             background: colors.bg, border: `1px solid ${colors.border}`, color: colors.text,
                             opacity: isDragging ? 0.85 : 1, zIndex: isDragging ? 20 : 2,
@@ -387,10 +400,12 @@ export default function AgendaCalendar({ view, dateStr, label, appointments, blo
                         >
                           <div className="text-[10px] font-bold truncate">{timeOf(a.startAt)} {a.customerName}</div>
                           <div className="text-[9px] truncate opacity-80">{a.vehicle}</div>
-                          {canEdit && (
+                          {canResize && (
                             <div
                               onPointerDown={(e) => startDrag(e, "appointment", a.id, a.startAt, durMin, dayIdx, "resize")}
+                              onClick={(e) => e.stopPropagation()}
                               className="absolute left-0 right-0 bottom-0 h-2 cursor-ns-resize"
+                              aria-label="Redimensionner le rendez-vous"
                             />
                           )}
                         </div>
@@ -429,6 +444,15 @@ export default function AgendaCalendar({ view, dateStr, label, appointments, blo
         onOpenChange={setCreateBlockOpen}
         categories={blockCategories}
         defaultDateStr={dateStr}
+        onCreated={refresh}
+      />
+
+      <CreateManualAppointmentModal
+        key={String(createAppointmentOpen)}
+        open={createAppointmentOpen}
+        onOpenChange={setCreateAppointmentOpen}
+        durationOptions={durationOptions}
+        defaultDurationMinutes={durationOptions[0]?.minutes ?? 60}
         onCreated={refresh}
       />
     </div>
