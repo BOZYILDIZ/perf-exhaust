@@ -1,11 +1,17 @@
 import { isDbConfigured } from "@/lib/db";
 import { getSiteSettings } from "@/lib/settings-repo";
+import { getAgendaSettings, listWorkshopClosures } from "@/lib/agenda/settings";
 import SettingsForm from "@/components/admin/SettingsForm";
+import AgendaSettingsForm from "@/components/admin/AgendaSettingsForm";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminSettingsPage() {
-  const settings = await getSiteSettings();
+  const [settings, agendaSettings, closures] = await Promise.all([
+    getSiteSettings(),
+    getAgendaSettings(),
+    listWorkshopClosures(),
+  ]);
 
   return (
     <div>
@@ -23,7 +29,18 @@ export default async function AdminSettingsPage() {
           utilise en attendant les valeurs par défaut codées en dur.
         </p>
       ) : (
-        <SettingsForm initial={settings} />
+        <>
+          <SettingsForm initial={settings} />
+
+          <h2 className="text-2xl font-black text-white mt-16 mb-2" style={{ fontFamily: "var(--font-oswald), sans-serif" }}>
+            Agenda atelier
+          </h2>
+          <p className="text-gray-500 text-sm mb-8">
+            Horaires d&apos;ouverture, pause déjeuner, durées de rendez-vous et fermetures exceptionnelles —
+            utilisés par le moteur de disponibilités de l&apos;agenda (<code className="text-brand-400">/admin/agenda</code>).
+          </p>
+          <AgendaSettingsForm initial={agendaSettings} initialClosures={closures} />
+        </>
       )}
     </div>
   );

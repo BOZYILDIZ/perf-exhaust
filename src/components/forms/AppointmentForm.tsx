@@ -6,13 +6,18 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { ArrowRight, CheckCircle, AlertCircle, Loader2, ChevronDown } from "lucide-react";
 import VehicleSelector, { type VehicleValue } from "./VehicleSelector";
+import VehiclePhotoUpload from "./VehiclePhotoUpload";
 import { REAR_DIFFUSER_OPTIONS, REAR_DIFFUSER_VALUES, rearDiffuserLabel } from "@/lib/quote-request-options";
+import { MAX_PHOTOS, vehiclePhotoMetadataSchema } from "@/lib/vehicle-photo-slots";
 
 const schema = z.object({
   nom: z.string().min(2, "Nom requis"),
   prenom: z.string().min(2, "Prénom requis"),
   telephone: z.string().regex(/^[+0-9 .()-]{10,20}$/, "Téléphone invalide (10 chiffres minimum)"),
   email: z.string().email("Email invalide"),
+  billingAddress: z.string().min(3, "Adresse requise"),
+  billingPostalCode: z.string().regex(/^\d{5}$/, "Code postal invalide (5 chiffres)"),
+  billingCity: z.string().min(2, "Ville requise"),
   marque: z.string().min(2, "Marque requise"),
   modele: z.string().min(1, "Modèle requis"),
   annee: z.string().regex(/^(19|20)\d{2}$/, "Année invalide (ex : 2021)"),
@@ -22,6 +27,7 @@ const schema = z.object({
   sonoritePreference: z.string().min(1, "Préférence sonore requise"),
   description: z.string().min(10, "Description requise (10 caractères minimum)"),
   creneauSouhaite: z.string().optional(),
+  photos: z.array(vehiclePhotoMetadataSchema).max(MAX_PHOTOS).optional(),
   rgpd: z.boolean().refine((v) => v === true, { message: "Vous devez accepter la politique de confidentialité" }),
 });
 
@@ -50,6 +56,7 @@ const sonorities = [
 const DRAFT_KEY = "pe-devis-draft";
 const REQUIRED_FIELDS: (keyof FormData)[] = [
   "prenom", "nom", "telephone", "email",
+  "billingAddress", "billingPostalCode", "billingCity",
   "marque", "modele", "annee", "rearDiffuser",
   "typeProjet", "sonoritePreference", "description", "rgpd",
 ];
@@ -218,10 +225,37 @@ export default function AppointmentForm() {
         </div>
       </div>
 
+      {/* Section adresse de facturation */}
+      <div>
+        <h2 className="text-white font-bold text-sm tracking-widest uppercase mb-4 pb-2" style={{ borderBottom: "1px solid #1e1e1e" }}>
+          02 — Adresse de facturation
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="sm:col-span-2">
+            <label htmlFor="rv-billing-address" className={labelStyle}>Adresse *</label>
+            <input id="rv-billing-address" {...register("billingAddress")} className={inputStyle} placeholder="12 rue de l'Exemple" />
+            {errors.billingAddress && <p className={errorStyle}><AlertCircle size={10} />{errors.billingAddress.message}</p>}
+          </div>
+          <div>
+            <label htmlFor="rv-billing-postal-code" className={labelStyle}>Code postal *</label>
+            <input id="rv-billing-postal-code" {...register("billingPostalCode")} inputMode="numeric" className={inputStyle} placeholder="67000" />
+            {errors.billingPostalCode && <p className={errorStyle}><AlertCircle size={10} />{errors.billingPostalCode.message}</p>}
+          </div>
+          <div>
+            <label htmlFor="rv-billing-city" className={labelStyle}>Ville *</label>
+            <input id="rv-billing-city" {...register("billingCity")} className={inputStyle} placeholder="Strasbourg" />
+            {errors.billingCity && <p className={errorStyle}><AlertCircle size={10} />{errors.billingCity.message}</p>}
+          </div>
+        </div>
+        <p className="text-gray-600 text-xs mt-3">
+          Cette adresse est utilisée uniquement pour établir votre devis et votre facture.
+        </p>
+      </div>
+
       {/* Section véhicule */}
       <div>
         <h2 className="text-white font-bold text-sm tracking-widest uppercase mb-4 pb-2" style={{ borderBottom: "1px solid #1e1e1e" }}>
-          02 — Votre véhicule
+          03 — Votre véhicule
         </h2>
         <VehicleSelector
           key={draft ? "draft" : "fresh"}
@@ -272,7 +306,7 @@ export default function AppointmentForm() {
       {/* Section projet */}
       <div>
         <h2 className="text-white font-bold text-sm tracking-widest uppercase mb-4 pb-2" style={{ borderBottom: "1px solid #1e1e1e" }}>
-          03 — Votre projet
+          04 — Votre projet
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
@@ -312,14 +346,26 @@ export default function AppointmentForm() {
             <label htmlFor="rv-creneau" className={labelStyle}>Créneau souhaité (optionnel)</label>
             <input id="rv-creneau" {...register("creneauSouhaite")} className={inputStyle} placeholder="ex : Semaine prochaine matin" />
           </div>
-          <div className="flex items-end">
-            <p className="text-gray-500 text-xs leading-relaxed pb-1">
-              Des photos de votre véhicule ou de la ligne existante ? Envoyez-les à{" "}
-              <a href="mailto:contact@perfexhaust.fr" className="text-brand-400 hover:underline">contact@perfexhaust.fr</a>{" "}
-              après votre demande — elles nous aideront à affiner le devis.
-            </p>
-          </div>
         </div>
+      </div>
+
+      {/* Section photos */}
+      <div>
+        <h2 className="text-white font-bold text-sm tracking-widest uppercase mb-1 pb-2" style={{ borderBottom: "1px solid #1e1e1e" }}>
+          05 — Photos du véhicule <span className="text-gray-600 normal-case font-normal tracking-normal">(recommandé)</span>
+        </h2>
+        <p className="text-gray-400 text-sm mt-3 mb-1 max-w-2xl">
+          Ajoutez quelques photos de votre véhicule afin que nous puissions préparer un devis plus rapidement et
+          avec davantage de précision.
+        </p>
+        <p className="text-gray-600 text-xs mb-4">
+          Formats acceptés : JPG, PNG et WebP • 10 Mo maximum par photo.
+        </p>
+        <VehiclePhotoUpload
+          key={draft ? "draft" : "fresh"}
+          initial={draft?.photos}
+          onChange={(photos) => setValue("photos", photos, { shouldValidate: isSubmitted })}
+        />
       </div>
 
       {/* Résumé avant envoi */}

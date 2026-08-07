@@ -2,11 +2,15 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Save, Trash2, Archive, CheckCircle, AlertCircle, Phone, Mail } from "lucide-react";
+import { Loader2, Save, Trash2, Archive, CheckCircle, AlertCircle, Phone, Mail, MapPin } from "lucide-react";
 import PennylaneSection from "@/components/admin/PennylaneSection";
 import PennylaneManualSection from "@/components/admin/PennylaneManualSection";
 import PennylaneV2Section, { type PennylaneV2SectionProps } from "@/components/admin/PennylaneV2Section";
+import AppointmentSection, { type AppointmentData } from "@/components/admin/agenda/AppointmentSection";
+import VehiclePhotosSection from "@/components/admin/VehiclePhotosSection";
+import type { DurationOption } from "@/components/admin/agenda/ScheduleAppointmentModal";
 import { rearDiffuserLabel } from "@/lib/quote-request-options";
+import type { VehiclePhoto } from "@/lib/vehicle-photo-slots";
 
 export interface QuoteRequestDetailData {
   id: string;
@@ -14,6 +18,9 @@ export interface QuoteRequestDetailData {
   prenom: string;
   email: string;
   telephone: string;
+  billingAddress: string | null;
+  billingPostalCode: string | null;
+  billingCity: string | null;
   marque: string;
   modele: string;
   annee: string;
@@ -22,6 +29,7 @@ export interface QuoteRequestDetailData {
   sonorite: string;
   rearDiffuser: string;
   message: string;
+  photos: VehiclePhoto[];
   status: string;
   notes: string;
   createdAt: string;
@@ -61,12 +69,18 @@ export default function QuoteRequestDetail({
   pennylaneMode,
   pennylaneManualUrl,
   pennylaneV2,
+  appointment,
+  durationOptions,
+  defaultDurationMinutes,
 }: {
   request: QuoteRequestDetailData;
   pennylaneConfigured: boolean;
   pennylaneMode: "api" | "manual";
   pennylaneManualUrl: string;
   pennylaneV2: Omit<PennylaneV2SectionProps, "quoteRequestId" | "pennylaneHomeUrl">;
+  appointment: AppointmentData | null;
+  durationOptions: DurationOption[];
+  defaultDurationMinutes: number;
 }) {
   const router = useRouter();
   const [status, setStatus] = useState(request.status);
@@ -155,6 +169,26 @@ export default function QuoteRequestDetail({
       </section>
 
       <section>
+        <h2 className={sectionTitle}>Adresse de facturation</h2>
+        {request.billingAddress && request.billingPostalCode && request.billingCity ? (
+          <div className="flex items-start gap-2.5 text-sm">
+            <MapPin size={15} className="text-brand-400 mt-0.5 flex-shrink-0" />
+            <address className="text-gray-300 not-italic leading-relaxed">
+              {request.billingAddress}
+              <br />
+              {request.billingPostalCode} {request.billingCity}
+              <br />
+              France
+            </address>
+          </div>
+        ) : (
+          <p className="text-gray-600 text-sm italic">
+            Adresse non renseignée — demande créée avant la collecte de l&apos;adresse de facturation.
+          </p>
+        )}
+      </section>
+
+      <section>
         <h2 className={sectionTitle}>Véhicule & projet</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <InfoRow label="Véhicule" value={`${request.marque} ${request.modele} (${request.annee})`} />
@@ -170,6 +204,15 @@ export default function QuoteRequestDetail({
           </p>
         </div>
       </section>
+
+      <VehiclePhotosSection photos={request.photos} />
+
+      <AppointmentSection
+        quoteRequestId={request.id}
+        appointment={appointment}
+        durationOptions={durationOptions}
+        defaultDurationMinutes={defaultDurationMinutes}
+      />
 
       <PennylaneV2Section
         quoteRequestId={request.id}

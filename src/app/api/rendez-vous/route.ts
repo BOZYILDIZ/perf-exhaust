@@ -9,12 +9,16 @@ import { PennylaneError } from "@/lib/pennylane/types";
 import { REAR_DIFFUSER_VALUES } from "@/lib/quote-request-options";
 import { isPennylaneV2Configured } from "@/lib/pennylane-v2/config";
 import { syncCustomerForQuoteRequest } from "@/lib/pennylane-v2/sync";
+import { MAX_PHOTOS, vehiclePhotoMetadataSchema } from "@/lib/vehicle-photo-slots";
 
 const schema = z.object({
   nom: z.string().min(2),
   prenom: z.string().min(2),
   telephone: z.string().regex(/^[+0-9 .()-]{10,20}$/, "Téléphone invalide"),
   email: z.string().email(),
+  billingAddress: z.string().min(3, "Adresse requise"),
+  billingPostalCode: z.string().regex(/^\d{5}$/, "Code postal invalide"),
+  billingCity: z.string().min(2, "Ville requise"),
   marque: z.string().min(2),
   modele: z.string().min(1),
   annee: z.string().regex(/^(19|20)\d{2}$/, "Année invalide"),
@@ -24,6 +28,10 @@ const schema = z.object({
   sonoritePreference: z.string().min(1),
   description: z.string().min(10),
   creneauSouhaite: z.string().optional(),
+  // Photos déjà uploadées vers Vercel Blob avant la soumission — jamais de
+  // fichier ici, uniquement les métadonnées (voir /api/rendez-vous/upload).
+  // Revalidées ici même si le client les a déjà validées (route publique).
+  photos: z.array(vehiclePhotoMetadataSchema).max(MAX_PHOTOS).optional(),
   rgpd: z.boolean(),
 });
 
@@ -57,6 +65,9 @@ export async function POST(req: NextRequest) {
             prenom: data.prenom,
             email: data.email,
             telephone: data.telephone,
+            billingAddress: data.billingAddress,
+            billingPostalCode: data.billingPostalCode,
+            billingCity: data.billingCity,
             marque: data.marque,
             modele: data.modele,
             annee: data.annee,
@@ -65,6 +76,7 @@ export async function POST(req: NextRequest) {
             typeProjet: data.typeProjet,
             sonorite: data.sonoritePreference,
             message: data.description,
+            photos: data.photos ?? [],
             pennylaneSyncStatus: pennylaneMode === "api" ? "pending" : "not_configured",
             // Mode manuel (plan gratuit Pennylane, sans API) : la demande démarre
             // "à créer dans Pennylane" — l'admin la fait avancer depuis /admin/devis/[id].
