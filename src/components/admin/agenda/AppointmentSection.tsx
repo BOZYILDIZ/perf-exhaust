@@ -22,7 +22,7 @@ export interface AppointmentSectionProps {
   defaultDurationMinutes: number;
 }
 
-const STATUS_LABELS: Record<string, string> = {
+export const APPOINTMENT_STATUS_LABELS: Record<string, string> = {
   PENDING: "En attente",
   CONFIRMED: "Confirmé",
   COMPLETED: "Terminé",
@@ -30,7 +30,7 @@ const STATUS_LABELS: Record<string, string> = {
   NO_SHOW: "Absent",
 };
 
-const STATUS_STYLES: Record<string, string> = {
+export const APPOINTMENT_STATUS_STYLES: Record<string, string> = {
   PENDING: "text-gray-400 bg-white/5",
   CONFIRMED: "text-brand-400 bg-brand-500/10",
   COMPLETED: "text-green-400 bg-green-500/10",
@@ -83,8 +83,8 @@ export default function AppointmentSection({ quoteRequestId, appointment, durati
       ) : (
         <div>
           <div className="flex flex-wrap items-center gap-3 mb-3">
-            <span className={`text-xs font-bold px-2.5 py-1 uppercase tracking-wider ${STATUS_STYLES[appointment.status] ?? "text-gray-400 bg-white/5"}`}>
-              {STATUS_LABELS[appointment.status] ?? appointment.status}
+            <span className={`text-xs font-bold px-2.5 py-1 uppercase tracking-wider ${APPOINTMENT_STATUS_STYLES[appointment.status] ?? "text-gray-400 bg-white/5"}`}>
+              {APPOINTMENT_STATUS_LABELS[appointment.status] ?? appointment.status}
             </span>
             {appointment.status === "CANCELLED" && appointment.cancelledBy === "CUSTOMER" && (
               <span className="text-xs text-gray-500">Annulé par le client</span>

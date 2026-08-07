@@ -84,6 +84,8 @@ export default async function AdminQuoteRequestDetailPage({ params }: { params: 
                 badge: clientProfile.badge,
                 timeline: clientProfile.timeline,
                 card: clientProfile.card,
+                nextAppointment: clientProfile.nextAppointment,
+                appointmentHistory: clientProfile.appointmentHistory,
                 financials: {
                   notSynced: clientProfile.financials.notSynced,
                   quotes: clientProfile.financials.quotes,

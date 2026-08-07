@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   CheckCircle,
@@ -14,12 +15,14 @@ import {
   Phone,
   Car,
   Calendar,
+  Clock,
   Wallet,
   FileText,
   Receipt,
   CheckCircle2,
   Fingerprint,
 } from "lucide-react";
+import { APPOINTMENT_STATUS_LABELS, APPOINTMENT_STATUS_STYLES } from "@/components/admin/agenda/AppointmentSection";
 
 export interface PennylaneV2Candidate {
   id: number;
@@ -108,6 +111,16 @@ export interface PennylaneV2QuotesStats {
   invoiced: number;
 }
 
+export interface PennylaneV2AppointmentSummary {
+  id: string;
+  quoteRequestId: string;
+  startAt: string;
+  endAt: string;
+  durationMinutes: number;
+  status: string;
+  vehicle: string;
+}
+
 export interface PennylaneV2Profile {
   pennylaneCustomerId: number | null;
   pennylaneCustomerName: string | null;
@@ -118,6 +131,9 @@ export interface PennylaneV2Profile {
   badge: PennylaneV2Badge;
   timeline: PennylaneV2TimelineEvent[];
   card: PennylaneV2ClientCard;
+  /** Rendez-vous atelier — indépendant de Pennylane (voir src/lib/agenda/). */
+  nextAppointment: PennylaneV2AppointmentSummary | null;
+  appointmentHistory: PennylaneV2AppointmentSummary[];
   financials: {
     notSynced: boolean;
     quotes: PennylaneV2QuoteSummary[];
@@ -434,6 +450,7 @@ export default function PennylaneV2Section(props: PennylaneV2SectionProps) {
       {profile && profile.pennylaneCustomerId && (
         <div className="space-y-8">
           <ClientCardBlock card={profile.card} />
+          <AppointmentsBlock nextAppointment={profile.nextAppointment} history={profile.appointmentHistory} />
           <StatsBlock summary={profile.financials.summary} quotesStats={profile.financials.quotesStats} />
           <VehiclesBlock vehicles={profile.vehicles} />
           {!profile.financials.notSynced && <FinancialsBlock financials={profile.financials} />}
@@ -511,6 +528,57 @@ function StatsBlock({ summary, quotesStats }: { summary: PennylaneV2FinancialsSu
         <StatTile label="Total payé" value={euro(summary.totalPaid)} />
         <StatTile label="Reste dû" value={euro(summary.totalRemaining)} warn={summary.totalRemaining > 0} />
       </div>
+    </div>
+  );
+}
+
+function AppointmentsBlock({ nextAppointment, history }: { nextAppointment: PennylaneV2AppointmentSummary | null; history: PennylaneV2AppointmentSummary[] }) {
+  return (
+    <div>
+      <BlockTitle>Prochain rendez-vous</BlockTitle>
+      {nextAppointment ? (
+        <Link
+          href={`/admin/devis/${nextAppointment.quoteRequestId}`}
+          className="block px-4 py-3 border mb-6 max-w-md transition-transform hover:-translate-y-0.5"
+          style={{ borderColor: "#1e1e1e", background: "#0f0f0f" }}
+        >
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="inline-flex items-center gap-1.5 text-sm text-white font-medium">
+              <Calendar size={13} className="text-brand-400" /> {dateFR(nextAppointment.startAt)}
+            </span>
+            <span className={`text-xs font-bold px-2 py-0.5 uppercase tracking-wider ${APPOINTMENT_STATUS_STYLES[nextAppointment.status] ?? "text-gray-400 bg-white/5"}`}>
+              {APPOINTMENT_STATUS_LABELS[nextAppointment.status] ?? nextAppointment.status}
+            </span>
+          </div>
+          <div className="text-gray-500 text-xs inline-flex items-center gap-1.5">
+            <Clock size={11} /> {new Date(nextAppointment.startAt).toLocaleTimeString("fr-FR", { timeZone: "Europe/Paris", hour: "2-digit", minute: "2-digit" })} · {nextAppointment.vehicle}
+          </div>
+        </Link>
+      ) : (
+        <p className="text-gray-600 text-sm mb-6">Aucun rendez-vous planifié.</p>
+      )}
+
+      {history.length > 0 && (
+        <>
+          <BlockTitle>Historique des rendez-vous ({history.length})</BlockTitle>
+          <ul className="space-y-2 mb-6 max-w-md">
+            {history.map((a) => (
+              <li key={a.id}>
+                <Link
+                  href={`/admin/devis/${a.quoteRequestId}`}
+                  className="flex items-center justify-between gap-2 px-4 py-2.5 border transition-colors hover:border-gray-600"
+                  style={{ borderColor: "#1e1e1e", background: "#0d0d0d" }}
+                >
+                  <span className="text-gray-300 text-sm">{dateFR(a.startAt)}</span>
+                  <span className={`text-xs font-bold px-2 py-0.5 uppercase tracking-wider ${APPOINTMENT_STATUS_STYLES[a.status] ?? "text-gray-400 bg-white/5"}`}>
+                    {APPOINTMENT_STATUS_LABELS[a.status] ?? a.status}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
     </div>
   );
 }
