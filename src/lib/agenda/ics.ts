@@ -38,13 +38,8 @@ export interface IcsEventInput {
   location: string
 }
 
-export function buildAppointmentIcs(event: IcsEventInput): string {
-  const lines = [
-    'BEGIN:VCALENDAR',
-    'VERSION:2.0',
-    "PRODID:-//PERF'EXHAUST//Agenda//FR",
-    'CALSCALE:GREGORIAN',
-    'METHOD:PUBLISH',
+function buildVeventLines(event: IcsEventInput): string[] {
+  return [
     'BEGIN:VEVENT',
     `UID:${event.uid}@perfexhaust.fr`,
     `DTSTAMP:${toIcsUtc(new Date())}`,
@@ -54,6 +49,31 @@ export function buildAppointmentIcs(event: IcsEventInput): string {
     `DESCRIPTION:${escapeIcsText(event.description)}`,
     `LOCATION:${escapeIcsText(event.location)}`,
     'END:VEVENT',
+  ]
+}
+
+export function buildAppointmentIcs(event: IcsEventInput): string {
+  const lines = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    "PRODID:-//PERF'EXHAUST//Agenda//FR",
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+    ...buildVeventLines(event),
+    'END:VCALENDAR',
+  ]
+  return lines.map(foldLine).join('\r\n') + '\r\n'
+}
+
+/** Fichier .ics regroupant plusieurs événements — utilisé par l'export agenda (jour/semaine/mois), compatible Google Calendar/Apple Calendar/Outlook via le même format universel (importation de fichier, aucune API/OAuth tierce). */
+export function buildMultiEventIcs(events: IcsEventInput[]): string {
+  const lines = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    "PRODID:-//PERF'EXHAUST//Agenda//FR",
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+    ...events.flatMap((e) => buildVeventLines(e)),
     'END:VCALENDAR',
   ]
   return lines.map(foldLine).join('\r\n') + '\r\n'
