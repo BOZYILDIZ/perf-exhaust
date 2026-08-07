@@ -12,6 +12,10 @@ export interface ClientCard {
   nom: string
   email: string
   telephone: string
+  /** Adresse de facturation RÉELLE du client (QuoteRequest.billingAddress), jamais celle de l'atelier — null si la demande a été créée avant le 2026-08-07 (afficher "Adresse non renseignée"). */
+  billingAddress: string | null
+  billingPostalCode: string | null
+  billingCity: string | null
   vehicleCount: number
   quoteCount: number
   invoiceCount: number
@@ -37,8 +41,6 @@ export interface ClientProfile {
   pennylaneCustomerName: string | null
   /** Date de création du client Pennylane (`created_at`, confirmé réel) — jamais disponible avant la première synchronisation réussie. */
   pennylaneCreatedAt: string | null
-  /** Adresse de facturation Pennylane — peut être celle de l'atelier (repli) si le client n'a pas fourni la sienne, voir le commentaire dans getClientProfile(). */
-  pennylaneBillingAddress: string | null
   requestCount: number
   vehicles: VehicleHistoryEntry[]
   badge: ClientBadge
@@ -67,6 +69,7 @@ export async function getClientProfile(quoteRequestId: string): Promise<ClientPr
     where: { id: quoteRequestId },
     select: {
       id: true, nom: true, prenom: true, email: true, telephone: true,
+      billingAddress: true, billingPostalCode: true, billingCity: true,
       marque: true, modele: true, annee: true, motorisation: true,
       createdAt: true, pennylaneCustomerId: true, pennylaneCustomerSyncedAt: true,
       pennylaneCustomerLastSyncAt: true,
@@ -95,7 +98,6 @@ export async function getClientProfile(quoteRequestId: string): Promise<ClientPr
 
   let pennylaneCustomerName: string | null = null
   let pennylaneCreatedAt: string | null = null
-  let pennylaneBillingAddress: string | null = null
   let customerFetchError: string | null = null
 
   if (current.pennylaneCustomerId) {
@@ -103,15 +105,6 @@ export async function getClientProfile(quoteRequestId: string): Promise<ClientPr
       const customer = await getCustomer(Number(current.pennylaneCustomerId))
       pennylaneCustomerName = customerDisplayName(customer)
       pennylaneCreatedAt = customer.created_at ?? null
-      // ⚠️ Sur les demandes créées automatiquement en mode API sans adresse
-      // client réelle collectée par le formulaire, cette adresse peut être
-      // celle de repli de l'ATELIER (PENNYLANE_FALLBACK_*), pas celle du
-      // client — voir docs/MAINTENANCE.md § "Limites connues". Affichée
-      // telle quelle, jamais présumée être l'adresse réelle du client.
-      const addr = customer.billing_address
-      if (addr?.address && addr.postal_code && addr.city) {
-        pennylaneBillingAddress = `${addr.address}, ${addr.postal_code} ${addr.city}`
-      }
     } catch {
       // Erreur volontairement générique — jamais de détail technique/stack trace affiché à l'admin.
       customerFetchError = 'Client introuvable dans Pennylane (supprimé ou identifiant invalide).'
@@ -160,6 +153,9 @@ export async function getClientProfile(quoteRequestId: string): Promise<ClientPr
     nom: `${current.prenom} ${current.nom}`,
     email: current.email,
     telephone: current.telephone,
+    billingAddress: current.billingAddress,
+    billingPostalCode: current.billingPostalCode,
+    billingCity: current.billingCity,
     vehicleCount: vehicles.length,
     quoteCount: financials.quotesStats.count,
     invoiceCount: financials.summary.count,
@@ -173,7 +169,6 @@ export async function getClientProfile(quoteRequestId: string): Promise<ClientPr
     pennylaneCustomerId: current.pennylaneCustomerId ? Number(current.pennylaneCustomerId) : null,
     pennylaneCustomerName,
     pennylaneCreatedAt,
-    pennylaneBillingAddress,
     requestCount: siblings.length,
     vehicles,
     badge,

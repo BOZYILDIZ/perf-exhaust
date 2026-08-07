@@ -2,6 +2,7 @@ import { Resend } from 'resend'
 import { getSiteSettings } from '@/lib/settings-repo'
 import { rearDiffuserLabel } from '@/lib/quote-request-options'
 import { buildAppointmentIcs } from '@/lib/agenda/ics'
+import type { VehiclePhoto } from '@/lib/vehicle-photo-slots'
 import {
   buildAppointmentConfirmationEmailHtml,
   buildAppointmentModifiedEmailHtml,
@@ -46,6 +47,8 @@ export interface AppointmentData {
   sonoritePreference: string
   description: string
   creneauSouhaite?: string
+  /** Métadonnées uniquement (URL Vercel Blob, jamais le fichier) — ne jamais joindre en pièce jointe, voir sendAppointmentToShop. Jamais transmises à Pennylane. */
+  photos?: VehiclePhoto[]
 }
 
 export async function sendAppointmentToShop(data: AppointmentData) {
@@ -78,6 +81,9 @@ export async function sendAppointmentToShop(data: AppointmentData) {
         ${e.creneauSouhaite ? `<p><strong>Créneau souhaité:</strong> ${e.creneauSouhaite}</p>` : ''}
         <p><strong>Description:</strong></p>
         <p style="background:#f5f5f5;padding:12px;border-radius:4px">${e.description}</p>
+        ${data.photos && data.photos.length > 0
+          ? `<p style="color:#1266ea"><strong>Le client a joint ${data.photos.length} photo${data.photos.length > 1 ? 's' : ''}.</strong><br/>Consultez-les depuis le panel administrateur.</p>`
+          : ''}
       </div>
     `,
   })

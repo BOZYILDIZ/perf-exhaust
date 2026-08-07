@@ -21,6 +21,7 @@ import {
   Receipt,
   CheckCircle2,
   Fingerprint,
+  MapPin,
 } from "lucide-react";
 import { APPOINTMENT_STATUS_LABELS, APPOINTMENT_STATUS_STYLES } from "@/components/admin/agenda/AppointmentSection";
 
@@ -83,6 +84,9 @@ export interface PennylaneV2ClientCard {
   nom: string;
   email: string;
   telephone: string;
+  billingAddress: string | null;
+  billingPostalCode: string | null;
+  billingCity: string | null;
   vehicleCount: number;
   quoteCount: number;
   invoiceCount: number;
@@ -465,10 +469,16 @@ function BlockTitle({ children }: { children: React.ReactNode }) {
   return <h3 className="text-gray-400 text-xs font-bold tracking-widest uppercase mb-3">{children}</h3>;
 }
 
+function billingAddressLine(card: PennylaneV2ClientCard): string {
+  if (!card.billingAddress || !card.billingPostalCode || !card.billingCity) return "Adresse non renseignée";
+  return `${card.billingAddress}, ${card.billingPostalCode} ${card.billingCity}, France`;
+}
+
 function ClientCardBlock({ card }: { card: PennylaneV2ClientCard }) {
   const rows: { icon: typeof Mail; label: string; value: string }[] = [
     { icon: Mail, label: "Email", value: card.email },
     { icon: Phone, label: "Téléphone", value: card.telephone },
+    { icon: MapPin, label: "Adresse de facturation", value: billingAddressLine(card) },
     { icon: Car, label: "Véhicules", value: String(card.vehicleCount) },
     { icon: FileText, label: "Devis", value: String(card.quoteCount) },
     { icon: Receipt, label: "Factures", value: String(card.invoiceCount) },

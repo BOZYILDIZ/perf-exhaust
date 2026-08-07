@@ -5,6 +5,7 @@ import { getSiteSettings } from "@/lib/settings-repo";
 import QuoteRequestDetail from "@/components/admin/QuoteRequestDetail";
 import { getClientProfile } from "@/lib/pennylane-v2/client-profile";
 import { getAgendaSettings } from "@/lib/agenda/settings";
+import type { VehiclePhoto } from "@/lib/vehicle-photo-slots";
 
 export const dynamic = "force-dynamic";
 
@@ -44,6 +45,9 @@ export default async function AdminQuoteRequestDetailPage({ params }: { params: 
           prenom: q.prenom,
           email: q.email,
           telephone: q.telephone,
+          billingAddress: q.billingAddress,
+          billingPostalCode: q.billingPostalCode,
+          billingCity: q.billingCity,
           marque: q.marque,
           modele: q.modele,
           annee: q.annee,
@@ -52,6 +56,7 @@ export default async function AdminQuoteRequestDetailPage({ params }: { params: 
           typeProjet: q.typeProjet,
           sonorite: q.sonorite,
           message: q.message,
+          photos: Array.isArray(q.photos) ? (q.photos as unknown as VehiclePhoto[]) : [],
           status: q.status,
           notes: q.notes,
           createdAt: q.createdAt.toISOString(),

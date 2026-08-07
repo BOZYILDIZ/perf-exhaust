@@ -9,6 +9,9 @@ import {
 import ScheduleAppointmentModal, { type DurationOption } from "./ScheduleAppointmentModal";
 import { useAppointmentActions } from "./useAppointmentActions";
 import { APPOINTMENT_STATUS_LABELS, APPOINTMENT_STATUS_STYLES } from "./AppointmentSection";
+import ProjectLightbox from "@/components/gallery/ProjectLightbox";
+import { vehiclePhotoSlotTitle, type VehiclePhoto } from "@/lib/vehicle-photo-slots";
+import { rearDiffuserLabel } from "@/lib/quote-request-options";
 
 interface DetailAppointment {
   id: string;
@@ -24,12 +27,17 @@ interface DetailAppointment {
   notes: string;
   cancelledBy: string | null;
   cancellationReason: string | null;
+  motorisation: string | null;
+  rearDiffuser: string;
+  photos: VehiclePhoto[];
 }
 
 interface DetailProfile {
   pennylaneCustomerId: number | null;
   pennylaneCustomerName: string | null;
-  pennylaneBillingAddress: string | null;
+  billingAddress: string | null;
+  billingPostalCode: string | null;
+  billingCity: string | null;
   vehicles: { marque: string; modele: string; annee: string; motorisation: string | null; requestCount: number }[];
   badge: { emoji: string; label: string; tone: string };
   appointmentHistory: { id: string; quoteRequestId: string; startAt: string; status: string; vehicle: string }[];
@@ -59,6 +67,10 @@ function frDate(iso: string | null): string {
 }
 function frDateTime(iso: string): string {
   return new Date(iso).toLocaleString("fr-FR", { timeZone: "Europe/Paris", weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
+}
+function fullBillingAddress(profile: DetailProfile | undefined): string | null {
+  if (!profile?.billingAddress || !profile.billingPostalCode || !profile.billingCity) return null;
+  return `${profile.billingAddress}, ${profile.billingPostalCode} ${profile.billingCity}, France`;
 }
 
 export interface AppointmentDetailPanelProps {
@@ -176,9 +188,9 @@ export default function AppointmentDetailPanel({ appointmentId, onClose, onChang
               <a href={`mailto:${data.appointment.customerEmail}`} className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-gray-300 border border-gray-700 hover:border-gray-500 transition-colors">
                 <Mail size={12} /> Email
               </a>
-              {data.profile?.pennylaneBillingAddress && (
+              {fullBillingAddress(data.profile ?? undefined) && (
                 <a
-                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(data.profile.pennylaneBillingAddress)}`}
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullBillingAddress(data.profile ?? undefined)!)}`}
                   target="_blank" rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-gray-300 border border-gray-700 hover:border-gray-500 transition-colors"
                 >
@@ -194,18 +206,19 @@ export default function AppointmentDetailPanel({ appointmentId, onClose, onChang
                 <FileText size={12} /> Ouvrir la demande
               </Link>
             </div>
-            {data.profile?.pennylaneBillingAddress && (
-              <p className="text-gray-600 text-xs -mt-4 mb-6">
-                {data.profile.pennylaneBillingAddress}
-                <span className="block text-gray-700">Adresse Pennylane — peut correspondre à l&apos;atelier si le client n&apos;a pas fourni la sienne.</span>
-              </p>
-            )}
+            <p className="text-gray-600 text-xs -mt-4 mb-6">
+              {fullBillingAddress(data.profile ?? undefined) ?? "Adresse non renseignée."}
+            </p>
 
             {/* Infos rendez-vous */}
             <div className="mb-6 space-y-1.5 text-sm text-gray-300">
               <div className="flex items-center gap-2"><Calendar size={13} className="text-brand-400" /> {frDateTime(data.appointment.startAt)}</div>
               <div className="flex items-center gap-2"><Clock size={13} className="text-brand-400" /> {data.appointment.durationMinutes} min</div>
               <div className="flex items-center gap-2"><Car size={13} className="text-brand-400" /> {data.appointment.vehicle}</div>
+              {data.appointment.motorisation && (
+                <div className="pl-5 text-gray-500 text-xs">Motorisation : {data.appointment.motorisation}</div>
+              )}
+              <div className="pl-5 text-gray-500 text-xs">Diffuseur arrière : {rearDiffuserLabel(data.appointment.rearDiffuser)}</div>
             </div>
 
             {actions.error && (
@@ -322,10 +335,37 @@ export default function AppointmentDetailPanel({ appointmentId, onClose, onChang
               </div>
             )}
 
-            {/* Photos — fonctionnalité non disponible sur cette branche, jamais simulée */}
+            {/* Photos du véhicule — jamais simulées, jamais transmises à Pennylane */}
             <div className="mb-2">
-              <h3 className="text-gray-400 text-xs font-bold tracking-widest uppercase mb-2">Photos du véhicule</h3>
-              <p className="text-gray-700 text-xs flex items-center gap-1.5"><ImageIcon size={12} /> Aucune photo disponible (fonctionnalité non activée).</p>
+              <h3 className="text-gray-400 text-xs font-bold tracking-widest uppercase mb-2">
+                Photos du véhicule {data.appointment.photos.length > 0 && <span className="text-gray-600 normal-case font-normal">({data.appointment.photos.length})</span>}
+              </h3>
+              {data.appointment.photos.length === 0 ? (
+                <p className="text-gray-700 text-xs flex items-center gap-1.5"><ImageIcon size={12} /> Aucune photo fournie par le client.</p>
+              ) : (
+                <>
+                  <ProjectLightbox
+                    images={data.appointment.photos.map((p) => ({ src: p.url, alt: `${vehiclePhotoSlotTitle(p.slot)} — ${p.name}` }))}
+                  />
+                  <ul className="mt-2 space-y-1">
+                    {data.appointment.photos.map((p) => (
+                      <li key={p.url} className="flex items-center justify-between gap-2 text-xs">
+                        <span className="text-gray-500 truncate">{vehiclePhotoSlotTitle(p.slot)}</span>
+                        <a
+                          href={p.url}
+                          download={p.name}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-brand-400 hover:text-brand-300 font-bold uppercase tracking-wider flex-shrink-0"
+                          aria-label={`Télécharger la photo : ${vehiclePhotoSlotTitle(p.slot)}`}
+                        >
+                          Télécharger
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
             </div>
           </div>
         )}

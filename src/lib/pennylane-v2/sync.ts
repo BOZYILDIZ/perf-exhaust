@@ -39,6 +39,9 @@ interface QuoteRequestForSync {
   prenom: string
   email: string
   telephone: string
+  billingAddress: string | null
+  billingPostalCode: string | null
+  billingCity: string | null
 }
 
 /**
@@ -105,7 +108,10 @@ export async function syncCustomerForQuoteRequest(quoteRequestId: string): Promi
   try {
     quoteRequest = await db.quoteRequest.findUnique({
       where: { id: quoteRequestId },
-      select: { id: true, nom: true, prenom: true, email: true, telephone: true },
+      select: {
+        id: true, nom: true, prenom: true, email: true, telephone: true,
+        billingAddress: true, billingPostalCode: true, billingCity: true,
+      },
     })
   } catch (err) {
     // Ne doit jamais remonter jusqu'à l'appelant (POST /api/rendez-vous) —
@@ -160,15 +166,22 @@ export async function syncCustomerForQuoteRequest(quoteRequestId: string): Promi
     // (le formulaire ne collecte aujourd'hui aucune information société).
     // Pennylane exige une adresse postale complète (confirmé en conditions
     // réelles le 2026-07-25 — voir billing-address.ts) : le formulaire
-    // public ne la collecte pas aujourd'hui. On échoue donc explicitement
-    // ICI, avec un message précis, plutôt que de laisser Pennylane renvoyer
-    // un 400 générique après un appel réseau inutile.
-    const billingAddress = buildBillingAddress()
+    // public la collecte désormais (billingAddress/_PostalCode/_City,
+    // depuis le 2026-08-07) — c'est la véritable adresse du client, jamais
+    // une adresse de repli. Les demandes créées avant cette date n'ont
+    // aucune adresse enregistrée : on échoue explicitement ICI, avec un
+    // message précis, plutôt que de laisser Pennylane renvoyer un 400
+    // générique après un appel réseau inutile.
+    const billingAddress = buildBillingAddress({
+      address: quoteRequest.billingAddress,
+      postalCode: quoteRequest.billingPostalCode,
+      city: quoteRequest.billingCity,
+    })
     if (!billingAddress) {
       throw new PennylanePreconditionError(
         "Impossible de créer le client Pennylane : adresse postale manquante (rue, code postal, ville). " +
-        "Le formulaire PERF'EXHAUST ne collecte pas encore cette information. Créez le client manuellement " +
-        "dans Pennylane avec son adresse, puis relancez la synchronisation depuis ce panel."
+        "Cette demande a été créée avant que le formulaire ne collecte l'adresse — renseignez-la manuellement " +
+        "dans Pennylane, puis relancez la synchronisation depuis ce panel."
       )
     }
     const created = await createIndividualCustomer({

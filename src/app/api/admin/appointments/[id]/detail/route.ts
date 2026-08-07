@@ -3,6 +3,7 @@ import { isAdminAuthenticated } from "@/lib/admin-auth";
 import { getDb, isDbConfigured } from "@/lib/db";
 import { getClientProfile } from "@/lib/pennylane-v2/client-profile";
 import { getSiteSettings } from "@/lib/settings-repo";
+import type { VehiclePhoto } from "@/lib/vehicle-photo-slots";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -19,7 +20,10 @@ export async function GET(req: NextRequest, ctx: Ctx) {
 
     const { id } = await ctx.params;
     const db = getDb();
-    const appointment = await db.appointment.findUnique({ where: { id } });
+    const appointment = await db.appointment.findUnique({
+      where: { id },
+      include: { quoteRequest: { select: { photos: true, motorisation: true, rearDiffuser: true } } },
+    });
     if (!appointment) return NextResponse.json({ error: "Rendez-vous introuvable" }, { status: 404 });
 
     const [profile, settings] = await Promise.all([
@@ -42,12 +46,17 @@ export async function GET(req: NextRequest, ctx: Ctx) {
         notes: appointment.notes,
         cancelledBy: appointment.cancelledBy,
         cancellationReason: appointment.cancellationReason,
+        motorisation: appointment.quoteRequest.motorisation,
+        rearDiffuser: appointment.quoteRequest.rearDiffuser,
+        photos: Array.isArray(appointment.quoteRequest.photos) ? (appointment.quoteRequest.photos as unknown as VehiclePhoto[]) : [],
       },
       profile: profile
         ? {
             pennylaneCustomerId: profile.pennylaneCustomerId,
             pennylaneCustomerName: profile.pennylaneCustomerName,
-            pennylaneBillingAddress: profile.pennylaneBillingAddress,
+            billingAddress: profile.card.billingAddress,
+            billingPostalCode: profile.card.billingPostalCode,
+            billingCity: profile.card.billingCity,
             vehicles: profile.vehicles,
             badge: profile.badge,
             appointmentHistory: profile.appointmentHistory,

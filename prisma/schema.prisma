@@ -71,11 +71,12 @@ model QuoteRequest {
   email        String
   telephone    String
 
-  // Adresse de facturation — collectée depuis /rendez-vous sur une branche
-  // distincte (feat/pennylane-billing-address, non mergée à ce jour). Champ
-  // conservé ici pour rester fidèle à l'état réel de la base partagée (même
-  // principe que `photos` ci-dessous) — hors périmètre de la mission Agenda,
-  // jamais utilisé par le code de cette branche.
+  // Adresse de facturation réelle du client — collectée depuis /rendez-vous
+  // (obligatoire depuis le 2026-08-07, voir AppointmentForm.tsx). Nullable
+  // pour les demandes créées avant cette date : ne jamais planter dessus,
+  // toujours afficher "Adresse non renseignée". Utilisée comme billing_address
+  // réelle lors de la création du client Pennylane (voir
+  // src/lib/pennylane-v2/billing-address.ts) — jamais l'adresse de l'atelier.
   billingAddress    String?
   billingPostalCode String?
   billingCity       String?
@@ -89,10 +90,12 @@ model QuoteRequest {
   rearDiffuser String  @default("je_ne_sais_pas") // "oui" | "non" | "je_ne_sais_pas"
   message      String
 
-  // Photos du véhicule (upload public, hors périmètre de la mission Pennylane
-  // — feature en pause, migration déjà appliquée en base) — champ conservé
-  // ici pour rester fidèle à l'état réel de la base, jamais utilisé par
-  // l'intégration Pennylane (les images ne sont jamais envoyées à Pennylane).
+  // Photos du véhicule (upload public depuis /rendez-vous, voir
+  // src/lib/vehicle-photo-slots.ts) — stockées sur Vercel Blob, jamais en
+  // base : ce champ ne garde que les métadonnées ({ slot, url, name, size,
+  // mimeType }[], max 5, un slot fixe par photo). Jamais transmises à
+  // Pennylane (voir src/lib/pennylane/, src/lib/pennylane-v2/) : uniquement
+  // consultables dans le panel admin et l'agenda.
   photos Json @default("[]")
 
   status String @default("new") // "new" | "contacted" | "in_progress" | "completed" | "archived"
