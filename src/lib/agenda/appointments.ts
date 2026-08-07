@@ -32,18 +32,31 @@ export class AppointmentNotFoundError extends Error {
   }
 }
 
+/**
+ * Fenêtres occupées à éviter — rendez-vous bloquants ET blocs atelier
+ * (pause/réunion/congé...), fusionnés en une seule liste d'intervalles
+ * [startAt, endAt). Le moteur pur (availability.ts) ne fait aucune
+ * distinction entre les deux origines, volontairement — un bloc atelier
+ * bloque un créneau exactement comme un rendez-vous.
+ */
 async function loadBlockingAppointments(from: Date, to: Date, excludeAppointmentId?: string) {
   const db = getDb()
-  const rows = await db.appointment.findMany({
-    where: {
-      status: { in: BLOCKING_APPOINTMENT_STATUSES as unknown as string[] },
-      startAt: { lt: to },
-      endAt: { gt: from },
-      ...(excludeAppointmentId ? { id: { not: excludeAppointmentId } } : {}),
-    },
-    select: { startAt: true, endAt: true },
-  })
-  return rows
+  const [appts, blocks] = await Promise.all([
+    db.appointment.findMany({
+      where: {
+        status: { in: BLOCKING_APPOINTMENT_STATUSES as unknown as string[] },
+        startAt: { lt: to },
+        endAt: { gt: from },
+        ...(excludeAppointmentId ? { id: { not: excludeAppointmentId } } : {}),
+      },
+      select: { startAt: true, endAt: true },
+    }),
+    db.agendaBlock.findMany({
+      where: { startAt: { lt: to }, endAt: { gt: from } },
+      select: { startAt: true, endAt: true },
+    }),
+  ])
+  return [...appts, ...blocks]
 }
 
 /** Calcule les créneaux disponibles pour une fenêtre et une durée données — lit les paramètres/fermetures/rendez-vous existants en base, délègue le calcul pur à availability.ts. */

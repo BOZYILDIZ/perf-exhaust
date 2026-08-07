@@ -187,7 +187,15 @@ model Appointment {
   notes  String @default("")
 
   confirmationSentAt DateTime?
-  reminderSentAt     DateTime? // posé dès maintenant, jamais renseigné avant la phase 2 (rappel 48h)
+  // Générique, superseded par les deux champs dédiés ci-dessous (rappels
+  // 24h/1h, Phase 2 agenda) — conservé tel quel (aucune donnée existante),
+  // jamais renseigné par le code actuel.
+  reminderSentAt      DateTime?
+  // Rappels 24h/1h avant le rendez-vous — champs prêts, AUCUN déclencheur
+  // (cron) implémenté : voir src/lib/agenda/reminders.ts (calcul pur des
+  // rappels dus) pour le détail de ce qui est prévu vs activé.
+  reminder24hSentAt DateTime?
+  reminder1hSentAt  DateTime?
   cancelledAt        DateTime?
   cancelledBy        String? // "CUSTOMER" | "WORKSHOP"
   cancellationReason String? // saisi par le client sur la page publique, 500 caractères max — jamais par l'admin
@@ -238,6 +246,31 @@ model WorkshopClosure {
   date      String   @unique // "AAAA-MM-JJ"
   reason    String   @default("")
   createdAt DateTime @default(now())
+}
+
+// Bloc atelier manuel (2026-08) — occupe un créneau SANS client rattaché
+// (pause, réunion, congé, livraison, fermeture exceptionnelle ponctuelle,
+// déplacement, maintenance...). Volontairement un modèle séparé plutôt que
+// de rendre les champs client d'Appointment optionnels — évite une
+// migration risquée sur un modèle déjà en production et garde la relation
+// 1:1 QuoteRequest/Appointment intacte. Le moteur de disponibilités
+// (src/lib/agenda/availability.ts) reste inchangé : il ne connaît que des
+// intervalles [startAt, endAt) à éviter, que la donnée vienne d'un
+// Appointment ou d'un AgendaBlock (fusionnés par appointments.ts avant
+// l'appel au moteur).
+model AgendaBlock {
+  id       String   @id @default(cuid())
+  startAt  DateTime
+  endAt    DateTime
+  // "pause" | "reunion" | "conge" | "livraison" | "fermeture" | "deplacement" | "maintenance" | "autre"
+  category String
+  label    String
+  notes    String   @default("")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([startAt])
 }
 
 // Paramètres globaux du site, éditables depuis /admin/settings.
