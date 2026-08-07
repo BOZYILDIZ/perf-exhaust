@@ -282,7 +282,7 @@ export default function AgendaCalendar({ view, dateStr, label, appointments, blo
             </button>
           ))}
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <button type="button" onClick={() => setCreateBlockOpen(true)} className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold uppercase tracking-wider text-white" style={{ background: "linear-gradient(135deg, #7c3aed, #6d28d9)" }}>
             <Plus size={13} /> Bloc atelier
           </button>
