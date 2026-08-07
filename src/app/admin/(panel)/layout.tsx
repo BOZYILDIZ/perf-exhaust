@@ -1,9 +1,20 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { isAdminAuthenticated, isAdminConfigured } from "@/lib/admin-auth";
 import { isDbConfigured, getDb } from "@/lib/db";
 import AdminSidebar from "@/components/admin/AdminSidebar";
+import AdminBottomNav from "@/components/admin/AdminBottomNav";
+import PwaBootstrap from "@/components/admin/PwaBootstrap";
 
-export const metadata = { title: "Admin — PERF'EXHAUST", robots: { index: false, follow: false } };
+// manifest/appleWebApp/icons/viewport (PWA) sont posés sur le layout parent
+// (src/app/admin/layout.tsx), qui englobe aussi /admin/login — l'installation
+// doit être proposable dès l'écran de connexion, pas seulement une fois
+// authentifié. Ce layout-ci n'ajoute que les champs propres au panel.
+export const metadata: Metadata = {
+  title: "Admin — PERF'EXHAUST",
+  robots: { index: false, follow: false },
+};
+
 export const dynamic = "force-dynamic";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -15,8 +26,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     : 0;
   return (
     <div className="min-h-screen flex" style={{ background: "#0a0a0a" }}>
+      <PwaBootstrap />
       <AdminSidebar newQuotesCount={newQuotesCount} />
-      <main className="flex-1 min-w-0 p-5 sm:p-8 lg:p-10">{children}</main>
+      <main className="flex-1 min-w-0 p-5 sm:p-8 lg:p-10 pb-24 sm:pb-8">{children}</main>
+      <AdminBottomNav newQuotesCount={newQuotesCount} />
     </div>
   );
 }
