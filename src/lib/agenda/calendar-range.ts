@@ -77,3 +77,23 @@ export function shiftDate(view: AgendaView, dateStr: string, direction: 1 | -1):
 export function todayParisDateString(): string {
   return parisDateString(new Date())
 }
+
+/** Bornes horaires (0-24) à afficher dans la grille horaire — dérivées des horaires configurés, avec un peu de marge. Repli 7h-19h si aucun jour actif. */
+export function computeGridHourBounds(weeklyHours: import('./types').WeeklyHours): { startHour: number; endHour: number } {
+  let minStart = 24
+  let maxEnd = 0
+  for (const day of Object.values(weeklyHours)) {
+    if (!day.enabled) continue
+    const candidates = [day.morningStart, day.afternoonStart].filter(Boolean)
+    const endCandidates = [day.afternoonEnd || day.morningEnd, day.morningEnd].filter(Boolean)
+    for (const t of candidates) minStart = Math.min(minStart, toHourFloat(t))
+    for (const t of endCandidates) maxEnd = Math.max(maxEnd, toHourFloat(t))
+  }
+  if (minStart >= maxEnd) return { startHour: 7, endHour: 19 }
+  return { startHour: Math.max(0, Math.floor(minStart) - 1), endHour: Math.min(24, Math.ceil(maxEnd) + 1) }
+}
+
+function toHourFloat(hhmm: string): number {
+  const [h, m] = hhmm.split(':').map(Number)
+  return h + m / 60
+}
