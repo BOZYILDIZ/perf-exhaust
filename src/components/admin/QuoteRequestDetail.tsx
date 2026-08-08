@@ -1,13 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Save, Trash2, Archive, CheckCircle, AlertCircle, Phone, Mail, MapPin } from "lucide-react";
+import { Loader2, Save, Trash2, Archive, CheckCircle, AlertCircle, Phone, Mail, MapPin, CalendarClock, ExternalLink } from "lucide-react";
 import PennylaneSection from "@/components/admin/PennylaneSection";
 import PennylaneManualSection from "@/components/admin/PennylaneManualSection";
 import PennylaneV2Section, { type PennylaneV2SectionProps } from "@/components/admin/PennylaneV2Section";
 import AppointmentSection, { type AppointmentData } from "@/components/admin/agenda/AppointmentSection";
 import VehiclePhotosSection from "@/components/admin/VehiclePhotosSection";
+import CollapsibleSection from "@/components/admin/CollapsibleSection";
 import type { DurationOption } from "@/components/admin/agenda/ScheduleAppointmentModal";
 import { rearDiffuserLabel } from "@/lib/quote-request-options";
 import type { VehiclePhoto } from "@/lib/vehicle-photo-slots";
@@ -88,6 +89,14 @@ export default function QuoteRequestDetail({
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [msg, setMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+  const rdvSectionRef = useRef<HTMLDetailsElement>(null);
+  const pennylaneSectionRef = useRef<HTMLDetailsElement>(null);
+
+  /** Ouvre la section repliée puis y défile — utilisé par la barre d'actions sticky mobile. */
+  const jumpTo = (ref: React.RefObject<HTMLDetailsElement | null>) => {
+    if (ref.current) ref.current.open = true;
+    ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   const save = async () => {
     setSaving(true);
@@ -147,9 +156,8 @@ export default function QuoteRequestDetail({
   };
 
   return (
-    <div className="max-w-3xl space-y-8 pb-10">
-      <section>
-        <h2 className={sectionTitle}>Client</h2>
+    <div className="max-w-3xl space-y-6 pb-40 md:pb-10">
+      <CollapsibleSection title="Client" defaultOpen>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <InfoRow label="Nom" value={`${request.prenom} ${request.nom}`} />
           <InfoRow label="Reçue le" value={new Date(request.createdAt).toLocaleString("fr-FR")} />
@@ -166,10 +174,25 @@ export default function QuoteRequestDetail({
             </a>
           </div>
         </div>
-      </section>
+      </CollapsibleSection>
 
-      <section>
-        <h2 className={sectionTitle}>Adresse de facturation</h2>
+      <CollapsibleSection title="Véhicule & projet" defaultOpen>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <InfoRow label="Véhicule" value={`${request.marque} ${request.modele} (${request.annee})`} />
+          <InfoRow label="Motorisation" value={request.motorisation || "Non précisée"} />
+          <InfoRow label="Diffuseur arrière" value={rearDiffuserLabel(request.rearDiffuser)} />
+          <InfoRow label="Type de projet" value={request.typeProjet} />
+          <InfoRow label="Sonorité souhaitée" value={request.sonorite} />
+        </div>
+        <div className="mt-4">
+          <div className="text-gray-600 text-xs uppercase tracking-wider mb-1">Message</div>
+          <p className="text-gray-300 text-sm leading-relaxed p-4 border border-[#1e1e1e]" style={{ background: "#0d0d0d" }}>
+            {request.message}
+          </p>
+        </div>
+      </CollapsibleSection>
+
+      <CollapsibleSection title="Adresse de facturation">
         {request.billingAddress && request.billingPostalCode && request.billingCity ? (
           <div className="flex items-start gap-2.5 text-sm">
             <MapPin size={15} className="text-brand-400 mt-0.5 flex-shrink-0" />
@@ -186,78 +209,69 @@ export default function QuoteRequestDetail({
             Adresse non renseignée — demande créée avant la collecte de l&apos;adresse de facturation.
           </p>
         )}
-      </section>
+      </CollapsibleSection>
 
-      <section>
-        <h2 className={sectionTitle}>Véhicule & projet</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <InfoRow label="Véhicule" value={`${request.marque} ${request.modele} (${request.annee})`} />
-          <InfoRow label="Motorisation" value={request.motorisation || "Non précisée"} />
-          <InfoRow label="Diffuseur arrière" value={rearDiffuserLabel(request.rearDiffuser)} />
-          <InfoRow label="Type de projet" value={request.typeProjet} />
-          <InfoRow label="Sonorité souhaitée" value={request.sonorite} />
-        </div>
-        <div className="mt-4">
-          <div className="text-gray-600 text-xs uppercase tracking-wider mb-1">Message</div>
-          <p className="text-gray-300 text-sm leading-relaxed p-4 border border-[#1e1e1e]" style={{ background: "#0d0d0d" }}>
-            {request.message}
-          </p>
-        </div>
-      </section>
+      <CollapsibleSection title="Photos">
+        <VehiclePhotosSection photos={request.photos} />
+      </CollapsibleSection>
 
-      <VehiclePhotosSection photos={request.photos} />
-
-      <AppointmentSection
-        quoteRequestId={request.id}
-        appointment={appointment}
-        durationOptions={durationOptions}
-        defaultDurationMinutes={defaultDurationMinutes}
-      />
-
-      <PennylaneV2Section
-        quoteRequestId={request.id}
-        pennylaneHomeUrl={pennylaneManualUrl}
-        {...pennylaneV2}
-      />
-
-      {pennylaneMode === "manual" ? (
-        <PennylaneManualSection
+      <CollapsibleSection ref={rdvSectionRef} title="Rendez-vous" defaultOpen id="section-rdv">
+        <AppointmentSection
           quoteRequestId={request.id}
-          pennylaneManualUrl={pennylaneManualUrl}
-          source={{
-            nom: request.nom,
-            prenom: request.prenom,
-            email: request.email,
-            telephone: request.telephone,
-            marque: request.marque,
-            modele: request.modele,
-            annee: request.annee,
-            motorisation: request.motorisation,
-            rearDiffuser: request.rearDiffuser,
-            typeProjet: request.typeProjet,
-            sonorite: request.sonorite,
-            message: request.message,
-          }}
-          state={{
-            pennylaneManualStatus: request.pennylaneManualStatus,
-            pennylaneQuoteNumber: request.pennylaneQuoteNumber,
-            pennylaneQuoteUrl: request.pennylaneQuoteUrl,
-          }}
+          appointment={appointment}
+          durationOptions={durationOptions}
+          defaultDurationMinutes={defaultDurationMinutes}
         />
-      ) : (
-        <PennylaneSection
-          quoteRequestId={request.id}
-          pennylaneConfigured={pennylaneConfigured}
-          state={{
-            pennylaneQuoteId: request.pennylaneQuoteId,
-            pennylaneQuoteNumber: request.pennylaneQuoteNumber,
-            pennylaneQuoteUrl: request.pennylaneQuoteUrl,
-            pennylaneSyncStatus: request.pennylaneSyncStatus,
-            pennylaneSyncError: request.pennylaneSyncError,
-            pennylaneSyncedAt: request.pennylaneSyncedAt,
-          }}
-        />
-      )}
+      </CollapsibleSection>
+
+      <CollapsibleSection ref={pennylaneSectionRef} title="Pennylane" id="section-pennylane">
+        <div className="space-y-8">
+          <PennylaneV2Section
+            quoteRequestId={request.id}
+            pennylaneHomeUrl={pennylaneManualUrl}
+            {...pennylaneV2}
+          />
+
+          {pennylaneMode === "manual" ? (
+            <PennylaneManualSection
+              quoteRequestId={request.id}
+              pennylaneManualUrl={pennylaneManualUrl}
+              source={{
+                nom: request.nom,
+                prenom: request.prenom,
+                email: request.email,
+                telephone: request.telephone,
+                marque: request.marque,
+                modele: request.modele,
+                annee: request.annee,
+                motorisation: request.motorisation,
+                rearDiffuser: request.rearDiffuser,
+                typeProjet: request.typeProjet,
+                sonorite: request.sonorite,
+                message: request.message,
+              }}
+              state={{
+                pennylaneManualStatus: request.pennylaneManualStatus,
+                pennylaneQuoteNumber: request.pennylaneQuoteNumber,
+                pennylaneQuoteUrl: request.pennylaneQuoteUrl,
+              }}
+            />
+          ) : (
+            <PennylaneSection
+              quoteRequestId={request.id}
+              pennylaneConfigured={pennylaneConfigured}
+              state={{
+                pennylaneQuoteId: request.pennylaneQuoteId,
+                pennylaneQuoteNumber: request.pennylaneQuoteNumber,
+                pennylaneQuoteUrl: request.pennylaneQuoteUrl,
+                pennylaneSyncStatus: request.pennylaneSyncStatus,
+                pennylaneSyncError: request.pennylaneSyncError,
+                pennylaneSyncedAt: request.pennylaneSyncedAt,
+              }}
+            />
+          )}
+        </div>
+      </CollapsibleSection>
 
       <section>
         <h2 className={sectionTitle}>Suivi atelier</h2>
@@ -324,6 +338,36 @@ export default function QuoteRequestDetail({
           className="inline-flex items-center gap-2 px-5 py-3 text-xs font-bold tracking-widest uppercase text-red-400 border border-red-500/30 hover:border-red-400 disabled:opacity-40 transition-colors ml-auto"
         >
           {deleting ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />} Supprimer
+        </button>
+      </div>
+
+      {/* Actions principales sticky — mobile uniquement, cibles tactiles >=44px.
+          Empilée juste au-dessus d'AdminBottomNav (56px + son safe-area) pour ne
+          jamais la recouvrir : cette barre-ci n'a pas besoin de son propre
+          padding safe-area puisqu'elle n'est pas au bord réel de l'écran. */}
+      <div
+        className="md:hidden fixed inset-x-0 z-30 flex border-t"
+        style={{ bottom: "calc(56px + env(safe-area-inset-bottom))", background: "#0d0d0d", borderColor: "#1e1e1e" }}
+      >
+        <button
+          type="button"
+          onClick={() => jumpTo(rdvSectionRef)}
+          className="flex-1 flex flex-col items-center justify-center gap-1 py-2.5 min-h-[56px] text-brand-400"
+        >
+          <CalendarClock size={18} />
+          <span className="text-[10px] font-bold uppercase tracking-wider">RDV</span>
+        </button>
+        <a href={`tel:${request.telephone}`} className="flex-1 flex flex-col items-center justify-center gap-1 py-2.5 min-h-[56px] text-gray-300">
+          <Phone size={18} />
+          <span className="text-[10px] font-bold uppercase tracking-wider">Appeler</span>
+        </a>
+        <button
+          type="button"
+          onClick={() => jumpTo(pennylaneSectionRef)}
+          className="flex-1 flex flex-col items-center justify-center gap-1 py-2.5 min-h-[56px] text-gray-300"
+        >
+          <ExternalLink size={18} />
+          <span className="text-[10px] font-bold uppercase tracking-wider">Pennylane</span>
         </button>
       </div>
     </div>

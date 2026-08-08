@@ -35,6 +35,7 @@ export default async function AdminQuoteRequestsPage() {
           pennylaneSyncStatus: true, pennylaneQuoteUrl: true,
           pennylaneManualStatus: true, pennylaneQuoteNumber: true,
           pennylaneCustomerId: true, pennylaneQuotesCache: true, pennylaneInvoicesCache: true,
+          appointment: { select: { startAt: true, status: true } },
         },
       }),
       db.quoteRequest.count({ where: { status: "new" } }),
@@ -43,16 +44,21 @@ export default async function AdminQuoteRequestsPage() {
       db.quoteRequest.count({ where: { status: "completed" } }),
       db.quoteRequest.count({ where: { status: "archived" } }),
     ]);
+    const now = new Date();
     rows = items.map((r) => {
-      const { pennylaneQuotesCache, pennylaneInvoicesCache, ...rest } = r;
+      const { pennylaneQuotesCache, pennylaneInvoicesCache, appointment, ...rest } = r;
       const quotes = (pennylaneQuotesCache as unknown as { number: string | null }[] | null) ?? [];
       const invoices = (pennylaneInvoicesCache as unknown as { number: string | null }[] | null) ?? [];
+      const nextAppointment = appointment && (appointment.status === "PENDING" || appointment.status === "CONFIRMED") && appointment.startAt >= now
+        ? { startAt: appointment.startAt.toISOString(), status: appointment.status }
+        : null;
       return {
         ...rest,
         createdAt: r.createdAt.toISOString(),
         // Numéros extraits du cache local (jamais un nouvel appel Pennylane pour la recherche) — voir QuoteRequestsTable.
         quoteNumbers: quotes.map((q) => q.number).filter((n): n is string => Boolean(n)),
         invoiceNumbers: invoices.map((i) => i.number).filter((n): n is string => Boolean(n)),
+        nextAppointment,
       };
     });
     counts = { new: newCount, inProgress: contactedCount + inProgressCount, completed: completedCount, archived: archivedCount };

@@ -28,7 +28,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     <div className="min-h-screen flex" style={{ background: "#0a0a0a" }}>
       <PwaBootstrap />
       <AdminSidebar newQuotesCount={newQuotesCount} />
-      <main className="flex-1 min-w-0 p-5 sm:p-8 lg:p-10 pb-24 sm:pb-8">{children}</main>
+      <main className="flex-1 min-w-0 p-5 sm:p-8 lg:p-10 pb-24 md:pb-8">{children}</main>
       <AdminBottomNav newQuotesCount={newQuotesCount} />
     </div>
   );

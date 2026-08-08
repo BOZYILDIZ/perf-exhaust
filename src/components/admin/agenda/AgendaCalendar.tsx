@@ -3,7 +3,7 @@
 import { useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
-  Search, ChevronLeft, ChevronRight, CalendarDays, Printer, Download, Plus, X, AlertCircle, UserPlus,
+  Search, ChevronLeft, ChevronRight, CalendarDays, Printer, Download, Plus, X, AlertCircle, UserPlus, CalendarOff, Car, Clock,
 } from "lucide-react";
 import type { AgendaView } from "@/lib/agenda/calendar-range";
 import { pixelsToMinutes, snapMinutes, applyMinutesDelta, columnIndexAtX, clampDuration } from "@/lib/agenda/drag-math";
@@ -41,6 +41,8 @@ export interface AgendaCalendarProps {
   gridHourBounds: { startHour: number; endHour: number };
   durationOptions: DurationOption[];
   blockCategories: BlockCategoryOption[];
+  /** "AAAA-MM-JJ" -> libellé de la fermeture couvrant ce jour (ex. "Congés d'été") — une seule WorkshopClosure peut couvrir plusieurs jours, voir page.tsx. */
+  closedDayLabels: Record<string, string>;
 }
 
 const HOUR_HEIGHT = 56; // px par heure dans la grille — voir drag-math.ts pour la conversion pixels <-> minutes
@@ -94,7 +96,7 @@ interface DragState {
   moved: boolean; // dépasse le seuil de clic -> vrai glisser-déposer
 }
 
-export default function AgendaCalendar({ view, dateStr, label, appointments, blocks, links, gridHourBounds, durationOptions, blockCategories }: AgendaCalendarProps) {
+export default function AgendaCalendar({ view, dateStr, label, appointments, blocks, links, gridHourBounds, durationOptions, blockCategories, closedDayLabels }: AgendaCalendarProps) {
   const [query, setQuery] = useState("");
   const [activeFilters, setActiveFilters] = useState<Set<string>>(new Set());
   const [detailId, setDetailId] = useState<string | null>(null);
@@ -254,17 +256,19 @@ export default function AgendaCalendar({ view, dateStr, label, appointments, blo
     <div>
       {/* Barre du haut : vues, navigation, recherche, actions */}
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4 print:hidden">
+        {/* Sélecteur compact Aujourd'hui|Semaine|Mois — cibles tactiles >=44px sur mobile */}
         <div className="flex gap-2">
-          {([["day", "Jour", links.day], ["week", "Semaine", links.week], ["month", "Mois", links.month]] as const).map(([k, l, href]) => (
-            <Link key={k} href={href} className={`px-3 py-2 text-xs font-bold tracking-wider uppercase border transition-colors ${view === k ? "bg-brand-500 text-white border-brand-500" : "bg-transparent text-gray-500 border-gray-800 hover:text-white hover:border-gray-600"}`}>
-              {l}
+          {([["day", "Aujourd'hui", "Jour", links.day], ["week", "Semaine", "Semaine", links.week], ["month", "Mois", "Mois", links.month]] as const).map(([k, mobileLabel, desktopLabel, href]) => (
+            <Link key={k} href={href} className={`px-3 min-h-[44px] flex items-center py-2 text-xs font-bold tracking-wider uppercase border transition-colors ${view === k ? "bg-brand-500 text-white border-brand-500" : "bg-transparent text-gray-500 border-gray-800 hover:text-white hover:border-gray-600"}`}>
+              <span className="md:hidden">{mobileLabel}</span>
+              <span className="hidden md:inline">{desktopLabel}</span>
             </Link>
           ))}
         </div>
         <div className="flex items-center gap-3">
-          <Link href={links.prev} className="p-2 text-gray-400 hover:text-white transition-colors" aria-label="Période précédente"><ChevronLeft size={18} /></Link>
-          <Link href={links.today} className="text-xs font-bold tracking-wider uppercase text-brand-400 hover:text-brand-300 transition-colors">Aujourd&apos;hui</Link>
-          <Link href={links.next} className="p-2 text-gray-400 hover:text-white transition-colors" aria-label="Période suivante"><ChevronRight size={18} /></Link>
+          <Link href={links.prev} className="p-2.5 min-h-[44px] min-w-[44px] flex items-center justify-center text-gray-400 hover:text-white transition-colors" aria-label="Période précédente"><ChevronLeft size={18} /></Link>
+          <Link href={links.today} className="hidden md:inline text-xs font-bold tracking-wider uppercase text-brand-400 hover:text-brand-300 transition-colors">Aujourd&apos;hui</Link>
+          <Link href={links.next} className="p-2.5 min-h-[44px] min-w-[44px] flex items-center justify-center text-gray-400 hover:text-white transition-colors" aria-label="Période suivante"><ChevronRight size={18} /></Link>
         </div>
       </div>
 
@@ -318,14 +322,26 @@ export default function AgendaCalendar({ view, dateStr, label, appointments, blo
       )}
 
       {view === "month" ? (
-        <MonthGrid appointmentsByDay={appointmentsByDay} blocksByDay={blocksByDay} onOpenAppointment={setDetailId} />
-      ) : filteredAppointments.length === 0 && filteredBlocks.length === 0 ? (
+        <MonthGrid appointmentsByDay={appointmentsByDay} blocksByDay={blocksByDay} closedDayLabels={closedDayLabels} onOpenAppointment={setDetailId} />
+      ) : filteredAppointments.length === 0 && filteredBlocks.length === 0 && !closedDayLabels[dateStr] ? (
         <div className="flex flex-col items-center justify-center py-16 text-gray-600 print:hidden">
           <CalendarDays size={32} className="mb-3 opacity-50" />
           <p className="text-sm">Aucun rendez-vous ni bloc sur cette période.</p>
         </div>
       ) : (
-        <div className="border overflow-x-auto" style={{ borderColor: "#1e1e1e" }} ref={gridRef}>
+        <>
+          {/* Vue jour, mobile uniquement : liste chronologique compacte plutôt que la grille horaire (trop large sous 640px) */}
+          {view === "day" && (
+            <div className="md:hidden">
+              <AgendaMobileDayList
+                appointments={appointmentsByDay.get(dateStr) ?? []}
+                blocks={blocksByDay.get(dateStr) ?? []}
+                closedLabel={closedDayLabels[dateStr]}
+                onOpenAppointment={setDetailId}
+              />
+            </div>
+          )}
+          <div className={`border overflow-x-auto ${view === "day" ? "hidden md:block" : ""}`} style={{ borderColor: "#1e1e1e" }} ref={gridRef}>
           <div className="flex min-w-[640px]">
             {/* Colonne des heures */}
             <div className="w-14 flex-shrink-0 border-r" style={{ borderColor: "#1e1e1e" }}>
@@ -338,6 +354,7 @@ export default function AgendaCalendar({ view, dateStr, label, appointments, blo
             {days.map((day, dayIdx) => {
               const dayAppts = appointmentsByDay.get(day) ?? [];
               const dayBlocks = blocksByDay.get(day) ?? [];
+              const closedLabel = closedDayLabels[day];
               return (
                 <div
                   key={day}
@@ -348,6 +365,11 @@ export default function AgendaCalendar({ view, dateStr, label, appointments, blo
                   <div className="h-8 flex items-center justify-center text-gray-400 text-xs font-bold uppercase tracking-wider border-b" style={{ borderColor: "#1e1e1e" }}>
                     {new Date(`${day}T12:00:00Z`).toLocaleDateString("fr-FR", { timeZone: "Europe/Paris", weekday: "short", day: "numeric" })}
                   </div>
+                  {closedLabel && (
+                    <div className="px-1.5 py-1 text-center text-[10px] font-bold uppercase tracking-wider text-red-400 bg-red-500/10 border-b flex items-center justify-center gap-1" style={{ borderColor: "#1e1e1e" }}>
+                      <CalendarOff size={11} /> <span className="truncate">Fermé — {closedLabel}</span>
+                    </div>
+                  )}
                   <div className="relative" style={{ height: gridHeight }}>
                     {hours.map((h, i) => (
                       <div key={h} className="absolute left-0 right-0 border-t" style={{ top: i * HOUR_HEIGHT, borderColor: "#161616" }} />
@@ -416,7 +438,8 @@ export default function AgendaCalendar({ view, dateStr, label, appointments, blo
               );
             })}
           </div>
-        </div>
+          </div>
+        </>
       )}
 
       <p className="text-gray-700 text-[11px] mt-3 print:hidden">
@@ -459,12 +482,13 @@ export default function AgendaCalendar({ view, dateStr, label, appointments, blo
   );
 }
 
-function MonthGrid({ appointmentsByDay, blocksByDay, onOpenAppointment }: {
+function MonthGrid({ appointmentsByDay, blocksByDay, closedDayLabels, onOpenAppointment }: {
   appointmentsByDay: Map<string, AgendaAppointment[]>;
   blocksByDay: Map<string, AgendaBlockItem[]>;
+  closedDayLabels: Record<string, string>;
   onOpenAppointment: (id: string) => void;
 }) {
-  const allDays = Array.from(new Set([...appointmentsByDay.keys(), ...blocksByDay.keys()])).sort();
+  const allDays = Array.from(new Set([...appointmentsByDay.keys(), ...blocksByDay.keys(), ...Object.keys(closedDayLabels)])).sort();
   if (allDays.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-gray-600">
@@ -478,11 +502,17 @@ function MonthGrid({ appointmentsByDay, blocksByDay, onOpenAppointment }: {
       {allDays.map((day) => {
         const appts = appointmentsByDay.get(day) ?? [];
         const dayBlocks = blocksByDay.get(day) ?? [];
+        const closedLabel = closedDayLabels[day];
         return (
           <div key={day} className="p-3 border" style={{ borderColor: "#1e1e1e", background: "#0f0f0f" }}>
             <p className="text-gray-300 text-xs font-bold uppercase tracking-wider mb-2">
               {new Date(`${day}T12:00:00Z`).toLocaleDateString("fr-FR", { timeZone: "Europe/Paris", weekday: "long", day: "numeric", month: "long" })}
             </p>
+            {closedLabel && (
+              <p className="text-red-400 text-xs font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                <CalendarOff size={12} /> Fermé — {closedLabel}
+              </p>
+            )}
             <div className="space-y-1.5">
               {appts.map((a) => {
                 const colors = APPOINTMENT_STATUS_HEX[a.status] ?? APPOINTMENT_STATUS_HEX.PENDING;
@@ -507,6 +537,79 @@ function MonthGrid({ appointmentsByDay, blocksByDay, onOpenAppointment }: {
           </div>
         );
       })}
+    </div>
+  );
+}
+
+/**
+ * Vue jour mobile — liste chronologique de cartes plutôt qu'une grille
+ * horaire (trop large sous 640px, voir mission de refonte mobile). Chaque
+ * carte : heure, client, véhicule, statut, durée — actions principales
+ * (ouvrir la fiche) accessibles au pouce sur toute la carte.
+ */
+function AgendaMobileDayList({ appointments, blocks, closedLabel, onOpenAppointment }: {
+  appointments: AgendaAppointment[];
+  blocks: AgendaBlockItem[];
+  closedLabel?: string;
+  onOpenAppointment: (id: string) => void;
+}) {
+  type Item = { key: string; startAt: string; endAt: string; kind: "appointment" | "block"; data: AgendaAppointment | AgendaBlockItem };
+  const items: Item[] = [
+    ...appointments.map((a): Item => ({ key: `a-${a.id}`, startAt: a.startAt, endAt: a.endAt, kind: "appointment", data: a })),
+    ...blocks.map((b): Item => ({ key: `b-${b.id}`, startAt: b.startAt, endAt: b.endAt, kind: "block", data: b })),
+  ].sort((x, y) => (x.startAt < y.startAt ? -1 : 1));
+
+  return (
+    <div className="space-y-2 mb-4">
+      {closedLabel && (
+        <div className="px-4 py-3 border border-red-500/30 bg-red-500/10 text-red-400 text-sm font-bold uppercase tracking-wider flex items-center gap-2">
+          <CalendarOff size={15} /> Fermé — {closedLabel}
+        </div>
+      )}
+      {items.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-12 text-gray-600">
+          <CalendarDays size={28} className="mb-2 opacity-50" />
+          <p className="text-sm">Aucun rendez-vous ni bloc aujourd&apos;hui.</p>
+        </div>
+      ) : (
+        items.map((item) => {
+          if (item.kind === "block") {
+            const b = item.data as AgendaBlockItem;
+            const durMin = Math.round((new Date(b.endAt).getTime() - new Date(b.startAt).getTime()) / 60000);
+            return (
+              <div key={item.key} className="px-4 py-3 border flex items-center gap-3" style={{ borderColor: AGENDA_BLOCK_HEX.border, background: AGENDA_BLOCK_HEX.bg }}>
+                <span className="text-sm font-bold flex-shrink-0" style={{ color: AGENDA_BLOCK_HEX.text }}>{timeOf(b.startAt)}</span>
+                <span className="text-sm font-bold uppercase tracking-wider truncate" style={{ color: AGENDA_BLOCK_HEX.text }}>{b.label}</span>
+                <span className="text-xs text-gray-500 ml-auto flex-shrink-0">{durMin} min</span>
+              </div>
+            );
+          }
+          const a = item.data as AgendaAppointment;
+          const durMin = Math.round((new Date(a.endAt).getTime() - new Date(a.startAt).getTime()) / 60000);
+          const colors = APPOINTMENT_STATUS_HEX[a.status] ?? APPOINTMENT_STATUS_HEX.PENDING;
+          return (
+            <button
+              key={item.key}
+              type="button"
+              onClick={() => onOpenAppointment(a.id)}
+              className="w-full text-left px-4 py-3 border min-h-[44px] flex items-center gap-3 active:scale-[0.99] transition-transform"
+              style={{ borderColor: colors.border, background: colors.bg }}
+            >
+              <div className="flex flex-col items-center flex-shrink-0 w-14">
+                <span className="text-sm font-bold" style={{ color: colors.text }}>{timeOf(a.startAt)}</span>
+                <span className="text-[10px] text-gray-500 flex items-center gap-0.5"><Clock size={9} /> {durMin}min</span>
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-white text-sm font-bold truncate">{a.customerName}</p>
+                <p className="text-gray-400 text-xs truncate flex items-center gap-1"><Car size={11} className="flex-shrink-0" /> {a.vehicle}</p>
+              </div>
+              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 flex-shrink-0" style={{ color: colors.text, background: "rgba(0,0,0,0.2)" }}>
+                {APPOINTMENT_STATUS_LABELS[a.status] ?? a.status}
+              </span>
+            </button>
+          );
+        })
+      )}
     </div>
   );
 }

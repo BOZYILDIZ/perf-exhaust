@@ -9,7 +9,7 @@ export interface CalendarRange {
   label: string
 }
 
-function addDays(dateStr: string, days: number): string {
+export function addDays(dateStr: string, days: number): string {
   const [y, m, d] = dateStr.split('-').map(Number)
   const date = new Date(Date.UTC(y, m - 1, d))
   date.setUTCDate(date.getUTCDate() + days)

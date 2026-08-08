@@ -161,9 +161,10 @@ export default function AppointmentDetailPanel({ appointmentId, onClose, onChang
 
   return (
     <div className="fixed inset-0 z-40 flex justify-end">
-      <button type="button" aria-label="Fermer" onClick={onClose} className="absolute inset-0 bg-black/70" />
+      {/* Sur tablette/desktop (md+), le fond n'est pas assombri : le panneau coexiste avec l'agenda (split-view) plutôt que de la masquer comme un modal plein écran. */}
+      <button type="button" aria-label="Fermer" onClick={onClose} className="absolute inset-0 bg-black/70 md:bg-transparent" />
       <div
-        className="relative w-full sm:max-w-md h-full overflow-y-auto p-6 z-10"
+        className="relative w-full md:max-w-md h-full overflow-y-auto p-6 z-10 md:shadow-2xl"
         style={{ background: "#0a0a0a", borderLeft: "1px solid #1e1e1e" }}
       >
         <button type="button" onClick={onClose} aria-label="Fermer" className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors">

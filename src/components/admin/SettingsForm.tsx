@@ -152,7 +152,8 @@ export default function SettingsForm({ initial }: { initial: SiteSettingsData })
         </p>
       )}
 
-      <div className="fixed bottom-0 left-0 right-0 sm:sticky sm:bottom-4 p-4 sm:p-0 flex justify-end border-t sm:border-0 border-[#1e1e1e] bg-[#0a0a0a] sm:bg-transparent">
+      {/* Sous md, la barre reste fixe mais décalée au-dessus d'AdminBottomNav pour ne jamais la recouvrir. */}
+      <div className="fixed left-0 right-0 bottom-[calc(56px+env(safe-area-inset-bottom))] md:sticky md:bottom-4 p-4 md:p-0 flex justify-end border-t md:border-0 border-[#1e1e1e] bg-[#0a0a0a] md:bg-transparent">
         <button
           type="submit"
           disabled={saving}
