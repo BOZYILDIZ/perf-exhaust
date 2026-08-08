@@ -38,6 +38,10 @@ export interface AppointmentData {
   prenom: string
   telephone: string
   email: string
+  /** Absente sur les demandes créées avant la collecte de l'adresse (2026-08-07) — jamais de repli, le bloc adresse est simplement omis de l'email dans ce cas (voir sendAppointmentToShop). */
+  billingAddress?: string | null
+  billingPostalCode?: string | null
+  billingCity?: string | null
   marque: string
   modele: string
   annee: string
@@ -71,6 +75,10 @@ export async function sendAppointmentToShop(data: AppointmentData) {
         <p><strong>Nom:</strong> ${e.prenom} ${e.nom}</p>
         <p><strong>Téléphone:</strong> ${e.telephone}</p>
         <p><strong>Email:</strong> ${e.email}</p>
+        ${data.billingAddress && data.billingPostalCode && data.billingCity
+          ? `<h3>Adresse de facturation</h3>
+        <p>${e.billingAddress}<br/>${e.billingPostalCode} ${e.billingCity}<br/>France</p>`
+          : ''}
         <h3>Véhicule</h3>
         <p><strong>Véhicule:</strong> ${e.marque} ${e.modele} (${e.annee})</p>
         ${e.motorisation ? `<p><strong>Motorisation:</strong> ${e.motorisation}</p>` : ''}

@@ -5,33 +5,31 @@ import { searchCustomersByEmail, searchCustomersByPhone, createIndividualCustome
 import { fetchAllPennylanePages } from './http-client'
 import { buildFilter } from './filter'
 import { buildBillingAddress } from './billing-address'
-import { normalizeEmail, normalizePhoneFR } from './normalize'
 import { pennylaneErrorToAdminMessage, PennylanePreconditionError } from './errors'
-import { customerDisplayName, type PennylaneCustomer } from './types'
+import type { PennylaneCustomer } from './types'
+import {
+  type AmbiguousCandidate,
+  toCandidateSnapshot,
+  decideEmailMatch,
+  decidePhoneMatch,
+  decideLocallyKnownMatch,
+  resolveAlreadyKnownCustomer,
+  type LocalSyncCandidate,
+} from './matching'
+
+export type { AmbiguousCandidate } from './matching'
+export {
+  isNameCompatible,
+  decideEmailMatch,
+  decidePhoneMatch,
+  decideLocallyKnownMatch,
+  resolveAlreadyKnownCustomer,
+  type EmailMatchDecision,
+  type PhoneMatchDecision,
+  type LocalSyncCandidate,
+} from './matching'
 
 export type CustomerSyncStatus = 'PENDING' | 'SYNCED' | 'FAILED' | 'AMBIGUOUS'
-
-export interface AmbiguousCandidate {
-  id: number
-  name: string
-  email: string | null
-  phone: string | null
-  type: 'individual' | 'company'
-}
-
-function toCandidateSnapshot(c: PennylaneCustomer): AmbiguousCandidate {
-  return {
-    id: c.id,
-    name: customerDisplayName(c),
-    email: c.emails?.[0] ?? null,
-    phone: c.phone ?? null,
-    // L'ancien système v1 crée exclusivement des "company_customers" — un
-    // candidat ambigu peut donc être une entreprise, jamais présumée
-    // "individual" (voir bug corrigé : resolvePennylaneCustomerAmbiguity
-    // recevait auparavant un type toujours forcé à "individual" côté admin).
-    type: 'first_name' in c ? 'individual' : 'company',
-  }
-}
 
 interface QuoteRequestForSync {
   id: string
@@ -42,38 +40,30 @@ interface QuoteRequestForSync {
   billingAddress: string | null
   billingPostalCode: string | null
   billingCity: string | null
+  pennylaneCustomerId: string | null
+  pennylaneCustomerType: string | null
 }
 
 /**
- * Vérifie si une autre demande déjà synchronisée (même email ou téléphone
- * normalisé) a déjà un identifiant Pennylane connu — évite de rappeler
- * l'API si la personne a déjà été retrouvée/créée pour une demande
- * précédente. Interprétation du critère « identifiant Pennylane déjà
- * enregistré localement » de la mission en l'absence d'une table Client
- * dédiée (décision produit du 2026-07-25) — voir docs/MAINTENANCE.md.
+ * Charge les demandes déjà synchronisées pour appliquer decideLocallyKnownMatch
+ * (voir matching.ts) — évite de rappeler l'API Pennylane si la personne a
+ * déjà été retrouvée pour une demande précédente (décision produit du
+ * 2026-07-25, affinée le 2026-08-09 pour exiger un nom compatible sur un
+ * match téléphone).
  */
 async function findLocallyKnownCustomerId(current: QuoteRequestForSync): Promise<{ id: number; type: string | null } | null> {
   const db = getDb()
-  const normalizedEmail = normalizeEmail(current.email)
-  const normalizedPhone = normalizePhoneFR(current.telephone)
-
-  const candidates = await db.quoteRequest.findMany({
+  const candidates: LocalSyncCandidate[] = await db.quoteRequest.findMany({
     where: {
       id: { not: current.id },
       pennylaneCustomerSyncStatus: 'SYNCED',
       pennylaneCustomerId: { not: null },
     },
-    select: { email: true, telephone: true, pennylaneCustomerId: true, pennylaneCustomerType: true },
+    select: { nom: true, prenom: true, email: true, telephone: true, pennylaneCustomerId: true, pennylaneCustomerType: true },
     orderBy: { pennylaneCustomerSyncedAt: 'desc' },
     take: 200,
   })
-
-  const match = candidates.find(
-    (c) => normalizeEmail(c.email) === normalizedEmail || normalizePhoneFR(c.telephone) === normalizedPhone
-  )
-  if (!match?.pennylaneCustomerId) return null
-  const id = Number(match.pennylaneCustomerId)
-  return Number.isFinite(id) ? { id, type: match.pennylaneCustomerType } : null
+  return decideLocallyKnownMatch(current, candidates)
 }
 
 /**
@@ -95,12 +85,25 @@ export type CustomerSyncOutcome =
   | { status: 'FAILED'; error: string }
 
 /**
- * Synchronise le client Pennylane pour une demande de devis : recherche
- * (id local connu → email → téléphone → nom en dernier recours, jamais
- * automatique), puis création si aucune correspondance. Ne crée jamais un
- * second client en cas d'ambiguïté. Toujours appelée après l'enregistrement
- * local de la demande (jamais avant) — un échec ici n'affecte jamais la
- * demande déjà enregistrée.
+ * Synchronise le client Pennylane pour une demande de devis. Ordre strict :
+ *
+ *  A. pennylaneCustomerId déjà enregistré sur CETTE demande → toujours
+ *     prioritaire, retourné tel quel, JAMAIS écrasé (pas de nouvelle
+ *     recherche, pas de risque de remplacer un lien déjà établi).
+ *  B. Identifiant connu localement (autre demande déjà SYNCED, voir
+ *     matching.ts § decideLocallyKnownMatch) → email exact toujours
+ *     suffisant seul, téléphone exact seulement avec un nom compatible.
+ *  C. Recherche Pennylane par e-mail exact → SYNCED si unique, AMBIGUOUS si
+ *     plusieurs.
+ *  D. Recherche Pennylane par téléphone exact (voir matching.ts §
+ *     decidePhoneMatch) → jamais suffisant seul, exige un nom compatible ;
+ *     plusieurs résultats → toujours AMBIGUOUS quel que soit le nom.
+ *  E. Recherche par nom — dernier indice, jamais choisi automatiquement.
+ *  F. Aucune correspondance → création d'un nouveau client.
+ *
+ * Ne crée jamais un second client en cas d'ambiguïté. Toujours appelée
+ * après l'enregistrement local de la demande (jamais avant) — un échec ici
+ * n'affecte jamais la demande déjà enregistrée.
  */
 export async function syncCustomerForQuoteRequest(quoteRequestId: string): Promise<CustomerSyncOutcome> {
   const db = getDb()
@@ -111,6 +114,7 @@ export async function syncCustomerForQuoteRequest(quoteRequestId: string): Promi
       select: {
         id: true, nom: true, prenom: true, email: true, telephone: true,
         billingAddress: true, billingPostalCode: true, billingCity: true,
+        pennylaneCustomerId: true, pennylaneCustomerType: true,
       },
     })
   } catch (err) {
@@ -124,9 +128,14 @@ export async function syncCustomerForQuoteRequest(quoteRequestId: string): Promi
     return { status: 'FAILED', error: 'Demande introuvable en base.' }
   }
 
+  // A. Déjà enregistré localement — jamais écrasé, aucune recherche relancée.
+  const alreadyKnown = resolveAlreadyKnownCustomer(quoteRequest)
+  if (alreadyKnown) return alreadyKnown
+
   const now = new Date()
+  const localFullName = `${quoteRequest.prenom} ${quoteRequest.nom}`.trim()
   try {
-    // 1. Identifiant Pennylane déjà connu localement pour cette personne.
+    // B. Identifiant Pennylane déjà connu localement pour cette personne.
     const known = await findLocallyKnownCustomerId(quoteRequest)
     if (known) {
       await db.quoteRequest.update({
@@ -144,25 +153,27 @@ export async function syncCustomerForQuoteRequest(quoteRequestId: string): Promi
       return { status: 'SYNCED', customerId: known.id, customerType: (known.type as 'individual' | 'company') ?? 'individual' }
     }
 
-    // 2. Recherche par e-mail normalisé.
+    // C. Recherche par e-mail normalisé.
     const byEmail = await searchCustomersByEmail(quoteRequest.email)
-    if (byEmail.length === 1) return await finalizeSynced(quoteRequestId, byEmail[0], now)
-    if (byEmail.length > 1) return await finalizeAmbiguous(quoteRequestId, byEmail, now)
+    const emailDecision = decideEmailMatch(byEmail)
+    if (emailDecision.outcome === 'synced') return await finalizeSynced(quoteRequestId, emailDecision.customer, now)
+    if (emailDecision.outcome === 'ambiguous') return await finalizeAmbiguous(quoteRequestId, emailDecision.candidates, now)
 
-    // 3. Recherche par téléphone normalisé (parcours borné, voir customers.ts).
+    // D. Recherche par téléphone normalisé (parcours borné, voir customers.ts)
+    // — jamais suffisant seul, voir matching.ts § decidePhoneMatch.
     const { matches: byPhone, truncated: phoneScanTruncated } = await searchCustomersByPhone(quoteRequest.telephone)
-    if (byPhone.length === 1) return await finalizeSynced(quoteRequestId, byPhone[0], now)
-    if (byPhone.length > 1) return await finalizeAmbiguous(quoteRequestId, byPhone, now)
+    const phoneDecision = decidePhoneMatch(byPhone, localFullName)
+    if (phoneDecision.outcome === 'synced') return await finalizeSynced(quoteRequestId, phoneDecision.customer, now)
+    if (phoneDecision.outcome === 'ambiguous') return await finalizeAmbiguous(quoteRequestId, phoneDecision.candidates, now)
     if (phoneScanTruncated) {
       console.warn(`[pennylane-v2] Recherche par téléphone tronquée pour la demande ${quoteRequestId} — vérification manuelle recommandée.`)
     }
 
-    // 4. Nom — dernier indice, jamais choisi automatiquement même si unique.
-    const fullName = `${quoteRequest.prenom} ${quoteRequest.nom}`.trim()
-    const byName = await searchCustomersByName(fullName)
+    // E. Nom — dernier indice, jamais choisi automatiquement même si unique.
+    const byName = await searchCustomersByName(localFullName)
     if (byName.length > 0) return await finalizeAmbiguous(quoteRequestId, byName, now)
 
-    // 5. Aucune correspondance — création d'un nouveau client individuel
+    // F. Aucune correspondance — création d'un nouveau client individuel
     // (le formulaire ne collecte aujourd'hui aucune information société).
     // Pennylane exige une adresse postale complète (confirmé en conditions
     // réelles le 2026-07-25 — voir billing-address.ts) : le formulaire
