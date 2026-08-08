@@ -39,6 +39,14 @@
   --error:   #ef4444;
 
   --accent-red: var(--error);
+
+  /* Hauteur réelle rendue d'AdminBottomNav (voir AdminBottomNav.tsx) — mesurée en
+     production, pas 56px comme le min-h Tailwind le suggère : le contenu flex
+     (icône + libellé) dépasse légèrement min-h-[56px], plus 1px de border-top.
+     Centralisée ici pour que toute barre sticky page-spécifique (fiche devis,
+     formulaires Service/FAQ/Paramètres) se positionne au-dessus sans jamais
+     recouvrir la nav, même si sa hauteur réelle change. */
+  --admin-bottom-nav-h: 60px;
 }
 
 /* Palette de marque exposée comme échelle Tailwind native.

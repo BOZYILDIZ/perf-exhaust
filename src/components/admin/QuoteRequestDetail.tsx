@@ -347,7 +347,7 @@ export default function QuoteRequestDetail({
           padding safe-area puisqu'elle n'est pas au bord réel de l'écran. */}
       <div
         className="md:hidden fixed inset-x-0 z-30 flex border-t"
-        style={{ bottom: "calc(56px + env(safe-area-inset-bottom))", background: "#0d0d0d", borderColor: "#1e1e1e" }}
+        style={{ bottom: "calc(var(--admin-bottom-nav-h) + env(safe-area-inset-bottom))", background: "#0d0d0d", borderColor: "#1e1e1e" }}
       >
         <button
           type="button"
