@@ -1,8 +1,9 @@
 import { isDbConfigured } from "@/lib/db";
 import { listAppointmentsInRange } from "@/lib/agenda/appointments";
 import { listAgendaBlocksInRange, AGENDA_BLOCK_CATEGORIES } from "@/lib/agenda/blocks";
-import { getAgendaSettings } from "@/lib/agenda/settings";
-import { computeCalendarRange, computeGridHourBounds, shiftDate, todayParisDateString, type AgendaView } from "@/lib/agenda/calendar-range";
+import { getAgendaSettings, listWorkshopClosures } from "@/lib/agenda/settings";
+import { computeCalendarRange, computeGridHourBounds, shiftDate, todayParisDateString, addDays, type AgendaView } from "@/lib/agenda/calendar-range";
+import { parisDateString } from "@/lib/agenda/timezone";
 import AgendaCalendar from "@/components/admin/agenda/AgendaCalendar";
 
 export const dynamic = "force-dynamic";
@@ -33,13 +34,29 @@ export default async function AdminAgendaPage({ searchParams }: { searchParams: 
 
   const range = computeCalendarRange(view, dateStr);
 
-  const [appointments, blocks, agendaSettings] = isDbConfigured()
+  const [appointments, blocks, agendaSettings, closures] = isDbConfigured()
     ? await Promise.all([
         listAppointmentsInRange(range.from, range.to),
         listAgendaBlocksInRange(range.from, range.to),
         getAgendaSettings(),
+        listWorkshopClosures(),
       ])
-    : [[], [], null];
+    : [[], [], null, []];
+
+  // "FERMÉ — <label>" par jour visible — une seule WorkshopClosure peut
+  // couvrir plusieurs jours ; on ne génère jamais de bloc par jour en base,
+  // seulement cette correspondance jour -> libellé pour l'affichage.
+  const closedDayLabels: Record<string, string> = {};
+  for (const dateStr2 of (() => {
+    const days: string[] = [];
+    const fromDate = parisDateString(range.from);
+    const toDate = parisDateString(new Date(range.to.getTime() - 1));
+    for (let cursor = fromDate; cursor <= toDate; cursor = addDays(cursor, 1)) days.push(cursor);
+    return days;
+  })()) {
+    const match = closures.find((c) => c.startDate <= dateStr2 && dateStr2 <= c.endDate);
+    if (match) closedDayLabels[dateStr2] = match.label || "Fermé";
+  }
 
   const links = {
     day: buildHref("day", dateStr),
@@ -67,7 +84,7 @@ export default async function AdminAgendaPage({ searchParams }: { searchParams: 
         Agenda atelier
       </h1>
       <p className="text-gray-500 text-sm mb-8 print:hidden">
-        Cliquez, glissez-déposez ou redimensionnez un rendez-vous — la fiche complète s&apos;ouvre sans quitter l&apos;agenda.
+        Cliquez sur un rendez-vous pour ouvrir sa fiche complète, ou redimensionnez-le pour ajuster sa durée — sans quitter l&apos;agenda.
       </p>
 
       {!isDbConfigured() || !agendaSettings ? (
@@ -83,6 +100,7 @@ export default async function AdminAgendaPage({ searchParams }: { searchParams: 
           gridHourBounds={computeGridHourBounds(agendaSettings.weeklyHours)}
           durationOptions={durationOptions}
           blockCategories={AGENDA_BLOCK_CATEGORIES.map((c) => ({ value: c, label: BLOCK_CATEGORY_LABELS[c] ?? c }))}
+          closedDayLabels={closedDayLabels}
           appointments={appointments.map((a) => ({
             id: a.id,
             quoteRequestId: a.quoteRequestId,

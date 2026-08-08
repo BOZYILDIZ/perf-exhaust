@@ -265,14 +265,24 @@ model AgendaSettings {
   updatedAt DateTime @updatedAt
 }
 
-// Fermetures exceptionnelles de l'atelier (jours fériés, congés...) — liste,
-// pas un singleton. Une date fermée bloque tous les créneaux ce jour-là,
-// quels que soient les horaires habituels.
+// Fermetures exceptionnelles de l'atelier (jours fériés, congés, formation,
+// travaux...) — liste, pas un singleton. Représente une PLAGE de dates
+// inclusive (startDate <= jour <= endDate bloque tous les créneaux de
+// chaque jour concerné, quels que soient les horaires habituels) — un
+// congé de plusieurs semaines est une seule ligne, jamais un enregistrement
+// par jour. Anciennement une seule `date` (String @unique) : migration
+// additive (2026-08) ayant conservé chaque fermeture existante comme une
+// plage d'un seul jour (startDate = endDate = ancienne date).
 model WorkshopClosure {
   id        String   @id @default(cuid())
-  date      String   @unique // "AAAA-MM-JJ"
-  reason    String   @default("")
+  label     String   @default("") // ex. "Congés d'été", "Jour férié" — anciennement "reason"
+  startDate String // "AAAA-MM-JJ", inclusif
+  endDate   String // "AAAA-MM-JJ", inclusif, >= startDate
+  notes     String   @default("")
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([startDate, endDate])
 }
 
 // Bloc atelier manuel (2026-08) — occupe un créneau SANS client rattaché

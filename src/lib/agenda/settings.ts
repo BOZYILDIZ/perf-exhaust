@@ -1,6 +1,7 @@
 import 'server-only'
 import { getDb, isDbConfigured } from '@/lib/db'
 import type { WeeklyHours } from './types'
+import { addDays } from './calendar-range'
 
 const SETTINGS_ID = 'singleton'
 
@@ -76,23 +77,69 @@ export async function saveAgendaSettings(data: AgendaSettingsData): Promise<void
   })
 }
 
-/** Fermetures exceptionnelles — toutes, triées par date. */
-export async function listWorkshopClosures(): Promise<{ id: string; date: string; reason: string }[]> {
-  if (!isDbConfigured()) return []
-  return getDb().workshopClosure.findMany({ orderBy: { date: 'asc' } })
+export interface WorkshopClosureData {
+  id: string
+  label: string
+  startDate: string
+  endDate: string
+  notes: string
 }
 
+/** Fermetures exceptionnelles — toutes, triées par date de début. Chaque ligne représente une PLAGE (startDate..endDate inclus), jamais un jour isolé. */
+export async function listWorkshopClosures(): Promise<WorkshopClosureData[]> {
+  if (!isDbConfigured()) return []
+  return getDb().workshopClosure.findMany({
+    orderBy: { startDate: 'asc' },
+    select: { id: true, label: true, startDate: true, endDate: true, notes: true },
+  })
+}
+
+/**
+ * Développe chaque plage de fermeture en l'ensemble des dates ("AAAA-MM-JJ")
+ * qu'elle couvre — le moteur de disponibilités (availability.ts) continue de
+ * vérifier une simple appartenance à un Set par jour, exactement comme avant
+ * la Phase 5 : aucune modification du moteur pur, seule cette fonction de
+ * lecture change. Une plage de plusieurs semaines ne crée qu'une poignée de
+ * milliers d'entrées Set au plus — négligeable en mémoire, jamais persisté
+ * jour par jour en base (une seule ligne WorkshopClosure par période).
+ */
 export async function getWorkshopClosureDates(): Promise<Set<string>> {
   if (!isDbConfigured()) return new Set()
-  const rows = await getDb().workshopClosure.findMany({ select: { date: true } })
-  return new Set(rows.map((r) => r.date))
+  const rows = await getDb().workshopClosure.findMany({ select: { startDate: true, endDate: true } })
+  const dates = new Set<string>()
+  for (const { startDate, endDate } of rows) {
+    let cursor = startDate
+    // Garde-fou : une plage mal saisie (endDate < startDate) ne doit jamais
+    // boucler indéfiniment — n'ajoute alors que le premier jour.
+    let guard = 0
+    while (cursor <= endDate && guard < 5000) {
+      dates.add(cursor)
+      cursor = addDays(cursor, 1)
+      guard += 1
+    }
+  }
+  return dates
 }
 
-export async function addWorkshopClosure(date: string, reason: string): Promise<void> {
-  await getDb().workshopClosure.upsert({
-    where: { date },
-    create: { date, reason },
-    update: { reason },
+export interface WorkshopClosureInput {
+  label: string
+  startDate: string
+  endDate: string
+  notes?: string
+}
+
+export async function addWorkshopClosure(input: WorkshopClosureInput): Promise<WorkshopClosureData> {
+  return getDb().workshopClosure.create({
+    data: { label: input.label, startDate: input.startDate, endDate: input.endDate, notes: input.notes ?? '' },
+    select: { id: true, label: true, startDate: true, endDate: true, notes: true },
+  })
+}
+
+export async function updateWorkshopClosure(id: string, input: WorkshopClosureInput): Promise<WorkshopClosureData> {
+  return getDb().workshopClosure.update({
+    where: { id },
+    data: { label: input.label, startDate: input.startDate, endDate: input.endDate, notes: input.notes ?? '' },
+    select: { id: true, label: true, startDate: true, endDate: true, notes: true },
   })
 }
 

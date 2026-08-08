@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Loader2, Save, CheckCircle, AlertCircle, Trash2, Plus } from "lucide-react";
+import { Loader2, Save, CheckCircle, AlertCircle, Trash2, Plus, Pencil, CalendarOff } from "lucide-react";
 import type { WeeklyHours, WeekdayKey } from "@/lib/agenda/types";
 import { WEEKDAY_KEYS } from "@/lib/agenda/types";
+import ClosureFormModal, { type WorkshopClosureData } from "./ClosureFormModal";
 
 export interface AgendaSettingsData {
   weeklyHours: WeeklyHours;
@@ -13,10 +14,11 @@ export interface AgendaSettingsData {
   bufferMinutes: number;
 }
 
-export interface WorkshopClosureData {
-  id: string;
-  date: string;
-  reason: string;
+export type { WorkshopClosureData };
+
+function frDate(dateStr: string): string {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString("fr-FR", { timeZone: "UTC", day: "2-digit", month: "long", year: "numeric" });
 }
 
 const DAY_LABELS: Record<WeekdayKey, string> = {
@@ -32,8 +34,8 @@ export default function AgendaSettingsForm({ initial, initialClosures }: { initi
   const [msg, setMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
 
   const [closures, setClosures] = useState<WorkshopClosureData[]>(initialClosures);
-  const [newDate, setNewDate] = useState("");
-  const [newReason, setNewReason] = useState("");
+  const [closureModalOpen, setClosureModalOpen] = useState(false);
+  const [editingClosure, setEditingClosure] = useState<WorkshopClosureData | null>(null);
   const [closureBusy, setClosureBusy] = useState(false);
 
   const setDay = (day: WeekdayKey, patch: Partial<WeeklyHours[WeekdayKey]>) => {
@@ -59,26 +61,16 @@ export default function AgendaSettingsForm({ initial, initialClosures }: { initi
     }
   };
 
-  const addClosure = async () => {
-    if (!newDate) return;
-    setClosureBusy(true);
-    try {
-      const res = await fetch("/api/admin/agenda-closures", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ date: newDate, reason: newReason }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Ajout impossible");
-      setClosures((c) => [...c, { id: crypto.randomUUID(), date: newDate, reason: newReason }].sort((a, b) => (a.date < b.date ? -1 : 1)));
-      setNewDate("");
-      setNewReason("");
-    } catch (e) {
-      setMsg({ type: "err", text: e instanceof Error ? e.message : "Erreur" });
-    } finally {
-      setClosureBusy(false);
-    }
+  const onClosureSaved = (closure: WorkshopClosureData) => {
+    setClosures((c) => {
+      const withoutEdited = c.filter((cl) => cl.id !== closure.id);
+      return [...withoutEdited, closure].sort((a, b) => (a.startDate < b.startDate ? -1 : 1));
+    });
+    setEditingClosure(null);
   };
+
+  const openCreateClosure = () => { setEditingClosure(null); setClosureModalOpen(true); };
+  const openEditClosure = (c: WorkshopClosureData) => { setEditingClosure(c); setClosureModalOpen(true); };
 
   const removeClosure = async (id: string) => {
     setClosureBusy(true);
@@ -163,41 +155,54 @@ export default function AgendaSettingsForm({ initial, initialClosures }: { initi
       </button>
 
       <section>
-        <h2 className="text-white font-bold text-sm tracking-widest uppercase mb-4 pb-2 border-b border-[#1e1e1e]">Fermetures exceptionnelles</h2>
-        <div className="flex flex-wrap items-end gap-3 mb-4">
-          <div>
-            <label className={label}>Date</label>
-            <input type="date" value={newDate} onChange={(e) => setNewDate(e.target.value)} className={inputStyle} />
-          </div>
-          <div className="flex-1 min-w-[180px]">
-            <label className={label}>Motif (optionnel)</label>
-            <input type="text" value={newReason} onChange={(e) => setNewReason(e.target.value)} className={inputStyle} placeholder="ex : Congés" />
-          </div>
+        <div className="flex items-center justify-between mb-4 pb-2 border-b border-[#1e1e1e]">
+          <h2 className="text-white font-bold text-sm tracking-widest uppercase">Fermetures et congés</h2>
           <button
             type="button"
-            onClick={addClosure}
-            disabled={!newDate || closureBusy}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold tracking-widest uppercase text-white disabled:opacity-50"
+            onClick={openCreateClosure}
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold tracking-widest uppercase text-white"
             style={{ background: "linear-gradient(135deg, #1266ea, #0d54c8)" }}
           >
-            <Plus size={13} /> Ajouter
+            <Plus size={13} /> Ajouter une fermeture
           </button>
         </div>
+        <p className="text-gray-600 text-xs mb-4">
+          Une plage de dates bloque tous les créneaux concernés, quels que soient les horaires habituels — ex. Congés d&apos;été, jour férié, formation, travaux, fermeture exceptionnelle.
+        </p>
         {closures.length === 0 ? (
-          <p className="text-gray-600 text-sm">Aucune fermeture exceptionnelle.</p>
+          <p className="text-gray-600 text-sm flex items-center gap-2"><CalendarOff size={15} /> Aucune fermeture programmée.</p>
         ) : (
           <ul className="space-y-2">
             {closures.map((c) => (
-              <li key={c.id} className="flex items-center justify-between gap-3 px-4 py-2.5 border" style={{ borderColor: "#1e1e1e", background: "#0f0f0f" }}>
-                <span className="text-white text-sm">{c.date}{c.reason ? ` — ${c.reason}` : ""}</span>
-                <button type="button" onClick={() => removeClosure(c.id)} disabled={closureBusy} className="text-red-400 hover:text-red-300 disabled:opacity-40">
-                  <Trash2 size={14} />
-                </button>
+              <li key={c.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border" style={{ borderColor: "#1e1e1e", background: "#0f0f0f" }}>
+                <div>
+                  <p className="text-white text-sm font-bold">{c.label || "Fermeture"}</p>
+                  <p className="text-gray-500 text-xs">
+                    {c.startDate === c.endDate ? frDate(c.startDate) : `${frDate(c.startDate)} → ${frDate(c.endDate)}`}
+                  </p>
+                  {c.notes && <p className="text-gray-600 text-xs mt-1">{c.notes}</p>}
+                </div>
+                <div className="flex items-center gap-3 flex-shrink-0">
+                  <button type="button" onClick={() => openEditClosure(c)} disabled={closureBusy} className="inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-gray-400 hover:text-white disabled:opacity-40">
+                    <Pencil size={13} /> Modifier
+                  </button>
+                  <button type="button" onClick={() => removeClosure(c.id)} disabled={closureBusy} className="inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-red-400 hover:text-red-300 disabled:opacity-40">
+                    <Trash2 size={13} /> Supprimer
+                  </button>
+                </div>
               </li>
             ))}
           </ul>
         )}
       </section>
+
+      <ClosureFormModal
+        key={editingClosure?.id ?? "new"}
+        open={closureModalOpen}
+        onOpenChange={setClosureModalOpen}
+        closure={editingClosure}
+        onSaved={onClosureSaved}
+      />
     </div>
   );
 }

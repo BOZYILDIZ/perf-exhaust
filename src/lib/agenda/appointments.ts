@@ -2,6 +2,8 @@ import 'server-only'
 import { getDb } from '@/lib/db'
 import { computeAvailableSlots, isWithinOpenHours, overlapsExisting } from './availability'
 import { getAgendaSettings, getWorkshopClosureDates } from './settings'
+import { parisWallTimeToUtc } from './timezone'
+import { addDays } from './calendar-range'
 import { generateCancellationToken } from './cancellation-token'
 import { BLOCKING_APPOINTMENT_STATUSES } from './types'
 import type { TimeSlot } from './types'
@@ -452,6 +454,24 @@ export async function listAppointmentsInRange(from: Date, to: Date) {
   const db = getDb()
   return db.appointment.findMany({
     where: { startAt: { lt: to }, endAt: { gt: from } },
+    orderBy: { startAt: 'asc' },
+  })
+}
+
+/**
+ * Rendez-vous actifs (PENDING/CONFIRMED) dont le créneau tombe dans une
+ * plage de dates ("AAAA-MM-JJ", calendrier Paris, inclusive) — utilisé pour
+ * avertir l'admin avant de créer/modifier une fermeture atelier : "N
+ * rendez-vous existant(s) se trouve(nt) dans cette période de fermeture."
+ * Ne supprime ni ne déplace jamais rien automatiquement — l'admin décide.
+ */
+export async function listActiveAppointmentsInDateRange(startDate: string, endDate: string) {
+  const db = getDb()
+  const from = parisWallTimeToUtc(startDate, '00:00')
+  const to = parisWallTimeToUtc(addDays(endDate, 1), '00:00') // exclusif : lendemain minuit Paris de endDate
+  return db.appointment.findMany({
+    where: { status: { in: ACTIVE_APPOINTMENT_STATUSES as unknown as string[] }, startAt: { gte: from, lt: to } },
+    select: { id: true, customerName: true, vehicle: true, startAt: true, endAt: true, status: true },
     orderBy: { startAt: 'asc' },
   })
 }
