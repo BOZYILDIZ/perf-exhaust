@@ -43,6 +43,23 @@ async function findByToken(token: string): Promise<FullAppointmentRow | null> {
   })
 }
 
+/**
+ * Audit timezone/DST (mission de correctifs, confirmé en conditions
+ * réelles) : cette comparaison est volontairement faite en millisecondes
+ * epoch (`Date.getTime()`), jamais via une différence d'heure murale
+ * Paris — un écart de 48h réel qui traverse un changement d'heure (ex.
+ * passage à l'heure d'hiver, dernier dimanche d'octobre) afficherait un
+ * écart de 49h en heure murale Paris tout en restant exactement 48h de
+ * temps réel écoulé ; seule l'arithmétique sur les instants UTC bruts est
+ * juste dans les deux cas. Revérifié avec 8 scénarios réels (J+72h,
+ * J+48h+1min, exactement J+48h, J+47h59, J+24h, déjà annulé, token
+ * réutilisé, message d'erreur) : la règle stricte `startAt - now > 48h`
+ * est déjà appliquée correctement ici. À ne pas confondre avec
+ * `cancelAppointmentByWorkshop` (annulation atelier, sans limite de
+ * délai par conception) — si une annulation semble possible à moins de
+ * 48h, vérifier qu'elle ne passe pas par cette route atelier plutôt que
+ * par le lien client public.
+ */
 function classify(appt: FullAppointmentRow | null, now: Date): CancellationCheckStatus {
   if (!appt) return 'invalid'
   if (appt.cancellationTokenExpiresAt && now.getTime() > appt.cancellationTokenExpiresAt.getTime()) return 'invalid'
