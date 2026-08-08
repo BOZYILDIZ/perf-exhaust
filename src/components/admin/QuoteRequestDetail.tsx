@@ -163,14 +163,14 @@ export default function QuoteRequestDetail({
           <InfoRow label="Reçue le" value={new Date(request.createdAt).toLocaleString("fr-FR")} />
           <div>
             <div className="text-gray-600 text-xs uppercase tracking-wider mb-1">Email</div>
-            <a href={`mailto:${request.email}`} className="text-brand-400 hover:text-brand-300 text-sm inline-flex items-center gap-1.5">
-              <Mail size={13} /> {request.email}
+            <a href={`mailto:${request.email}`} className="text-brand-400 hover:text-brand-300 text-sm inline-flex items-center gap-1.5 min-w-0 break-all">
+              <Mail size={13} className="flex-shrink-0" /> {request.email}
             </a>
           </div>
           <div>
             <div className="text-gray-600 text-xs uppercase tracking-wider mb-1">Téléphone</div>
-            <a href={`tel:${request.telephone}`} className="text-brand-400 hover:text-brand-300 text-sm inline-flex items-center gap-1.5">
-              <Phone size={13} /> {request.telephone}
+            <a href={`tel:${request.telephone}`} className="text-brand-400 hover:text-brand-300 text-sm inline-flex items-center gap-1.5 min-w-0 break-all">
+              <Phone size={13} className="flex-shrink-0" /> {request.telephone}
             </a>
           </div>
         </div>

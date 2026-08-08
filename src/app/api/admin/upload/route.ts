@@ -5,6 +5,16 @@ import { isAdminAuthenticated } from "@/lib/admin-auth";
 const MAX_SIZE = 5 * 1024 * 1024; // 5 Mo
 const ALLOWED = ["image/jpeg", "image/png", "image/webp"];
 
+function guardOrigin(req: NextRequest): boolean {
+  const origin = req.headers.get("origin");
+  if (!origin) return true;
+  try {
+    return new URL(origin).host === req.nextUrl.host;
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Upload d'images via Vercel Blob (BLOB_READ_WRITE_TOKEN).
  * Sans token configuré : 503 avec message clair — l'admin reste utilisable
@@ -15,6 +25,7 @@ export async function POST(req: NextRequest) {
     if (!(await isAdminAuthenticated())) {
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
+    if (!guardOrigin(req)) return NextResponse.json({ error: "Origine invalide" }, { status: 403 });
     if (!process.env.BLOB_READ_WRITE_TOKEN) {
       return NextResponse.json(
         { error: "Stockage d'images non configuré : ajoutez BLOB_READ_WRITE_TOKEN (Vercel Blob) — voir docs/MAINTENANCE.md." },
