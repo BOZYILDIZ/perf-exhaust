@@ -376,3 +376,35 @@ model FAQItem {
 
   @@index([status, sortOrder])
 }
+
+// Un abonnement Web Push par appareil admin (jamais partagé entre appareils —
+// un même admin connecté sur iPhone + Mac + PC a 3 lignes distinctes, voir
+// src/lib/push/sendPushNotification.ts § sendPushToAllAdmins). `endpoint` est
+// l'identifiant stable fourni par le navigateur/service push (FCM, Mozilla
+// Push, etc.) : unique par définition, jamais réutilisé par deux appareils.
+// `p256dh`/`auth` sont les clés de chiffrement du payload (jamais des
+// secrets serveur — elles ne servent à rien sans la clé VAPID privée, qui
+// elle ne quitte jamais le serveur, voir PUSH_VAPID_PRIVATE_KEY).
+model PushSubscription {
+  id       String @id @default(cuid())
+  endpoint String @unique
+  p256dh   String
+  auth     String
+
+  // Contexte informatif seulement (aide au libellé "Chrome sur MacBook" dans
+  // /admin/settings) — jamais utilisé pour une décision de sécurité.
+  userAgent   String?
+  deviceLabel String?
+
+  // Désactivé plutôt que supprimé sur une erreur d'envoi non définitive
+  // (voir cleanupExpiredSubscription) — seule une 404/410 du provider (lien
+  // mort confirmé) entraîne une suppression immédiate.
+  enabled Boolean @default(true)
+
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  lastUsedAt DateTime?
+  lastError  String?
+
+  @@index([enabled])
+}

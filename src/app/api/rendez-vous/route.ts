@@ -10,6 +10,16 @@ import { REAR_DIFFUSER_VALUES } from "@/lib/quote-request-options";
 import { isPennylaneV2Configured } from "@/lib/pennylane-v2/config";
 import { syncCustomerForQuoteRequest } from "@/lib/pennylane-v2/sync";
 import { MAX_PHOTOS, vehiclePhotoMetadataSchema } from "@/lib/vehicle-photo-slots";
+import { sendPushToAllAdmins } from "@/lib/push/sendPushNotification";
+
+/** "Jean Dupont — BMW M240i" avec repli propre si une info manque ; ajoute le type de projet seulement si le résultat reste court (voir mission notifications push § 8). */
+function buildQuoteRequestPushBody(data: { prenom: string; nom: string; marque: string; modele: string; typeProjet: string }): string {
+  const name = [data.prenom, data.nom].filter(Boolean).join(" ").trim();
+  const vehicle = [data.marque, data.modele].filter(Boolean).join(" ").trim();
+  const base = [name, vehicle].filter(Boolean).join(" — ") || "Nouvelle demande reçue";
+  const withProject = data.typeProjet ? `${base} (${data.typeProjet})` : base;
+  return withProject.length <= 70 ? withProject : base;
+}
 
 const schema = z.object({
   nom: z.string().min(2),
@@ -115,6 +125,24 @@ export async function POST(req: NextRequest) {
           })
         : Promise.resolve(),
     ]);
+
+    // Notification push admin (nouvelle demande) — best-effort total, après
+    // les emails : sendPushToAllAdmins ne lève jamais (voir
+    // src/lib/push/sendPushNotification.ts), mais on l'enveloppe quand même
+    // ici pour garantir qu'aucune régression future dans ce module ne
+    // puisse un jour transformer une demande par ailleurs réussie en 500.
+    if (quoteRequestId) {
+      try {
+        await sendPushToAllAdmins({
+          title: "Nouvelle demande de devis",
+          body: buildQuoteRequestPushBody(data),
+          url: `/admin/devis/${quoteRequestId}`,
+          data: { quoteRequestId },
+        });
+      } catch (err) {
+        console.error("[API/rendez-vous] Échec inattendu de la notification push (demande non affectée) :", err);
+      }
+    }
 
     // Pennylane est la source unique pour les devis. En mode "api", un
     // brouillon est créé automatiquement dès que la demande est enregistrée —

@@ -3,6 +3,7 @@ import { getSiteSettings } from "@/lib/settings-repo";
 import { getAgendaSettings, listWorkshopClosures } from "@/lib/agenda/settings";
 import SettingsForm from "@/components/admin/SettingsForm";
 import AgendaSettingsForm from "@/components/admin/AgendaSettingsForm";
+import PushNotificationSettings from "@/components/admin/PushNotificationSettings";
 
 export const dynamic = "force-dynamic";
 
@@ -40,6 +41,15 @@ export default async function AdminSettingsPage() {
             utilisés par le moteur de disponibilités de l&apos;agenda (<code className="text-brand-400">/admin/agenda</code>).
           </p>
           <AgendaSettingsForm initial={agendaSettings} initialClosures={closures} />
+
+          <h2 className="text-2xl font-black text-white mt-16 mb-2" style={{ fontFamily: "var(--font-oswald), sans-serif" }}>
+            Notifications
+          </h2>
+          <p className="text-gray-500 text-sm mb-8">
+            Recevez une notification sur cet appareil à chaque nouvelle demande de devis — propre à
+            chaque appareil (téléphone, tablette, ordinateur), jamais partagée entre eux.
+          </p>
+          <PushNotificationSettings />
         </>
       )}
     </div>

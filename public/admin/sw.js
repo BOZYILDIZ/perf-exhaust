@@ -65,3 +65,48 @@ self.addEventListener("fetch", (event) => {
     );
   }
 });
+
+/**
+ * Notifications push (nouvelle demande de devis) — le payload JSON
+ * (title/body/url/data) n'est JAMAIS écrit dans le Cache Storage : il ne
+ * vit que dans la mémoire de cet event handler, affiché puis oublié,
+ * cohérent avec la règle absolue ci-dessus (aucune donnée dynamique en
+ * cache). Aucun son personnalisé n'est configuré — le comportement par
+ * défaut du navigateur/OS s'applique.
+ */
+self.addEventListener("push", (event) => {
+  let payload = { title: "PERF'EXHAUST Admin", body: "Nouvelle notification.", url: "/admin", data: {} };
+  try {
+    if (event.data) payload = { ...payload, ...event.data.json() };
+  } catch {
+    // Payload non-JSON ou absent — on garde le message générique ci-dessus
+    // plutôt que de faire échouer l'affichage de la notification.
+  }
+
+  event.waitUntil(
+    self.registration.showNotification(payload.title, {
+      body: payload.body,
+      icon: "/brand/app-icon-192.png",
+      badge: "/brand/app-icon-192.png",
+      data: { url: payload.url, ...payload.data },
+    })
+  );
+});
+
+/** Clic sur la notification : réutilise une fenêtre admin déjà ouverte (focus + navigation) au lieu d'en empiler une nouvelle, sinon en ouvre une. */
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const targetUrl = event.notification.data && event.notification.data.url ? event.notification.data.url : "/admin";
+
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {
+      const adminClient = clients.find((c) => new URL(c.url).pathname.startsWith("/admin"));
+      if (adminClient) {
+        return adminClient.focus().then(() => {
+          if ("navigate" in adminClient) return adminClient.navigate(targetUrl);
+        });
+      }
+      return self.clients.openWindow(targetUrl);
+    })
+  );
+});
