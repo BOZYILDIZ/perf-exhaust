@@ -41,7 +41,7 @@ export default function AdminBottomNav({ newQuotesCount = 0 }: { newQuotesCount?
   return (
     <>
       <nav
-        className="sm:hidden fixed bottom-0 inset-x-0 z-30 flex items-stretch border-t"
+        className="md:hidden fixed bottom-0 inset-x-0 z-30 flex items-stretch border-t"
         style={{ background: "#0d0d0d", borderColor: "#1e1e1e", paddingBottom: "env(safe-area-inset-bottom)" }}
         aria-label="Navigation principale"
       >
@@ -79,7 +79,7 @@ export default function AdminBottomNav({ newQuotesCount = 0 }: { newQuotesCount?
       </nav>
 
       {moreOpen && (
-        <div className="sm:hidden fixed inset-0 z-40 flex flex-col justify-end">
+        <div className="md:hidden fixed inset-0 z-40 flex flex-col justify-end">
           <button type="button" aria-label="Fermer" onClick={() => setMoreOpen(false)} className="absolute inset-0 bg-black/70" />
           <div
             className="relative border-t rounded-t-2xl p-4"
