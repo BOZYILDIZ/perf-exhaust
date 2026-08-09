@@ -14,6 +14,7 @@ import {
 } from '@/lib/email'
 import { isPennylaneV2Configured } from '@/lib/pennylane-v2/config'
 import { searchCustomersByEmail, searchCustomersByPhone } from '@/lib/pennylane-v2/customers'
+import { logActivityEvent, ACTIVITY_EVENT_TYPES } from '@/lib/activity-events'
 
 function cancellationUrlFor(token: string): string {
   return `https://perfexhaust.fr/rendez-vous/annuler/${token}`
@@ -192,6 +193,21 @@ export async function createAppointment(input: CreateAppointmentInput): Promise<
     console.error(`[agenda] Échec de l'email de confirmation pour le rendez-vous ${created.id} (rendez-vous non affecté) :`, err)
   }
 
+  // La planification d'un RDV fait avancer le pipeline commercial de la
+  // demande — best-effort, ne doit jamais faire échouer un RDV déjà créé.
+  try {
+    await db.quoteRequest.update({ where: { id: quoteRequest.id }, data: { status: 'RDV_PLANIFIE' } })
+  } catch (err) {
+    console.error(`[agenda] Échec de la mise à jour du statut commercial pour la demande ${quoteRequest.id} (rendez-vous non affecté) :`, err)
+  }
+  await logActivityEvent({
+    quoteRequestId: quoteRequest.id,
+    appointmentId: created.id,
+    type: ACTIVITY_EVENT_TYPES.APPOINTMENT_CREATED,
+    title: `Rendez-vous planifié — ${vehicle}`,
+    metadata: { startAt: created.startAt.toISOString() },
+  })
+
   return { id: created.id, startAt: created.startAt, endAt: created.endAt, rawCancellationToken: token }
 }
 
@@ -316,6 +332,13 @@ export async function createManualAppointment(input: CreateManualAppointmentInpu
     }
   }
 
+  await logActivityEvent({
+    appointmentId: created.id,
+    type: ACTIVITY_EVENT_TYPES.APPOINTMENT_CREATED,
+    title: `Rendez-vous manuel planifié — ${vehicle}`,
+    metadata: { startAt: created.startAt.toISOString(), manual: true },
+  })
+
   return {
     id: created.id,
     startAt: created.startAt,
@@ -392,6 +415,14 @@ export async function rescheduleAppointment(appointmentId: string, startAt: Date
     }
   }
 
+  await logActivityEvent({
+    quoteRequestId: existing.quoteRequestId,
+    appointmentId: updated.id,
+    type: ACTIVITY_EVENT_TYPES.APPOINTMENT_RESCHEDULED,
+    title: `Rendez-vous déplacé — ${updated.vehicle}`,
+    metadata: { startAt: updated.startAt.toISOString() },
+  })
+
   return { id: updated.id, startAt: updated.startAt, endAt: updated.endAt, changed: true, rawCancellationToken: token }
 }
 
@@ -426,6 +457,27 @@ export async function cancelAppointmentByWorkshop(appointmentId: string): Promis
       console.error(`[agenda] Échec de l'email d'annulation (atelier) pour le rendez-vous ${appointmentId} (annulation non affectée) :`, err)
     }
   }
+
+  // Le RDV n'ayant plus lieu, la demande liée redevient "acceptée en attente
+  // de nouvelle date" — seulement si elle n'a pas déjà avancé plus loin dans
+  // le pipeline atelier (véhicule déjà arrivé, en intervention...).
+  if (existing.quoteRequestId) {
+    try {
+      await db.quoteRequest.updateMany({
+        where: { id: existing.quoteRequestId, status: 'RDV_PLANIFIE' },
+        data: { status: 'ACCEPTE' },
+      })
+    } catch (err) {
+      console.error(`[agenda] Échec de la mise à jour du statut commercial pour la demande ${existing.quoteRequestId} (annulation non affectée) :`, err)
+    }
+  }
+  await logActivityEvent({
+    quoteRequestId: existing.quoteRequestId,
+    appointmentId: existing.id,
+    type: ACTIVITY_EVENT_TYPES.APPOINTMENT_CANCELLED,
+    title: `Rendez-vous annulé par l'atelier — ${existing.vehicle}`,
+    actor: 'admin',
+  })
 }
 
 export async function markAppointmentCompleted(appointmentId: string): Promise<void> {
