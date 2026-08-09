@@ -85,6 +85,9 @@ model QuoteRequest {
   modele       String
   annee        String
   motorisation String?
+  // Facultative partout (formulaire public, RDV manuel) — ajoutée 2026-08-10 pour la
+  // recherche globale et l'identification atelier, jamais requise.
+  licensePlate String?
   typeProjet   String
   sonorite     String
   rearDiffuser String  @default("je_ne_sais_pas") // "oui" | "non" | "je_ne_sais_pas"
@@ -98,8 +101,39 @@ model QuoteRequest {
   // consultables dans le panel admin et l'agenda.
   photos Json @default("[]")
 
-  status String @default("new") // "new" | "contacted" | "in_progress" | "completed" | "archived"
+  // Pipeline commercial atelier (2026-08-10) — remplace l'ancien jeu de valeurs
+  // ("new"|"contacted"|"in_progress"|"completed"|"archived", conservé en
+  // commentaire pour mémoire de la migration de données correspondante) :
+  // "NOUVELLE" | "A_CONTACTER" | "DEVIS_EN_PREPARATION" | "DEVIS_ENVOYE"
+  // | "EN_ATTENTE_CLIENT" | "ACCEPTE" | "REFUSE" | "RDV_PLANIFIE"
+  // | "VEHICULE_ARRIVE" | "EN_INTERVENTION" | "TERMINE" | "RESTITUE" | "ARCHIVE"
+  // Transitions "guidées" seulement (voir src/lib/quote-pipeline.ts) : l'UI
+  // suggère le statut suivant logique, mais l'API n'interdit aucune valeur de
+  // l'enum — un admin doit toujours pouvoir corriger une erreur de manip sans
+  // être bloqué par une machine à états rigide.
+  // VEHICULE_ARRIVE/EN_INTERVENTION/TERMINE/RESTITUE sont normalement pilotés
+  // par les actions atelier sur le rendez-vous lié (Appointment.workshopStatus,
+  // voir plus bas) — mis à jour ici en miroir à sens unique, jamais l'inverse.
+  status String @default("NOUVELLE")
   notes  String @default("") // notes internes atelier, jamais exposées publiquement
+
+  // Relances commerciales (devis envoyé, aucune évolution après X jours) — voir
+  // src/lib/quote-followup.ts. followupStage : 0 = aucune relance envoyée,
+  // 1 = relance 1 envoyée, 2 = relance 2 envoyée (jamais au-delà : pas de
+  // 3e relance automatique prévue). Jamais renseigné pour un dossier qui
+  // n'est plus au statut DEVIS_ENVOYE au moment de l'envoi (voir garde-fous).
+  followupStage       Int       @default(0)
+  lastFollowupSentAt  DateTime?
+
+  // Notification client "véhicule prêt" — action explicite depuis le dossier
+  // (jamais automatique), voir src/lib/email.ts. Empêche un double envoi
+  // accidentel (le bouton se désactive une fois ce champ renseigné).
+  vehicleReadyNotificationSentAt DateTime?
+
+  // Demande d'avis Google — envoyée manuellement (ou par l'automation-runner
+  // si activé) après RESTITUE + délai configurable (SiteSettings.reviewRequestDelayHours).
+  // Jamais de vérification si l'avis a réellement été laissé (aucune API fiable).
+  reviewRequestSentAt DateTime?
 
   // Intégration Pennylane — voir src/lib/pennylane/. Deux modes cohabitent
   // (PENNYLANE_MODE, voir src/lib/pennylane/mode.ts) :
@@ -158,6 +192,9 @@ model QuoteRequest {
   // au préalable, ou pour les statuts terminaux (CANCELLED/COMPLETED/NO_SHOW).
   appointment Appointment?
 
+  // Timeline métier (voir ActivityEvent ci-dessous) — extensible, jamais de secret dedans.
+  events ActivityEvent[]
+
   @@index([status, createdAt])
 }
 
@@ -209,9 +246,26 @@ model Appointment {
   // PENDING n'est atteint par aucun flux actuel — réservé à une évolution
   // future (proposition de créneau avant accord client). La planification
   // admin crée toujours directement en CONFIRMED (décision produit validée).
-  // Statuts propres au rendez-vous, jamais mélangés avec QuoteRequest.status.
+  // Statuts propres au rendez-vous (réservation), jamais mélangés avec
+  // QuoteRequest.status ni avec workshopStatus ci-dessous (progression physique).
   status String @default("PENDING")
   notes  String @default("")
+
+  // Progression physique atelier (2026-08-10) — null tant que le véhicule
+  // n'est pas arrivé, puis "VEHICULE_ARRIVE" | "EN_INTERVENTION" | "TERMINE"
+  // | "RESTITUE". Volontairement ICI (pas sur QuoteRequest) : fonctionne pour
+  // TOUT rendez-vous, y compris un RDV manuel sans demande liée. Quand
+  // quoteRequestId n'est pas nul, chaque action atelier met aussi à jour
+  // QuoteRequest.status en miroir à sens unique (voir src/lib/workshop-status.ts)
+  // — jamais l'inverse, jamais de synchronisation bidirectionnelle.
+  workshopStatus String?
+
+  // Photos avant/après intervention — métadonnées uniquement (même pattern que
+  // QuoteRequest.photos), jamais l'image en base. Schéma posé par anticipation
+  // (2026-08-10) mais NON fonctionnel tant que BLOB_READ_WRITE_TOKEN n'est pas
+  // configuré (absent lors du dernier audit) — voir docs/MAINTENANCE.md.
+  photosAvant Json @default("[]")
+  photosApres Json @default("[]")
 
   confirmationSentAt DateTime?
   // Générique, superseded par les deux champs dédiés ci-dessous (rappels
@@ -238,8 +292,36 @@ model Appointment {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // Timeline métier (voir ActivityEvent ci-dessous) — extensible, jamais de secret dedans.
+  events ActivityEvent[]
+
   @@index([startAt])
   @@index([status])
+}
+
+// Timeline métier persistante — événements importants du parcours d'une
+// demande/d'un rendez-vous (création, changement de statut, RDV, actions
+// atelier, relances, avis...). Modèle générique et extensible par
+// construction : `type` est une String libre (pas un enum Prisma), ajouter un
+// nouveau type d'événement ne nécessite donc aucune migration. `metadata` ne
+// doit JAMAIS contenir de secret (tokens, clés...) — uniquement des données
+// d'affichage (ancien/nouveau statut, etc.). Voir src/lib/activity-events.ts.
+model ActivityEvent {
+  id             String        @id @default(cuid())
+  quoteRequestId String?
+  quoteRequest   QuoteRequest? @relation(fields: [quoteRequestId], references: [id], onDelete: Cascade)
+  appointmentId  String?
+  appointment    Appointment?  @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+
+  type     String // ex. QUOTE_REQUEST_CREATED, QUOTE_STATUS_CHANGED, APPOINTMENT_CREATED, VEHICLE_ARRIVED...
+  title    String // libellé français prêt à afficher
+  metadata Json? // jamais de secret — uniquement des données d'affichage
+  actor    String? // "admin" | "system" | "customer"
+
+  createdAt DateTime @default(now())
+
+  @@index([quoteRequestId, createdAt])
+  @@index([appointmentId, createdAt])
 }
 
 // Paramètres de l'agenda atelier — ligne unique (singleton), éditable depuis
@@ -336,6 +418,26 @@ model SiteSettings {
   // /admin/devis/[id] : idéalement un lien direct vers la création de devis
   // si Pennylane en expose un, sinon la page d'accueil de l'app.
   pennylaneManualUrl String @default("https://app.pennylane.com/")
+
+  // Relances commerciales (2026-08-10) — voir src/lib/quote-followup.ts.
+  // Désactivées par défaut : la file "Clients à relancer" (mode manuel,
+  // /admin/devis) fonctionne indépendamment de ce réglage, qui ne gouverne que
+  // l'éventuel déclenchement automatique (cron, non activé pour l'instant).
+  followupDelay1Days        Int     @default(3)
+  followupDelay2Days        Int     @default(7)
+  followupAutomationEnabled Boolean @default(false)
+
+  // Rappels de rendez-vous (2026-08-10) — voir src/lib/agenda/reminders.ts.
+  // Ces réglages gouvernent l'automation-runner une fois branché ; le calcul
+  // (dueReminders()) existe déjà et reste inchangé.
+  reminder24hEnabled Boolean @default(false)
+  reminder1hEnabled  Boolean @default(false)
+
+  // Demande d'avis Google après restitution (2026-08-10) — voir
+  // src/lib/email.ts. googleReviewsUrl (ci-dessus) reste la seule source de
+  // vérité pour le lien ; ces deux champs ne pilotent que le délai/l'activation.
+  reviewRequestEnabled    Boolean @default(false)
+  reviewRequestDelayHours Int     @default(24)
 
   updatedAt DateTime @updatedAt
 }

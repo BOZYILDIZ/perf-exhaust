@@ -67,8 +67,31 @@ export const projectSchema = z.object({
 
 export type ProjectPayload = z.infer<typeof projectSchema>
 
-/** Statuts possibles d'une demande de devis (mini-CRM). */
-export const QUOTE_STATUSES = ['new', 'contacted', 'in_progress', 'completed', 'archived'] as const
+/**
+ * Pipeline commercial d'une demande de devis (mini-CRM), voir
+ * src/lib/quote-pipeline.ts pour les libellés français, couleurs et l'ordre
+ * d'affichage. Transitions "guidées" seulement : l'UI suggère le statut
+ * suivant logique, mais toute valeur de cet enum reste acceptée par l'API —
+ * un admin doit toujours pouvoir corriger une erreur de manip.
+ */
+export const QUOTE_STATUSES = [
+  'NOUVELLE',
+  'A_CONTACTER',
+  'DEVIS_EN_PREPARATION',
+  'DEVIS_ENVOYE',
+  'EN_ATTENTE_CLIENT',
+  'ACCEPTE',
+  'REFUSE',
+  'RDV_PLANIFIE',
+  'VEHICULE_ARRIVE',
+  'EN_INTERVENTION',
+  'TERMINE',
+  'RESTITUE',
+  'ARCHIVE',
+] as const
+
+/** Statuts atelier d'un rendez-vous — voir Appointment.workshopStatus (prisma/schema.prisma). */
+export const WORKSHOP_STATUSES = ['VEHICULE_ARRIVE', 'EN_INTERVENTION', 'TERMINE', 'RESTITUE'] as const
 
 /** Statuts du suivi manuel Pennylane (plan gratuit, sans API — voir src/lib/pennylane/mode.ts). */
 export const PENNYLANE_MANUAL_STATUSES = [
@@ -86,6 +109,7 @@ export const quoteRequestUpdateSchema = z
   .object({
     status: z.enum(QUOTE_STATUSES).optional(),
     notes: z.string().max(5000).optional(),
+    licensePlate: z.string().max(20).optional().or(z.literal('')),
     pennylaneManualStatus: z.enum(PENNYLANE_MANUAL_STATUSES).optional(),
     pennylaneQuoteNumber: z.string().max(120).optional().or(z.literal('')),
     pennylaneQuoteUrl: z.string().url("Lien Pennylane invalide").optional().or(z.literal('')),
@@ -111,6 +135,14 @@ export const siteSettingsSchema = z.object({
   siret: z.string().max(30).optional().or(z.literal('')),
   publicationDirector: z.string().max(120).optional().or(z.literal('')),
   pennylaneManualUrl: z.string().url("URL Pennylane invalide").max(500).optional().or(z.literal('')),
+
+  followupDelay1Days: z.number().int().min(1).max(60),
+  followupDelay2Days: z.number().int().min(1).max(60),
+  followupAutomationEnabled: z.boolean(),
+  reminder24hEnabled: z.boolean(),
+  reminder1hEnabled: z.boolean(),
+  reviewRequestEnabled: z.boolean(),
+  reviewRequestDelayHours: z.number().int().min(1).max(24 * 30),
 })
 
 /** Prestation affichée sur /services, éditée depuis /admin/services. */
