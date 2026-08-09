@@ -115,7 +115,7 @@ export default async function ContactPage() {
                   <div key={zone.city} className="p-2.5 border border-white/10 bg-white/5">
                     <div className="font-bold text-white text-xs leading-snug">{zone.city}</div>
                     <div className="flex items-center justify-between gap-2 mt-0.5">
-                      <span className="text-[11px] text-white/30">{zone.dept}</span>
+                      <span className="text-[11px] text-white/50">{zone.dept}</span>
                       <span className="text-[11px] text-brand-400/70 font-medium">{zone.note}</span>
                     </div>
                   </div>
