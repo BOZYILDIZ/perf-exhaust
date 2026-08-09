@@ -133,17 +133,21 @@ export default function Header({ settings }: { settings: SiteSettingsData }) {
         </nav>
 
         {/* CTA */}
-        <div className="hidden lg:flex items-center gap-4">
+        <div className="hidden lg:flex items-center gap-3 xl:gap-4 flex-shrink-0">
+          {/* "Appeler" se réduit à l'icône entre lg et xl (comme le badge SHIFTECH)
+              pour libérer la place nécessaire au CTA sur une seule ligne à 1024px
+              — priorité visuelle : logo > CTA > liens nav > badge > téléphone. */}
           <a
             href={`tel:${settings.phone}`}
-            className="flex items-center gap-2 text-sm text-gray-300 hover:text-brand-400 transition-colors"
+            aria-label={`Appeler le ${settings.phone}`}
+            className="flex items-center gap-2 text-sm text-gray-300 hover:text-brand-400 transition-colors flex-shrink-0"
           >
             <Phone size={14} />
-            <span className="font-medium">Appeler</span>
+            <span className="font-medium hidden xl:inline">Appeler</span>
           </a>
           <Link
             href="/rendez-vous"
-            className="text-sm font-bold tracking-wider uppercase text-white px-5 py-2.5 transition-all hover:-translate-y-0.5"
+            className="text-sm font-bold tracking-wider uppercase text-white px-5 py-2.5 transition-all hover:-translate-y-0.5 whitespace-nowrap flex-shrink-0"
             style={{
               background: "linear-gradient(135deg, #1266ea, #0d54c8)",
               clipPath: "polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))",
