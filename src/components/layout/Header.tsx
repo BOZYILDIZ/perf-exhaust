@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Menu, X, Phone } from "lucide-react";
 import type { SiteSettingsData } from "@/lib/settings-repo";
+import ShiftechPartnerBadge from "@/components/ui/ShiftechPartnerBadge";
 
 const navLinks = [
   { href: "/", label: "Accueil" },
@@ -78,28 +79,34 @@ export default function Header({ settings }: { settings: SiteSettingsData }) {
       }}
     >
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-        {/* Logo */}
-        <Link href="/" className="flex items-center gap-3 group">
-          <Image
-            src="/brand/logo-icon.png"
-            alt="Logo PERF'EXHAUST"
-            width={58}
-            height={40}
-            priority
-            className="h-10 w-auto"
-          />
-          <div>
-            <div
-              className="text-white font-black text-xl leading-none group-hover:text-brand-400 transition-colors"
-              style={{ fontFamily: "var(--font-oswald), sans-serif", letterSpacing: "0.05em" }}
-            >
-              PERF&apos;EXHAUST
+        {/* Logo + partenaire SHIFTECH (regroupés pour ne pas déséquilibrer le
+            justify-between à 3 blocs : logo, nav, CTA) */}
+        <div className="flex items-center flex-shrink-0">
+          <Link href="/" className="flex items-center gap-3 group flex-shrink-0">
+            <Image
+              src="/brand/logo-icon.png"
+              alt="Logo PERF'EXHAUST"
+              width={58}
+              height={40}
+              priority
+              className="h-10 w-auto"
+            />
+            <div>
+              <div
+                className="text-white font-black text-xl leading-none group-hover:text-brand-400 transition-colors"
+                style={{ fontFamily: "var(--font-oswald), sans-serif", letterSpacing: "0.05em" }}
+              >
+                PERF&apos;EXHAUST
+              </div>
+              <div className="text-brand-500 text-xs font-medium tracking-widest uppercase">
+                Alsace
+              </div>
             </div>
-            <div className="text-brand-500 text-xs font-medium tracking-widest uppercase">
-              Alsace
-            </div>
-          </div>
-        </Link>
+          </Link>
+          {settings.shiftechUrl && (
+            <ShiftechPartnerBadge url={settings.shiftechUrl} variant="navbar" />
+          )}
+        </div>
 
         {/* Desktop nav */}
         <nav className="hidden lg:flex items-center gap-6" aria-label="Navigation principale">
@@ -126,17 +133,21 @@ export default function Header({ settings }: { settings: SiteSettingsData }) {
         </nav>
 
         {/* CTA */}
-        <div className="hidden lg:flex items-center gap-4">
+        <div className="hidden lg:flex items-center gap-3 xl:gap-4 flex-shrink-0">
+          {/* "Appeler" se réduit à l'icône entre lg et xl (comme le badge SHIFTECH)
+              pour libérer la place nécessaire au CTA sur une seule ligne à 1024px
+              — priorité visuelle : logo > CTA > liens nav > badge > téléphone. */}
           <a
             href={`tel:${settings.phone}`}
-            className="flex items-center gap-2 text-sm text-gray-300 hover:text-brand-400 transition-colors"
+            aria-label={`Appeler le ${settings.phone}`}
+            className="flex items-center gap-2 text-sm text-gray-300 hover:text-brand-400 transition-colors flex-shrink-0"
           >
             <Phone size={14} />
-            <span className="font-medium">Appeler</span>
+            <span className="font-medium hidden xl:inline">Appeler</span>
           </a>
           <Link
             href="/rendez-vous"
-            className="text-sm font-bold tracking-wider uppercase text-white px-5 py-2.5 transition-all hover:-translate-y-0.5"
+            className="text-sm font-bold tracking-wider uppercase text-white px-5 py-2.5 transition-all hover:-translate-y-0.5 whitespace-nowrap flex-shrink-0"
             style={{
               background: "linear-gradient(135deg, #1266ea, #0d54c8)",
               clipPath: "polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))",
@@ -206,6 +217,13 @@ export default function Header({ settings }: { settings: SiteSettingsData }) {
           >
             Demander un devis
           </Link>
+          {settings.shiftechUrl && (
+            <ShiftechPartnerBadge
+              url={settings.shiftechUrl}
+              variant="menu"
+              onClick={() => setMenuOpen(false)}
+            />
+          )}
           <div style={{ paddingBottom: "env(safe-area-inset-bottom)" }} />
           </nav>
         </div>

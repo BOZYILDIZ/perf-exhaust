@@ -3,6 +3,7 @@ import Image from "next/image";
 import { ArrowRight, Wrench, Shield, Award, MapPin } from "lucide-react";
 import SectionTitle from "@/components/ui/SectionTitle";
 import { partners } from "@/data/partners";
+import { getSiteSettings } from "@/lib/settings-repo";
 
 /** Repères condensés depuis les 4 cartes détaillées de /a-propos — juste le titre, pas les paragraphes complets. */
 const HIGHLIGHTS = [
@@ -18,9 +19,14 @@ const HIGHLIGHTS = [
  * sur /a-propos) par un aperçu condensé + un renvoi vers la page complète.
  * Le partenariat SHIFTECH est mentionné ici de façon compacte (badge), la
  * présentation détaillée restant sur /a-propos et le badge complet en footer.
+ * Le lien pointe vers settings.shiftechUrl (même source que le footer et la
+ * navbar) plutôt que la constante statique partners[0].url, qui reste
+ * utilisée uniquement pour le nom/logo affichés — source unique de vérité
+ * pour l'URL SHIFTECH.
  */
-export default function AboutTeaser() {
+export default async function AboutTeaser() {
   const shiftech = partners[0];
+  const settings = await getSiteSettings();
   return (
     <section className="py-24" style={{ background: "#060606" }}>
       <div className="max-w-7xl mx-auto px-6">
@@ -42,9 +48,9 @@ export default function AboutTeaser() {
               >
                 Découvrir l&apos;atelier <ArrowRight size={14} />
               </Link>
-              {shiftech && (
+              {shiftech && settings.shiftechUrl && (
                 <a
-                  href={shiftech.url}
+                  href={settings.shiftechUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2.5 px-4 py-3 border border-white/15 hover:border-brand-500/40 transition-colors"
