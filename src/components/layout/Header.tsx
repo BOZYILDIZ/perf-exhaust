@@ -2,27 +2,69 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import { Menu, X, Phone } from "lucide-react";
 import type { SiteSettingsData } from "@/lib/settings-repo";
 
 const navLinks = [
   { href: "/", label: "Accueil" },
-  { href: "/realisations", label: "Réalisations" },
   { href: "/services", label: "Services" },
+  { href: "/realisations", label: "Réalisations" },
   { href: "/a-propos", label: "À propos" },
   { href: "/contact", label: "Contact" },
 ];
 
+/** Page courante active dans la nav : exact pour "/", préfixe pour les autres (couvre /realisations/[slug]). */
+function isActive(pathname: string, href: string): boolean {
+  if (href === "/") return pathname === "/";
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
 export default function Header({ settings }: { settings: SiteSettingsData }) {
-  const [menuOpen, setMenuOpen] = useState(false);
+  const pathname = usePathname();
+  // `menuOpen` est dérivé (pathname au moment de l'ouverture, comparé au pathname
+  // courant) plutôt que d'être un booléen resynchronisé par un effet à chaque
+  // navigation : un changement de route ferme donc le menu automatiquement au
+  // rendu, sans jamais appeler setState depuis un effet (voir alternative
+  // rejetée ci-dessous — react-hooks/set-state-in-effect).
+  const [openedAtPathname, setOpenedAtPathname] = useState<string | null>(null);
+  const menuOpen = openedAtPathname !== null && openedAtPathname === pathname;
+  const setMenuOpen = (open: boolean) => setOpenedAtPathname(open ? pathname : null);
   const [scrolled, setScrolled] = useState(false);
+  const menuToggleRef = useRef<HTMLButtonElement>(null);
+  const firstMobileLinkRef = useRef<HTMLAnchorElement>(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  // Comportement standard d'un menu mobile plein écran : bloque le scroll de la
+  // page en arrière-plan, ferme sur Échap, place le focus sur le premier lien à
+  // l'ouverture et le restitue au bouton bascule à la fermeture (jamais perdu).
+  useEffect(() => {
+    if (!menuOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    const toggleButton = menuToggleRef.current;
+    document.body.style.overflow = "hidden";
+    firstMobileLinkRef.current?.focus();
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      // Ferme directement via le setter stable (setOpenedAtPathname) plutôt que
+      // le wrapper setMenuOpen, recréé à chaque rendu — évite une dépendance
+      // d'effet instable tout en gardant le même effet (menu fermé).
+      if (e.key === "Escape") setOpenedAtPathname(null);
+    };
+    window.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+      toggleButton?.focus();
+    };
+  }, [menuOpen]);
 
   return (
     <header
@@ -60,17 +102,27 @@ export default function Header({ settings }: { settings: SiteSettingsData }) {
         </Link>
 
         {/* Desktop nav */}
-        <nav className="hidden lg:flex items-center gap-6">
-          {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="text-sm font-medium tracking-wider uppercase text-gray-300 hover:text-brand-400 transition-colors relative group"
-            >
-              {link.label}
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-brand-500 group-hover:w-full transition-all duration-300" />
-            </Link>
-          ))}
+        <nav className="hidden lg:flex items-center gap-6" aria-label="Navigation principale">
+          {navLinks.map((link) => {
+            const active = isActive(pathname, link.href);
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                aria-current={active ? "page" : undefined}
+                className={`text-sm font-medium tracking-wider uppercase transition-colors relative group ${
+                  active ? "text-brand-400" : "text-gray-300 hover:text-brand-400"
+                }`}
+              >
+                {link.label}
+                <span
+                  className={`absolute -bottom-1 left-0 h-0.5 bg-brand-500 transition-all duration-300 ${
+                    active ? "w-full" : "w-0 group-hover:w-full"
+                  }`}
+                />
+              </Link>
+            );
+          })}
         </nav>
 
         {/* CTA */}
@@ -90,13 +142,14 @@ export default function Header({ settings }: { settings: SiteSettingsData }) {
               clipPath: "polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))",
             }}
           >
-            Devis gratuit
+            Demander un devis
           </Link>
         </div>
 
         {/* Mobile menu toggle */}
         <button
-          className="lg:hidden p-2 -mr-2 text-gray-300 hover:text-brand-400 transition-colors"
+          ref={menuToggleRef}
+          className="lg:hidden p-2.5 -mr-2 text-gray-300 hover:text-brand-400 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
           onClick={() => setMenuOpen(!menuOpen)}
           aria-label={menuOpen ? "Fermer le menu" : "Ouvrir le menu"}
           aria-expanded={menuOpen}
@@ -106,35 +159,54 @@ export default function Header({ settings }: { settings: SiteSettingsData }) {
         </button>
       </div>
 
-      {/* Mobile menu */}
+      {/* Menu mobile — reste dans le flux normal du header (pas de position fixe avec
+          décalage codé en dur) : robuste face à tout changement futur de hauteur du
+          header. Le scroll de la page derrière est bloqué via document.body ci-dessus,
+          pas par un positionnement plein écran. */}
       {menuOpen && (
         <div
           id="mobile-nav"
-          className="lg:hidden"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Menu de navigation"
+          // h-[100dvh] (pas max-h) : remplit toujours tout le reste de l'écran quand
+          // ouvert — sinon le contenu de la page (et la barre flottante MobileCTA,
+          // fixed en bas de viewport) reste visible sous un menu plus court que
+          // l'écran. dvh plutôt que vh : suit la barre d'adresse mobile qui
+          // rétrécit/grandit au scroll (Safari iOS notamment).
+          className="lg:hidden h-[calc(100dvh-76px)] overflow-y-auto motion-safe:animate-[fadeIn_0.15s_ease-out]"
           style={{ background: "rgba(8,8,8,0.98)", borderTop: "1px solid rgba(18,102,234,0.2)" }}
         >
-          <nav className="flex flex-col px-6 py-4 gap-4">
-            {navLinks.map((link) => (
+          <nav className="flex flex-col px-6 py-4" aria-label="Navigation mobile">
+          {navLinks.map((link, i) => {
+            const active = isActive(pathname, link.href);
+            return (
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-sm font-medium tracking-wider uppercase text-gray-300 hover:text-brand-400 transition-colors py-2 border-b border-gray-800"
+                ref={i === 0 ? firstMobileLinkRef : undefined}
+                aria-current={active ? "page" : undefined}
+                className={`text-sm font-medium tracking-wider uppercase transition-colors py-3 min-h-[44px] flex items-center border-b border-gray-800 ${
+                  active ? "text-brand-400" : "text-gray-300 hover:text-brand-400"
+                }`}
                 onClick={() => setMenuOpen(false)}
               >
                 {link.label}
               </Link>
-            ))}
-            <Link
-              href="/rendez-vous"
-              className="mt-2 text-center text-sm font-bold tracking-wider uppercase text-white px-5 py-3"
-              style={{
-                background: "linear-gradient(135deg, #1266ea, #0d54c8)",
-                clipPath: "polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))",
-              }}
-              onClick={() => setMenuOpen(false)}
-            >
-              Devis gratuit
-            </Link>
+            );
+          })}
+          <Link
+            href="/rendez-vous"
+            className="mt-4 text-center text-sm font-bold tracking-wider uppercase text-white px-5 py-3.5 min-h-[44px] flex items-center justify-center"
+            style={{
+              background: "linear-gradient(135deg, #1266ea, #0d54c8)",
+              clipPath: "polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px))",
+            }}
+            onClick={() => setMenuOpen(false)}
+          >
+            Demander un devis
+          </Link>
+          <div style={{ paddingBottom: "env(safe-area-inset-bottom)" }} />
           </nav>
         </div>
       )}

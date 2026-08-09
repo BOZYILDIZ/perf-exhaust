@@ -36,10 +36,10 @@ export default function MobileCTA() {
         <div className="w-px bg-white/10 my-2" aria-hidden="true" />
         <Link
           href="/rendez-vous"
-          className="flex-1 flex items-center justify-center gap-2 py-4 text-xs font-bold tracking-widest uppercase text-brand-400 active:bg-brand-500/10 transition-colors"
+          className="flex-1 flex items-center justify-center gap-1.5 py-4 text-[11px] sm:text-xs font-bold tracking-wide sm:tracking-widest uppercase text-brand-400 active:bg-brand-500/10 transition-colors whitespace-nowrap"
         >
-          <FileText size={15} />
-          Devis gratuit
+          <FileText size={14} className="flex-shrink-0" />
+          Demander un devis
         </Link>
       </div>
     </>

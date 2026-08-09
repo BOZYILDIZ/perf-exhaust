@@ -202,7 +202,7 @@ export default function Hero() {
               className="group inline-flex items-center gap-3 px-7 py-4 bg-brand-500 text-white font-bold text-sm tracking-widest uppercase hover:bg-brand-400 transition-all hover:-translate-y-0.5"
               style={{ clipPath: "polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px))" }}
             >
-              Devis gratuit
+              Demander un devis
               <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
             </Link>
             <a

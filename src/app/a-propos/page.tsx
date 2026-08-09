@@ -4,6 +4,8 @@ import Image from "next/image";
 import { ArrowRight, Shield, Wrench, Award, MapPin } from "lucide-react";
 import { partners } from "@/data/partners";
 import { breadcrumbSchema } from "@/lib/jsonld";
+import ExpertiseSection from "@/components/sections/ExpertiseSection";
+import ProcessSection from "@/components/sections/ProcessSection";
 
 export const metadata: Metadata = {
   title: "À propos — Atelier PERF'EXHAUST, fabricant d'échappements sur mesure en Alsace",
@@ -190,6 +192,14 @@ export default function AProposPage() {
           </div>
         </section>
       </main>
+
+      {/* Ces deux sections gèrent leur propre conteneur pleine largeur (comme sur
+          l'accueil) — volontairement hors du <main> ci-dessus pour éviter un
+          double max-w-7xl imbriqué. Contenu déplacé depuis l'ancien accueil
+          One Page (refonte multi-pages du 2026-08-09) : détail de l'expertise
+          et du processus de fabrication, jamais recopiés sur l'accueil désormais. */}
+      <ExpertiseSection />
+      <ProcessSection />
     </div>
   );
 }
