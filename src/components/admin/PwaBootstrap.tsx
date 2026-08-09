@@ -88,7 +88,10 @@ export default function PwaBootstrap() {
         <button
           type="button"
           onClick={install}
-          className="fixed z-40 bottom-20 sm:bottom-5 right-5 inline-flex items-center gap-2 px-4 py-3 text-xs font-bold uppercase tracking-wider text-white shadow-lg"
+          // bottom-20 (80px) était un nombre magique censé dégager AdminBottomNav
+          // (60px + safe-area) : insuffisant sur un iPhone à home indicator
+          // (60+34=94px > 80px), le bouton pouvait chevaucher le haut de la nav.
+          className="fixed z-40 bottom-[calc(var(--admin-bottom-nav-h)+var(--admin-safe-area-bottom)+var(--admin-sticky-action-gap))] sm:bottom-5 right-5 inline-flex items-center gap-2 px-4 py-3 text-xs font-bold uppercase tracking-wider text-white shadow-lg"
           style={{ background: "linear-gradient(135deg, #1266ea, #0d54c8)" }}
         >
           <Download size={14} /> Installer l&apos;application
