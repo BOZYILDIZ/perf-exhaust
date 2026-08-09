@@ -125,14 +125,13 @@ model QuoteRequest {
   followupStage       Int       @default(0)
   lastFollowupSentAt  DateTime?
 
-  // Notification client "véhicule prêt" — action explicite depuis le dossier
-  // (jamais automatique), voir src/lib/email.ts. Empêche un double envoi
-  // accidentel (le bouton se désactive une fois ce champ renseigné).
-  vehicleReadyNotificationSentAt DateTime?
-
   // Demande d'avis Google — envoyée manuellement (ou par l'automation-runner
   // si activé) après RESTITUE + délai configurable (SiteSettings.reviewRequestDelayHours).
   // Jamais de vérification si l'avis a réellement été laissé (aucune API fiable).
+  // NOTE (Phase C, 2026-08-10) : comme vehicleReadyNotifiedAt (déplacé sur
+  // Appointment, voir plus bas), ce champ devra probablement suivre le même
+  // chemin en Phase D pour fonctionner aussi sur un RDV manuel sans demande —
+  // pas fait maintenant, hors périmètre de cette phase.
   reviewRequestSentAt DateTime?
 
   // Intégration Pennylane — voir src/lib/pennylane/. Deux modes cohabitent
@@ -223,11 +222,16 @@ model Appointment {
 
   // Champs snapshot RDV MANUEL uniquement (quoteRequestId null) — jamais
   // dupliqués depuis QuoteRequest pour un RDV lié à une demande : dans ce
-  // cas motorisation/rearDiffuser/adresse continuent d'être lus depuis
-  // QuoteRequest (voir src/lib/pennylane-v2/client-profile.ts), exactement
-  // comme avant la Phase 4.
+  // cas motorisation/rearDiffuser/adresse/licensePlate continuent d'être lus
+  // depuis QuoteRequest (voir src/lib/pennylane-v2/client-profile.ts),
+  // exactement comme avant la Phase 4. licensePlate suit ce même principe
+  // depuis la Phase C (2026-08-10) : QuoteRequest.licensePlate est la donnée
+  // CANONIQUE pour un RDV lié — Appointment.licensePlate n'est jamais lu ni
+  // affiché dans ce cas, uniquement pour un RDV manuel (voir
+  // resolveAppointmentLicensePlate() dans src/lib/agenda/workshop-status.ts).
   customerAddress String?
   motorisation    String?
+  licensePlate    String?
   rearDiffuser    String?
   vehicleNotes    String  @default("")
 
@@ -256,9 +260,19 @@ model Appointment {
   // | "RESTITUE". Volontairement ICI (pas sur QuoteRequest) : fonctionne pour
   // TOUT rendez-vous, y compris un RDV manuel sans demande liée. Quand
   // quoteRequestId n'est pas nul, chaque action atelier met aussi à jour
-  // QuoteRequest.status en miroir à sens unique (voir src/lib/workshop-status.ts)
-  // — jamais l'inverse, jamais de synchronisation bidirectionnelle.
+  // QuoteRequest.status en miroir à sens unique (voir
+  // src/lib/agenda/workshop-status.ts) — jamais l'inverse, jamais de
+  // synchronisation bidirectionnelle.
   workshopStatus String?
+
+  // Notification client "véhicule prêt" — action explicite (jamais
+  // automatique) déclenchée depuis le passage à TERMINE, voir
+  // src/lib/agenda/workshop-actions.ts. Volontairement ICI (pas sur
+  // QuoteRequest) : un RDV manuel n'a pas de QuoteRequest mais doit pouvoir
+  // terminer son intervention normalement, avec ou sans notification (email
+  // client facultatif sur un RDV manuel). Empêche tout double envoi — la
+  // présence de cette date, et elle seule, décide si l'email part ou non.
+  vehicleReadyNotifiedAt DateTime?
 
   // Photos avant/après intervention — métadonnées uniquement (même pattern que
   // QuoteRequest.photos), jamais l'image en base. Schéma posé par anticipation
