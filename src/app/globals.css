@@ -47,7 +47,44 @@
      formulaires Service/FAQ/Paramètres) se positionne au-dessus sans jamais
      recouvrir la nav, même si sa hauteur réelle change. */
   --admin-bottom-nav-h: 60px;
+
+  /* Indirection sur env(safe-area-inset-bottom) — jamais utilisé en dur dans
+     les composants admin. Deux raisons : (1) une seule source de vérité si un
+     jour on doit composer avec elle différemment, (2) un test Playwright peut
+     réécrire cette variable (:root{--admin-safe-area-bottom:34px}) pour
+     simuler un iPhone à encoche/home indicator, ce que Chromium headless ne
+     fait jamais nativement (env() y résout toujours à 0). */
+  --admin-safe-area-bottom: env(safe-area-inset-bottom);
+
+  /* Espace visuel entre le haut d'AdminBottomNav et un élément flottant
+     indépendant au-dessus (ex. le bouton d'installation PWA) — distinct des
+     barres d'action pleine largeur (Enregistrer/Supprimer), qui restent
+     volontairement accolées à la nav sans cet espace. */
+  --admin-sticky-action-gap: 12px;
 }
+
+/* ============================================================
+   Admin — hiérarchie z-index (audit chevauchements mobile, 2026-08-09)
+   ============================================================
+   Cinq niveaux réellement utilisés dans /admin, du plus bas au plus haut.
+   Toujours placer un nouvel élément fixed/sticky dans le niveau qui
+   correspond à son RÔLE, jamais une valeur arbitraire (z-50/z-[9999] etc.) :
+
+     z-auto  contenu de page normal (non positionné)
+     z-20    barres d'action sticky/fixed (Enregistrer, Supprimer, actions
+             rapides fiche devis — SettingsForm/ServiceForm/FAQItemForm/
+             QuoteRequestDetail)
+     z-30    AdminBottomNav (barre de navigation inférieure mobile)
+     z-40    drawers/panneaux plein écran ou bottom-sheet (menu "Plus" de
+             AdminBottomNav, drawer QuoteRequestsTable, AppointmentDetailPanel,
+             bouton flottant d'installation PWA)
+     z-50    modales centrées/bottom-sheet Radix Dialog (ClosureFormModal,
+             ScheduleAppointmentModal, CreateBlockModal,
+             CreateManualAppointmentModal) + bandeau hors-connexion PwaBootstrap
+
+   Pas de niveau "toast" : aucun composant de ce type n'existe actuellement.
+   z-10 existe ponctuellement (AppointmentDetailPanel) mais reste interne à
+   son propre conteneur z-40, pas un niveau global. */
 
 /* Palette de marque exposée comme échelle Tailwind native.
    Génère automatiquement text-brand-*, bg-brand-*, border-brand-*,

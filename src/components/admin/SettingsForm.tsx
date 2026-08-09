@@ -152,8 +152,14 @@ export default function SettingsForm({ initial }: { initial: SiteSettingsData })
         </p>
       )}
 
-      {/* Sous md, la barre reste fixe mais décalée au-dessus d'AdminBottomNav pour ne jamais la recouvrir. */}
-      <div className="fixed left-0 right-0 bottom-[calc(var(--admin-bottom-nav-h)+env(safe-area-inset-bottom))] md:sticky md:bottom-4 p-4 md:p-0 flex justify-end border-t md:border-0 border-[#1e1e1e] bg-[#0a0a0a] md:bg-transparent">
+      {/* `sticky` (pas `fixed`) à tous les breakpoints : cette page empile
+          SettingsForm avec AgendaSettingsForm puis PushNotificationSettings en
+          dessous. Une barre `fixed` resterait affichée par-dessus CES sections
+          suivantes tant que le composant est monté, quel que soit le défilement
+          — exactement le bug remonté (elle recouvrait "Activer les
+          notifications"). `sticky` la confine à la boîte du <form> : elle
+          défile normalement avec lui et disparaît une fois qu'on l'a dépassé. */}
+      <div className="sticky bottom-[calc(var(--admin-bottom-nav-h)+var(--admin-safe-area-bottom))] md:bottom-4 z-20 p-4 md:p-0 flex justify-end border-t md:border-0 border-[#1e1e1e] bg-[#0a0a0a] md:bg-transparent">
         <button
           type="submit"
           disabled={saving}

@@ -344,10 +344,13 @@ export default function QuoteRequestDetail({
       {/* Actions principales sticky — mobile uniquement, cibles tactiles >=44px.
           Empilée juste au-dessus d'AdminBottomNav (56px + son safe-area) pour ne
           jamais la recouvrir : cette barre-ci n'a pas besoin de son propre
-          padding safe-area puisqu'elle n'est pas au bord réel de l'écran. */}
+          padding safe-area puisqu'elle n'est pas au bord réel de l'écran.
+          z-20 (niveau "sticky-actions", sous z-30 la bottom nav elle-même —
+          voir la hiérarchie documentée dans globals.css) plutôt que z-30 :
+          rien ne justifiait qu'elle partage exactement le niveau de la nav. */}
       <div
-        className="md:hidden fixed inset-x-0 z-30 flex border-t"
-        style={{ bottom: "calc(var(--admin-bottom-nav-h) + env(safe-area-inset-bottom))", background: "#0d0d0d", borderColor: "#1e1e1e" }}
+        className="md:hidden fixed inset-x-0 z-20 flex border-t"
+        style={{ bottom: "calc(var(--admin-bottom-nav-h) + var(--admin-safe-area-bottom))", background: "#0d0d0d", borderColor: "#1e1e1e" }}
       >
         <button
           type="button"
