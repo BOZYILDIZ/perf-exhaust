@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Save, Trash2, Archive, CheckCircle, AlertCircle, Phone, Mail, MapPin, CalendarClock, ExternalLink } from "lucide-react";
+import { Loader2, Save, Trash2, Archive, CheckCircle, AlertCircle, Phone, Mail, MapPin, CalendarClock, ExternalLink, ArrowRight } from "lucide-react";
 import PennylaneSection from "@/components/admin/PennylaneSection";
 import PennylaneManualSection from "@/components/admin/PennylaneManualSection";
 import PennylaneV2Section, { type PennylaneV2SectionProps } from "@/components/admin/PennylaneV2Section";
@@ -12,6 +12,9 @@ import CollapsibleSection from "@/components/admin/CollapsibleSection";
 import type { DurationOption } from "@/components/admin/agenda/ScheduleAppointmentModal";
 import { rearDiffuserLabel } from "@/lib/quote-request-options";
 import type { VehiclePhoto } from "@/lib/vehicle-photo-slots";
+import { QUOTE_STATUSES } from "@/lib/admin-validation";
+import { QUOTE_STATUS_LABELS, QUOTE_STATUS_NEXT, WORKSHOP_DRIVEN_STATUSES, type QuoteStatus } from "@/lib/quote-pipeline";
+import QuoteRequestTimeline, { type TimelineEvent } from "@/components/admin/QuoteRequestTimeline";
 
 export interface QuoteRequestDetailData {
   id: string;
@@ -26,6 +29,7 @@ export interface QuoteRequestDetailData {
   modele: string;
   annee: string;
   motorisation: string | null;
+  licensePlate: string | null;
   typeProjet: string;
   sonorite: string;
   rearDiffuser: string;
@@ -44,13 +48,18 @@ export interface QuoteRequestDetailData {
   pennylaneManualStatus: string | null;
 }
 
-const STATUSES = [
-  { value: "new", label: "Nouvelle" },
-  { value: "contacted", label: "Contactée" },
-  { value: "in_progress", label: "En cours" },
-  { value: "completed", label: "Terminée" },
-  { value: "archived", label: "Archivée" },
-];
+/** Options du menu libre — exclut les statuts pilotés par les actions atelier
+ *  (Véhicule arrivé/Démarrer/Terminer/Restitué, voir AppointmentSection) pour
+ *  éviter une désynchronisation avec Appointment.workshopStatus. Ils restent
+ *  acceptés côté API (transitions "guidées", jamais bloquées) — simplement
+ *  pas proposés ici comme choix manuel. Le statut ACTUEL est toujours inclus
+ *  (même s'il est piloté par l'atelier) pour que le menu ne s'affiche jamais
+ *  sur une valeur différente de la réalité tant qu'on ne l'a pas changée.
+ */
+function selectableStatuses(current: string): readonly string[] {
+  const base = QUOTE_STATUSES.filter((s) => !(WORKSHOP_DRIVEN_STATUSES as readonly string[]).includes(s));
+  return base.includes(current as QuoteStatus) ? base : [current, ...base];
+}
 
 const label = "block text-xs font-bold tracking-widest uppercase text-gray-400 mb-2";
 const sectionTitle = "text-white font-bold text-sm tracking-widest uppercase mb-4 pb-2 border-b border-[#1e1e1e]";
@@ -73,6 +82,7 @@ export default function QuoteRequestDetail({
   appointment,
   durationOptions,
   defaultDurationMinutes,
+  timeline,
 }: {
   request: QuoteRequestDetailData;
   pennylaneConfigured: boolean;
@@ -82,15 +92,18 @@ export default function QuoteRequestDetail({
   appointment: AppointmentData | null;
   durationOptions: DurationOption[];
   defaultDurationMinutes: number;
+  timeline: TimelineEvent[];
 }) {
   const router = useRouter();
   const [status, setStatus] = useState(request.status);
   const [notes, setNotes] = useState(request.notes);
+  const [licensePlate, setLicensePlate] = useState(request.licensePlate ?? "");
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [msg, setMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
   const rdvSectionRef = useRef<HTMLDetailsElement>(null);
   const pennylaneSectionRef = useRef<HTMLDetailsElement>(null);
+  const suggestedNext = QUOTE_STATUS_NEXT[status as QuoteStatus];
 
   /** Ouvre la section repliée puis y défile — utilisé par la barre d'actions sticky mobile. */
   const jumpTo = (ref: React.RefObject<HTMLDetailsElement | null>) => {
@@ -98,17 +111,19 @@ export default function QuoteRequestDetail({
     ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  const save = async () => {
+  const save = async (overrideStatus?: string) => {
     setSaving(true);
     setMsg(null);
     try {
+      const nextStatus = overrideStatus ?? status;
       const res = await fetch(`/api/admin/quote-requests/${request.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status, notes }),
+        body: JSON.stringify({ status: nextStatus, notes, licensePlate }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Enregistrement impossible");
+      if (overrideStatus) setStatus(overrideStatus);
       setMsg({ type: "ok", text: "Modifications enregistrées." });
       router.refresh();
     } catch (e) {
@@ -118,26 +133,7 @@ export default function QuoteRequestDetail({
     }
   };
 
-  const archive = async () => {
-    setStatus("archived");
-    setSaving(true);
-    setMsg(null);
-    try {
-      const res = await fetch(`/api/admin/quote-requests/${request.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "archived", notes }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Archivage impossible");
-      setMsg({ type: "ok", text: "Demande archivée." });
-      router.refresh();
-    } catch (e) {
-      setMsg({ type: "err", text: e instanceof Error ? e.message : "Erreur" });
-    } finally {
-      setSaving(false);
-    }
-  };
+  const archive = () => save("ARCHIVE");
 
   const remove = async () => {
     if (!window.confirm(`Supprimer définitivement la demande de « ${request.prenom} ${request.nom} » ?\nCette action est irréversible.`)) return;
@@ -285,10 +281,21 @@ export default function QuoteRequestDetail({
               className="w-full bg-transparent border border-gray-800 text-white text-sm px-4 py-2.5 focus:outline-none focus:border-brand-500 transition-colors"
               style={{ background: "#0d0d0d" }}
             >
-              {STATUSES.map((s) => (
-                <option key={s.value} value={s.value} style={{ background: "#0d0d0d" }}>{s.label}</option>
+              {selectableStatuses(status).map((s) => (
+                <option key={s} value={s} style={{ background: "#0d0d0d" }}>{QUOTE_STATUS_LABELS[s as QuoteStatus] ?? s}</option>
               ))}
             </select>
+          </div>
+          <div>
+            <label htmlFor="qr-plate" className={label}>Immatriculation <span className="text-gray-600 normal-case">(facultatif)</span></label>
+            <input
+              id="qr-plate"
+              value={licensePlate}
+              onChange={(e) => setLicensePlate(e.target.value)}
+              placeholder="AA-123-AA"
+              className="w-full bg-transparent border border-gray-800 text-white text-sm px-4 py-2.5 focus:outline-none focus:border-brand-500 transition-colors placeholder-gray-700"
+              style={{ background: "#0d0d0d" }}
+            />
           </div>
         </div>
         <div className="mt-4">
@@ -304,6 +311,10 @@ export default function QuoteRequestDetail({
         </div>
       </section>
 
+      <CollapsibleSection title="Historique">
+        <QuoteRequestTimeline events={timeline} />
+      </CollapsibleSection>
+
       {msg && (
         <p
           role="status"
@@ -318,16 +329,26 @@ export default function QuoteRequestDetail({
 
       <div className="flex flex-wrap items-center gap-3">
         <button
-          onClick={save}
+          onClick={() => save()}
           disabled={saving || deleting}
           className="inline-flex items-center gap-2 px-6 py-3 text-xs font-bold tracking-widest uppercase text-white disabled:opacity-60"
           style={{ background: "linear-gradient(135deg, #1266ea, #0d54c8)" }}
         >
           {saving ? <><Loader2 size={15} className="animate-spin" /> Enregistrement...</> : <><Save size={14} /> Enregistrer</>}
         </button>
+        {suggestedNext && (
+          <button
+            onClick={() => save(suggestedNext)}
+            disabled={saving || deleting}
+            className="inline-flex items-center gap-2 px-5 py-3 text-xs font-bold tracking-widest uppercase text-brand-400 border border-brand-500/40 hover:border-brand-400 disabled:opacity-40 transition-colors"
+            title="Passer au statut suivant du pipeline"
+          >
+            {QUOTE_STATUS_LABELS[suggestedNext]} <ArrowRight size={14} />
+          </button>
+        )}
         <button
           onClick={archive}
-          disabled={saving || deleting || status === "archived"}
+          disabled={saving || deleting || status === "ARCHIVE"}
           className="inline-flex items-center gap-2 px-5 py-3 text-xs font-bold tracking-widest uppercase text-gray-300 border border-gray-700 hover:border-gray-500 disabled:opacity-40 transition-colors"
         >
           <Archive size={14} /> Archiver
