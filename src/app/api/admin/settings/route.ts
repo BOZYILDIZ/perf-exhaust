@@ -47,6 +47,13 @@ export async function PUT(req: NextRequest) {
       // Le bouton "Ouvrir Pennylane" a besoin d'une URL non vide pour fonctionner —
       // on retombe sur la valeur par défaut plutôt que de sauvegarder une chaîne vide.
       pennylaneManualUrl: d.pennylaneManualUrl || FALLBACK_SETTINGS.pennylaneManualUrl,
+      followupDelay1Days: d.followupDelay1Days,
+      followupDelay2Days: d.followupDelay2Days,
+      followupAutomationEnabled: d.followupAutomationEnabled,
+      reminder24hEnabled: d.reminder24hEnabled,
+      reminder1hEnabled: d.reminder1hEnabled,
+      reviewRequestEnabled: d.reviewRequestEnabled,
+      reviewRequestDelayHours: d.reviewRequestDelayHours,
     });
     // Les paramètres sont lus par quasiment toutes les pages publiques (layout, contact, mentions légales...)
     revalidatePath("/", "layout");

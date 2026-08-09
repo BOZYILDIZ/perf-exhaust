@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Save, CheckCircle, AlertCircle } from "lucide-react";
 import type { SiteSettingsData } from "@/lib/settings-repo";
+import CollapsibleSection from "@/components/admin/CollapsibleSection";
 
 const label = "block text-xs font-bold tracking-widest uppercase text-gray-400 mb-2";
 const input = "w-full bg-transparent border border-gray-800 text-white text-sm px-4 py-2.5 focus:outline-none focus:border-brand-500 transition-colors placeholder-gray-700";
@@ -11,6 +12,15 @@ const sectionTitle = "text-white font-bold text-sm tracking-widest uppercase mb-
 
 function Field({ children, span = false }: { children: React.ReactNode; span?: boolean }) {
   return <div className={span ? "sm:col-span-2" : ""}>{children}</div>;
+}
+
+function Toggle({ id, checked, onChange, label: l }: { id: string; checked: boolean; onChange: (v: boolean) => void; label: string }) {
+  return (
+    <label htmlFor={id} className="flex items-center gap-3 min-h-[44px] cursor-pointer select-none">
+      <input id={id} type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="w-5 h-5 accent-brand-500 flex-shrink-0" />
+      <span className="text-gray-300 text-sm">{l}</span>
+    </label>
+  );
 }
 
 export default function SettingsForm({ initial }: { initial: SiteSettingsData }) {
@@ -139,6 +149,49 @@ export default function SettingsForm({ initial }: { initial: SiteSettingsData })
           </Field>
         </div>
       </section>
+
+      <CollapsibleSection title="Commercial — relances devis">
+        <p className="text-gray-500 text-xs mb-4 -mt-1">
+          La file « Clients à relancer » (/admin/devis) fonctionne indépendamment de ce réglage.
+          Celui-ci ne pilote qu&apos;un éventuel envoi automatique (non activé pour l&apos;instant).
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Field>
+            <label htmlFor="st-followup1" className={label}>Relance 1 (jours après envoi du devis)</label>
+            <input id="st-followup1" type="number" min={1} max={60} value={v.followupDelay1Days} onChange={(e) => set("followupDelay1Days", Number(e.target.value))} className={input} />
+          </Field>
+          <Field>
+            <label htmlFor="st-followup2" className={label}>Relance 2 (jours après envoi du devis)</label>
+            <input id="st-followup2" type="number" min={1} max={60} value={v.followupDelay2Days} onChange={(e) => set("followupDelay2Days", Number(e.target.value))} className={input} />
+          </Field>
+          <Field span>
+            <Toggle id="st-followup-auto" checked={v.followupAutomationEnabled} onChange={(val) => set("followupAutomationEnabled", val)} label="Activer les relances automatiques" />
+          </Field>
+        </div>
+      </CollapsibleSection>
+
+      <CollapsibleSection title="Rendez-vous — rappels">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Field>
+            <Toggle id="st-reminder24h" checked={v.reminder24hEnabled} onChange={(val) => set("reminder24hEnabled", val)} label="Rappel 24h avant le rendez-vous" />
+          </Field>
+          <Field>
+            <Toggle id="st-reminder1h" checked={v.reminder1hEnabled} onChange={(val) => set("reminder1hEnabled", val)} label="Rappel 1h avant le rendez-vous" />
+          </Field>
+        </div>
+      </CollapsibleSection>
+
+      <CollapsibleSection title="Après intervention — demande d'avis">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Field>
+            <Toggle id="st-review-enabled" checked={v.reviewRequestEnabled} onChange={(val) => set("reviewRequestEnabled", val)} label="Activer la demande d'avis Google" />
+          </Field>
+          <Field>
+            <label htmlFor="st-review-delay" className={label}>Délai après restitution (heures)</label>
+            <input id="st-review-delay" type="number" min={1} max={720} value={v.reviewRequestDelayHours} onChange={(e) => set("reviewRequestDelayHours", Number(e.target.value))} className={input} />
+          </Field>
+        </div>
+      </CollapsibleSection>
 
       {msg && (
         <p
