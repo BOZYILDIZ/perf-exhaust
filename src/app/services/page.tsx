@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getPublishedServices } from "@/lib/services-repo";
 import { Wrench, Zap, Volume2, Flame, Music, Star, Settings, ArrowRight } from "lucide-react";
 import { breadcrumbSchema, serviceSchema } from "@/lib/jsonld";
+import FAQSection from "@/components/sections/FAQSection";
 
 export const metadata: Metadata = {
   title: "Services — Fabrication échappements inox sur mesure, soudure TIG, modification sonore Alsace",
@@ -180,6 +181,11 @@ export default async function ServicesPage() {
           </div>
         </section>
       </main>
+
+      {/* Hors de <main> (comme sur /a-propos) : FAQSection gère son propre conteneur
+          pleine largeur. Déplacée depuis l'ancien accueil One Page — contenu et
+          JSON-LD FAQPage inchangés. */}
+      <FAQSection />
     </div>
   );
 }
