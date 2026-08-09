@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Menu, X, Phone } from "lucide-react";
 import type { SiteSettingsData } from "@/lib/settings-repo";
+import ShiftechPartnerBadge from "@/components/ui/ShiftechPartnerBadge";
 
 const navLinks = [
   { href: "/", label: "Accueil" },
@@ -78,28 +79,34 @@ export default function Header({ settings }: { settings: SiteSettingsData }) {
       }}
     >
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-        {/* Logo */}
-        <Link href="/" className="flex items-center gap-3 group">
-          <Image
-            src="/brand/logo-icon.png"
-            alt="Logo PERF'EXHAUST"
-            width={58}
-            height={40}
-            priority
-            className="h-10 w-auto"
-          />
-          <div>
-            <div
-              className="text-white font-black text-xl leading-none group-hover:text-brand-400 transition-colors"
-              style={{ fontFamily: "var(--font-oswald), sans-serif", letterSpacing: "0.05em" }}
-            >
-              PERF&apos;EXHAUST
+        {/* Logo + partenaire SHIFTECH (regroupés pour ne pas déséquilibrer le
+            justify-between à 3 blocs : logo, nav, CTA) */}
+        <div className="flex items-center flex-shrink-0">
+          <Link href="/" className="flex items-center gap-3 group flex-shrink-0">
+            <Image
+              src="/brand/logo-icon.png"
+              alt="Logo PERF'EXHAUST"
+              width={58}
+              height={40}
+              priority
+              className="h-10 w-auto"
+            />
+            <div>
+              <div
+                className="text-white font-black text-xl leading-none group-hover:text-brand-400 transition-colors"
+                style={{ fontFamily: "var(--font-oswald), sans-serif", letterSpacing: "0.05em" }}
+              >
+                PERF&apos;EXHAUST
+              </div>
+              <div className="text-brand-500 text-xs font-medium tracking-widest uppercase">
+                Alsace
+              </div>
             </div>
-            <div className="text-brand-500 text-xs font-medium tracking-widest uppercase">
-              Alsace
-            </div>
-          </div>
-        </Link>
+          </Link>
+          {settings.shiftechUrl && (
+            <ShiftechPartnerBadge url={settings.shiftechUrl} variant="navbar" />
+          )}
+        </div>
 
         {/* Desktop nav */}
         <nav className="hidden lg:flex items-center gap-6" aria-label="Navigation principale">
@@ -206,6 +213,13 @@ export default function Header({ settings }: { settings: SiteSettingsData }) {
           >
             Demander un devis
           </Link>
+          {settings.shiftechUrl && (
+            <ShiftechPartnerBadge
+              url={settings.shiftechUrl}
+              variant="menu"
+              onClick={() => setMenuOpen(false)}
+            />
+          )}
           <div style={{ paddingBottom: "env(safe-area-inset-bottom)" }} />
           </nav>
         </div>
