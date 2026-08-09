@@ -24,8 +24,12 @@ export default async function GallerySection() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {featured.map((project) => (
-            <ProjectCard key={project.id} project={project} />
+          {featured.map((project, i) => (
+            // Aperçu accueil : 3 cartes sur mobile, 6 à partir du breakpoint md — la
+            // liste complète (15 réalisations) reste sur /realisations.
+            <div key={project.id} className={i >= 3 ? "hidden md:block" : ""}>
+              <ProjectCard project={project} />
+            </div>
           ))}
         </div>
 

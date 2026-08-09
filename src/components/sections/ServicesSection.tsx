@@ -8,8 +8,10 @@ const iconMap: Record<string, React.ElementType> = {
   tool: Settings, music: Music, star: Star,
 };
 
-export default async function ServicesSection() {
-  const services = await getPublishedServices();
+/** limit : aperçu accueil uniquement — /services (rendu indépendant) affiche toujours la liste complète. */
+export default async function ServicesSection({ limit }: { limit?: number } = {}) {
+  const allServices = await getPublishedServices();
+  const services = limit ? allServices.slice(0, limit) : allServices;
   return (
     <section className="py-24 relative" style={{ background: "linear-gradient(180deg, #0a0a0a 0%, #0d0d0d 100%)" }}>
       <div className="max-w-7xl mx-auto px-6">
