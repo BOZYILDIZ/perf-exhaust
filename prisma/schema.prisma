@@ -124,15 +124,18 @@ model QuoteRequest {
   // n'est plus au statut DEVIS_ENVOYE au moment de l'envoi (voir garde-fous).
   followupStage       Int       @default(0)
   lastFollowupSentAt  DateTime?
+  // Horodatage du passage (ou repassage, en cas de nouvel envoi) à
+  // DEVIS_ENVOYE — base de calcul de la 1re relance (followupDelay1Days),
+  // voir src/lib/quote-followup.ts. Remis à jour ET followupStage/
+  // lastFollowupSentAt réinitialisés à chaque nouvelle entrée dans ce statut
+  // (voir /api/admin/quote-requests/[id] route PATCH) : un devis ré-envoyé
+  // relance le compteur, jamais un solde d'anciennes relances déjà comptées.
+  quoteSentAt         DateTime?
 
-  // Demande d'avis Google — envoyée manuellement (ou par l'automation-runner
-  // si activé) après RESTITUE + délai configurable (SiteSettings.reviewRequestDelayHours).
-  // Jamais de vérification si l'avis a réellement été laissé (aucune API fiable).
-  // NOTE (Phase C, 2026-08-10) : comme vehicleReadyNotifiedAt (déplacé sur
-  // Appointment, voir plus bas), ce champ devra probablement suivre le même
-  // chemin en Phase D pour fonctionner aussi sur un RDV manuel sans demande —
-  // pas fait maintenant, hors périmètre de cette phase.
-  reviewRequestSentAt DateTime?
+  // Demande d'avis Google (2026-08-10, Phase D) — RETIRÉ d'ici, déplacé sur
+  // Appointment.reviewRequestSentAt : un RDV manuel n'a pas de QuoteRequest
+  // mais doit pouvoir déclencher une demande d'avis après restitution,
+  // exactement le même raisonnement que vehicleReadyNotifiedAt en Phase C.
 
   // Intégration Pennylane — voir src/lib/pennylane/. Deux modes cohabitent
   // (PENNYLANE_MODE, voir src/lib/pennylane/mode.ts) :
@@ -302,6 +305,24 @@ model Appointment {
   // brute Resend (voir sendVehicleReadyEmail()/attemptVehicleReadyNotification()).
   // Remis à null dès qu'un essai réussit (vehicleReadyNotifiedAt posée).
   vehicleReadyNotificationLastError String?
+
+  // Horodatage du passage à RESTITUE — posé par markVehicleReturned() ET par
+  // correctWorkshopStatus() (voir src/lib/agenda/workshop-actions.ts), remis
+  // à null si une correction manuelle repasse le RDV à un statut antérieur
+  // (le véhicule n'est alors plus considéré comme restitué). Base de calcul
+  // du délai avant demande d'avis (voir reviewRequestSentAt ci-dessous et
+  // src/lib/agenda/review-request.ts) — jamais dérivé de updatedAt, qui
+  // change à chaque modification quelconque du rendez-vous.
+  vehicleReturnedAt DateTime?
+
+  // Demande d'avis Google (2026-08-10, Phase D) — ici plutôt que sur
+  // QuoteRequest (même raisonnement que vehicleReadyNotifiedAt en Phase C) :
+  // fonctionne aussi pour un RDV manuel. Envoyée au plus une fois par
+  // rendez-vous, jamais avant RESTITUE — voir src/lib/agenda/review-request.ts
+  // pour la règle exacte. Réutilise SiteSettings.googleReviewsUrl (déjà
+  // configurable ailleurs, ex. badge du footer) — aucune nouvelle source de
+  // vérité pour cette URL.
+  reviewRequestSentAt DateTime?
 
   // Photos avant/après intervention — métadonnées uniquement (même pattern que
   // QuoteRequest.photos), jamais l'image en base. Schéma posé par anticipation

@@ -41,12 +41,13 @@ async function applyForwardTransition(
   appointmentId: string,
   target: WorkshopStatus,
   eventType: ActivityEventType,
-  eventTitle: string
+  eventTitle: string,
+  extraData?: Record<string, unknown>
 ): Promise<AppointmentForWorkshop> {
   const db = getDb()
   const appointment = await loadAppointmentOrThrow(appointmentId)
 
-  await db.appointment.update({ where: { id: appointmentId }, data: { workshopStatus: target } })
+  await db.appointment.update({ where: { id: appointmentId }, data: { workshopStatus: target, ...extraData } })
 
   if (appointment.quoteRequestId && appointment.quoteRequest) {
     const mirrored = computeForwardMirror(appointment.quoteRequest.status, target)
@@ -229,8 +230,11 @@ export async function completeIntervention(appointmentId: string, notifyClient: 
   return attemptVehicleReadyNotification(appointmentId)
 }
 
+/** vehicleReturnedAt posé ici — base de calcul du délai avant demande d'avis, voir src/lib/agenda/review-request.ts. */
 export async function markVehicleReturned(appointmentId: string): Promise<void> {
-  await applyForwardTransition(appointmentId, 'RESTITUE', ACTIVITY_EVENT_TYPES.VEHICLE_RETURNED, 'Véhicule restitué au client')
+  await applyForwardTransition(appointmentId, 'RESTITUE', ACTIVITY_EVENT_TYPES.VEHICLE_RETURNED, 'Véhicule restitué au client', {
+    vehicleReturnedAt: new Date(),
+  })
 }
 
 /**
@@ -249,7 +253,14 @@ export async function correctWorkshopStatus(appointmentId: string, newStatus: Wo
   const previousLabel = appointment.workshopStatus ? WORKSHOP_STATUS_LABELS[appointment.workshopStatus as WorkshopStatus] : 'Planifié'
   const nextLabel = newStatus ? WORKSHOP_STATUS_LABELS[newStatus] : 'Planifié'
 
-  await db.appointment.update({ where: { id: appointmentId }, data: { workshopStatus: newStatus } })
+  // vehicleReturnedAt suit la même règle explicite que le statut lui-même :
+  // posé si la correction ATTEINT RESTITUE, effacé si elle en repart (le
+  // véhicule n'est alors plus considéré comme restitué) — jamais dérivé
+  // implicitement d'updatedAt. Voir src/lib/agenda/review-request.ts.
+  await db.appointment.update({
+    where: { id: appointmentId },
+    data: { workshopStatus: newStatus, vehicleReturnedAt: newStatus === 'RESTITUE' ? new Date() : null },
+  })
 
   if (appointment.quoteRequestId && appointment.quoteRequest) {
     const mirrored = computeCorrectionMirror(appointment.quoteRequest.status, newStatus)

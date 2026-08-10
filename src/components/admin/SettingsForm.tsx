@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Save, CheckCircle, AlertCircle } from "lucide-react";
+import { Loader2, Save, CheckCircle, AlertCircle, PlayCircle } from "lucide-react";
 import type { SiteSettingsData } from "@/lib/settings-repo";
 import CollapsibleSection from "@/components/admin/CollapsibleSection";
+import type { AutomationRunResult } from "@/lib/automation-runner";
 
 const label = "block text-xs font-bold tracking-widest uppercase text-gray-400 mb-2";
 const input = "w-full bg-transparent border border-gray-800 text-white text-sm px-4 py-2.5 focus:outline-none focus:border-brand-500 transition-colors placeholder-gray-700";
@@ -28,6 +29,23 @@ export default function SettingsForm({ initial }: { initial: SiteSettingsData })
   const [v, setV] = useState<SiteSettingsData>(initial);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+  const [runningAutomations, setRunningAutomations] = useState(false);
+  const [automationsResult, setAutomationsResult] = useState<AutomationRunResult | { error: string } | null>(null);
+
+  const runAutomationsNow = async () => {
+    setRunningAutomations(true);
+    setAutomationsResult(null);
+    try {
+      const res = await fetch("/api/admin/automations/run", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Exécution impossible");
+      setAutomationsResult(data);
+    } catch (err) {
+      setAutomationsResult({ error: err instanceof Error ? err.message : "Erreur réseau" });
+    } finally {
+      setRunningAutomations(false);
+    }
+  };
 
   const set = <K extends keyof SiteSettingsData>(key: K, value: SiteSettingsData[K]) =>
     setV((prev) => ({ ...prev, [key]: value }));
@@ -153,7 +171,8 @@ export default function SettingsForm({ initial }: { initial: SiteSettingsData })
       <CollapsibleSection title="Commercial — relances devis">
         <p className="text-gray-500 text-xs mb-4 -mt-1">
           La file « Clients à relancer » (/admin/devis) fonctionne indépendamment de ce réglage.
-          Celui-ci ne pilote qu&apos;un éventuel envoi automatique (non activé pour l&apos;instant).
+          Celui-ci pilote l&apos;envoi automatique déclenché depuis « Automatisations » ci-dessous
+          (aucun cron programmé pour l&apos;instant — déclenchement manuel uniquement).
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field>
@@ -191,6 +210,39 @@ export default function SettingsForm({ initial }: { initial: SiteSettingsData })
             <input id="st-review-delay" type="number" min={1} max={720} value={v.reviewRequestDelayHours} onChange={(e) => set("reviewRequestDelayHours", Number(e.target.value))} className={input} />
           </Field>
         </div>
+      </CollapsibleSection>
+
+      <CollapsibleSection title="Automatisations">
+        <p className="text-gray-500 text-xs mb-4 -mt-1">
+          Traite en une fois les rappels, relances et demandes d&apos;avis dus, selon les réglages
+          ci-dessus. Aucun cron n&apos;est programmé pour l&apos;instant : ce bouton est le seul
+          déclencheur actuel.
+        </p>
+        <button
+          type="button"
+          disabled={runningAutomations}
+          onClick={runAutomationsNow}
+          className="inline-flex items-center gap-2 px-5 py-2.5 min-h-[44px] text-xs font-bold tracking-widest uppercase text-white disabled:opacity-60 transition-transform active:scale-95"
+          style={{ background: "linear-gradient(135deg, #1266ea, #0d54c8)" }}
+        >
+          {runningAutomations ? <Loader2 size={14} className="animate-spin" /> : <PlayCircle size={14} />} Exécuter les automatisations maintenant
+        </button>
+
+        {automationsResult && (
+          <div className="mt-4 text-sm">
+            {"error" in automationsResult ? (
+              <p className="px-3 py-2 border flex items-center gap-2 text-red-400 border-red-500/25 bg-red-500/5">
+                <AlertCircle size={14} className="flex-shrink-0" /> {automationsResult.error}
+              </p>
+            ) : (
+              <ul className="space-y-1.5 text-gray-300">
+                <li>Rappels : {automationsResult.reminders.sent} envoyé(s) / {automationsResult.reminders.checked} vérifié(s){automationsResult.reminders.failed > 0 ? ` — ${automationsResult.reminders.failed} échec(s)` : ""}</li>
+                <li>Relances : {automationsResult.followups.sent} envoyée(s) / {automationsResult.followups.checked} vérifiée(s){automationsResult.followups.failed > 0 ? ` — ${automationsResult.followups.failed} échec(s)` : ""}</li>
+                <li>Avis Google : {automationsResult.reviewRequests.sent} envoyée(s) / {automationsResult.reviewRequests.checked} vérifiée(s){automationsResult.reviewRequests.failed > 0 ? ` — ${automationsResult.reviewRequests.failed} échec(s)` : ""}</li>
+              </ul>
+            )}
+          </div>
+        )}
       </CollapsibleSection>
 
       {msg && (

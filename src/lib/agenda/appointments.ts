@@ -396,6 +396,14 @@ export async function rescheduleAppointment(appointmentId: string, startAt: Date
       cancellationTokenHash: hash,
       cancellationTokenExpiresAt: startAt,
       confirmationSentAt: null, // un nouvel email de "modification" sera envoyé ci-dessous — pas encore compté comme "confirmation envoyée" pour ce nouveau créneau
+      // Règle métier explicite (Phase D, 2026-08-10) : un déplacement remet
+      // TOUJOURS les rappels à zéro, qu'ils aient déjà été envoyés ou non —
+      // dueReminders() calcule les échéances relativement à startAt ; sans
+      // cette remise à zéro, un rappel déjà marqué "envoyé" pour l'ANCIEN
+      // horaire empêcherait silencieusement le rappel dû pour le NOUVEL
+      // horaire (voir src/lib/agenda/reminders.ts).
+      reminder24hSentAt: null,
+      reminder1hSentAt: null,
     },
   })
 

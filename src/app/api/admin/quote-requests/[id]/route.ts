@@ -44,12 +44,18 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
     if (!exists) return NextResponse.json({ error: "Demande introuvable" }, { status: 404 });
 
     const { pennylaneQuoteNumber, pennylaneQuoteUrl, ...rest } = parsed.data;
+    // Un (re)passage à DEVIS_ENVOYE relance le compteur de relances
+    // commerciales : nouveau repère temporel, et les relances déjà comptées
+    // pour un envoi précédent ne doivent pas bloquer un nouvel envoi (voir
+    // src/lib/quote-followup.ts et prisma/schema.prisma § QuoteRequest.quoteSentAt).
+    const enteringDevisEnvoye = rest.status === "DEVIS_ENVOYE" && rest.status !== exists.status;
     await db.quoteRequest.update({
       where: { id },
       data: {
         ...rest,
         ...(pennylaneQuoteNumber !== undefined && { pennylaneQuoteNumber: pennylaneQuoteNumber || null }),
         ...(pennylaneQuoteUrl !== undefined && { pennylaneQuoteUrl: pennylaneQuoteUrl || null }),
+        ...(enteringDevisEnvoye && { quoteSentAt: new Date(), followupStage: 0, lastFollowupSentAt: null }),
       },
     });
 
