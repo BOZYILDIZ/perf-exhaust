@@ -121,6 +121,10 @@ export default async function AdminQuoteRequestDetailPage({ params }: { params: 
                 vehicle: q.appointment.vehicle,
                 workshopStatus: q.appointment.workshopStatus,
                 vehicleReadyNotifiedAt: q.appointment.vehicleReadyNotifiedAt ? q.appointment.vehicleReadyNotifiedAt.toISOString() : null,
+                vehicleReadyNotificationLastError: q.appointment.vehicleReadyNotificationLastError,
+                vehicleReadyNotificationLastAttemptAt: q.appointment.vehicleReadyNotificationLastAttemptAt
+                  ? q.appointment.vehicleReadyNotificationLastAttemptAt.toISOString()
+                  : null,
               }
             : null
         }

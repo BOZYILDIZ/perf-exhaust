@@ -13,7 +13,7 @@ import type { WorkshopStatus } from "@/lib/agenda/workshop-status";
 export function useAppointmentActions(appointmentId: string, onDone: () => void) {
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [lastCompleteResult, setLastCompleteResult] = useState<{ notified: boolean; alreadyNotified: boolean; notifyError: string | null } | null>(null);
+  const [lastCompleteResult, setLastCompleteResult] = useState<{ notified: boolean; alreadyNotified: boolean; inProgress: boolean; notifyError: string | null } | null>(null);
 
   const run = async (action: string, url: string, body?: unknown) => {
     setBusy(action);
@@ -54,7 +54,11 @@ export function useAppointmentActions(appointmentId: string, onDone: () => void)
     startIntervention: () => run("start-intervention", `/api/admin/appointments/${appointmentId}/start-intervention`),
     completeIntervention: async (notifyClient: boolean) => {
       const data = await run("complete-intervention", `/api/admin/appointments/${appointmentId}/complete-intervention`, { notifyClient });
-      if (data) setLastCompleteResult({ notified: data.notified, alreadyNotified: data.alreadyNotified, notifyError: data.notifyError });
+      if (data) setLastCompleteResult({ notified: data.notified, alreadyNotified: data.alreadyNotified, inProgress: data.inProgress, notifyError: data.notifyError });
+    },
+    retryNotification: async () => {
+      const data = await run("retry-notification", `/api/admin/appointments/${appointmentId}/retry-vehicle-ready-notification`);
+      if (data) setLastCompleteResult({ notified: data.notified, alreadyNotified: data.alreadyNotified, inProgress: data.inProgress, notifyError: data.notifyError });
     },
     vehicleReturned: () => run("vehicle-returned", `/api/admin/appointments/${appointmentId}/vehicle-returned`),
     correctWorkshopStatus: (workshopStatus: WorkshopStatus | null) => {

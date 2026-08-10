@@ -39,6 +39,8 @@ interface DetailAppointment {
   workshopStatus: string | null;
   quoteStatus: string | null;
   vehicleReadyNotifiedAt: string | null;
+  vehicleReadyNotificationLastError: string | null;
+  vehicleReadyNotificationLastAttemptAt: string | null;
 }
 
 interface DetailProfile {
@@ -244,6 +246,8 @@ export default function AppointmentDetailPanel({ appointmentId, onClose, onChang
                   vehicle={data.appointment.vehicle}
                   customerEmail={data.appointment.customerEmail}
                   vehicleReadyNotifiedAt={data.appointment.vehicleReadyNotifiedAt}
+                  vehicleReadyNotificationLastError={data.appointment.vehicleReadyNotificationLastError}
+                  vehicleReadyNotificationLastAttemptAt={data.appointment.vehicleReadyNotificationLastAttemptAt}
                   onChanged={() => { onChanged(); void load(); }}
                 />
               </div>

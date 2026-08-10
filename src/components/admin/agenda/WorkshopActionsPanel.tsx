@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Car, ArrowRight, Loader2, AlertCircle, CheckCircle2, Info } from "lucide-react";
+import { Car, ArrowRight, Loader2, AlertCircle, CheckCircle2, Info, RotateCcw } from "lucide-react";
 import { WORKSHOP_STATUS_LABELS, WORKSHOP_STATUS_ORDER, type WorkshopStatus } from "@/lib/agenda/workshop-status";
 import { useAppointmentActions } from "./useAppointmentActions";
 
@@ -12,7 +12,15 @@ export interface WorkshopActionsPanelProps {
   vehicle: string;
   customerEmail: string | null;
   vehicleReadyNotifiedAt: string | null;
+  /** Message court du dernier essai en échec — null si jamais tenté ou déjà réussi. Jamais la réponse brute Resend. */
+  vehicleReadyNotificationLastError: string | null;
+  /** Horodatage du début du dernier essai (réussi ou non) — pour l'affichage admin uniquement. */
+  vehicleReadyNotificationLastAttemptAt: string | null;
   onChanged: () => void;
+}
+
+function frDateTime(iso: string): string {
+  return new Date(iso).toLocaleString("fr-FR", { timeZone: "Europe/Paris", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
 }
 
 const WORKSHOP_STATUS_STYLES: Record<string, string> = {
@@ -40,7 +48,8 @@ const CORRECTION_OPTIONS: { value: WorkshopStatus | null; label: string }[] = [
  * flux normal.
  */
 export default function WorkshopActionsPanel({
-  appointmentId, workshopStatus, licensePlate, vehicle, customerEmail, vehicleReadyNotifiedAt, onChanged,
+  appointmentId, workshopStatus, licensePlate, vehicle, customerEmail, vehicleReadyNotifiedAt,
+  vehicleReadyNotificationLastError, vehicleReadyNotificationLastAttemptAt, onChanged,
 }: WorkshopActionsPanelProps) {
   const [correctionOpen, setCorrectionOpen] = useState(false);
   const actions = useAppointmentActions(appointmentId, onChanged);
@@ -75,7 +84,8 @@ export default function WorkshopActionsPanel({
         <p className="text-sm px-3 py-2 border flex items-center gap-2 mb-3 text-gray-300 border-gray-700 bg-white/5">
           {actions.lastCompleteResult.notified && <><CheckCircle2 size={14} className="text-green-400 flex-shrink-0" /> Client notifié par email.</>}
           {actions.lastCompleteResult.alreadyNotified && <><Info size={14} className="text-gray-500 flex-shrink-0" /> Client déjà notifié précédemment — aucun nouvel envoi.</>}
-          {actions.lastCompleteResult.notifyError && <><AlertCircle size={14} className="text-red-400 flex-shrink-0" /> Échec de l&apos;envoi — contactez le client autrement.</>}
+          {actions.lastCompleteResult.inProgress && <><Loader2 size={14} className="text-gray-500 flex-shrink-0" /> Un envoi est déjà en cours — patientez avant de réessayer.</>}
+          {actions.lastCompleteResult.notifyError && <><AlertCircle size={14} className="text-red-400 flex-shrink-0" /> Échec de l&apos;envoi — vous pouvez réessayer.</>}
         </p>
       )}
 
@@ -129,6 +139,29 @@ export default function WorkshopActionsPanel({
         <p className="text-gray-500 text-sm flex items-center gap-2 py-2">
           <CheckCircle2 size={15} className="text-green-400" /> Véhicule restitué au client.
         </p>
+      )}
+
+      {/* Réessai de la notification "véhicule prêt" — visible uniquement une
+          fois l'intervention terminée, tant qu'aucun envoi n'a réussi et
+          qu'un essai précédent a échoué. Bouton secondaire, jamais confondu
+          avec le gros bouton de progression normale ci-dessus. */}
+      {(current === "TERMINE" || current === "RESTITUE") && customerEmail && !vehicleReadyNotifiedAt && vehicleReadyNotificationLastError && (
+        <div className="mt-3 p-3 border border-red-500/25 bg-red-500/5">
+          <p className="text-sm text-red-400 flex items-center gap-2">
+            <AlertCircle size={14} className="flex-shrink-0" /> Notification client jamais envoyée avec succès.
+          </p>
+          {vehicleReadyNotificationLastAttemptAt && (
+            <p className="text-gray-600 text-xs mt-1">Dernier essai le {frDateTime(vehicleReadyNotificationLastAttemptAt)}.</p>
+          )}
+          <button
+            type="button"
+            disabled={actions.busy !== null}
+            onClick={actions.retryNotification}
+            className="mt-2 inline-flex items-center gap-1.5 px-3 py-2 min-h-[44px] text-xs font-bold uppercase tracking-wider text-red-300 border border-red-500/30 hover:border-red-400 disabled:opacity-40 transition-colors"
+          >
+            {actions.busy === "retry-notification" ? <Loader2 size={13} className="animate-spin" /> : <RotateCcw size={13} />} Réessayer l&apos;envoi
+          </button>
+        </div>
       )}
 
       {/* Correction manuelle — discrète, jamais confondue avec le flux normal. */}

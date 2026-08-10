@@ -60,6 +60,10 @@ export async function GET(req: NextRequest, ctx: Ctx) {
         workshopStatus: appointment.workshopStatus,
         quoteStatus: appointment.quoteRequest?.status ?? null,
         vehicleReadyNotifiedAt: appointment.vehicleReadyNotifiedAt ? appointment.vehicleReadyNotifiedAt.toISOString() : null,
+        vehicleReadyNotificationLastError: appointment.vehicleReadyNotificationLastError,
+        vehicleReadyNotificationLastAttemptAt: appointment.vehicleReadyNotificationLastAttemptAt
+          ? appointment.vehicleReadyNotificationLastAttemptAt.toISOString()
+          : null,
       },
       profile: profile
         ? {

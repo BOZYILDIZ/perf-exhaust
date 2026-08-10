@@ -119,3 +119,37 @@ export function resolveAppointmentLicensePlate(
 ): string | null {
   return quoteRequestLicensePlate ?? appointmentLicensePlate ?? null
 }
+
+/**
+ * Délai au-delà duquel un verrou "essai en cours" est considéré abandonné
+ * (crash serveur en plein essai, jamais libéré normalement) et peut être
+ * repris par un nouvel essai — 2 minutes, largement au-dessus de la durée
+ * réelle d'un appel Resend (quelques secondes). Seul cas où ce délai entre
+ * en jeu ; un échec normal libère le verrou immédiatement (voir
+ * attemptVehicleReadyNotification() dans workshop-actions.ts).
+ */
+export const STALE_NOTIFICATION_CLAIM_MS = 2 * 60 * 1000
+
+export interface VehicleReadyNotificationClaimState {
+  vehicleReadyNotifiedAt: Date | null
+  vehicleReadyNotificationInProgress: boolean
+  vehicleReadyNotificationLastAttemptAt: Date | null
+}
+
+/**
+ * Un nouvel essai d'envoi peut être tenté si : jamais réussi, ET (aucun essai
+ * en cours OU l'essai en cours date de plus de STALE_NOTIFICATION_CLAIM_MS —
+ * récupération après un crash serveur qui n'aurait jamais complété).
+ *
+ * Cette fonction documente et teste la RÈGLE ; l'unicité réelle contre une
+ * vraie concurrence (double-clic, deux requêtes simultanées) vient de
+ * l'atomicité de la requête SQL équivalente (un seul `updateMany` avec ce
+ * même WHERE, voir workshop-actions.ts) — jamais d'un SELECT suivi d'un
+ * UPDATE séparés, qui laisserait une fenêtre de course entre les deux.
+ */
+export function canAttemptVehicleReadyNotification(state: VehicleReadyNotificationClaimState, now: Date): boolean {
+  if (state.vehicleReadyNotifiedAt !== null) return false
+  if (!state.vehicleReadyNotificationInProgress) return true
+  if (!state.vehicleReadyNotificationLastAttemptAt) return true
+  return now.getTime() - state.vehicleReadyNotificationLastAttemptAt.getTime() > STALE_NOTIFICATION_CLAIM_MS
+}

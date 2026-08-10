@@ -18,6 +18,8 @@ export interface AppointmentData {
   vehicle: string;
   workshopStatus: string | null;
   vehicleReadyNotifiedAt: string | null;
+  vehicleReadyNotificationLastError: string | null;
+  vehicleReadyNotificationLastAttemptAt: string | null;
 }
 
 export interface AppointmentSectionProps {
@@ -110,6 +112,8 @@ export default function AppointmentSection({ quoteRequestId, appointment, durati
                 vehicle={appointment.vehicle}
                 customerEmail={customerEmail}
                 vehicleReadyNotifiedAt={appointment.vehicleReadyNotifiedAt}
+                vehicleReadyNotificationLastError={appointment.vehicleReadyNotificationLastError}
+                vehicleReadyNotificationLastAttemptAt={appointment.vehicleReadyNotificationLastAttemptAt}
                 onChanged={() => router.refresh()}
               />
             </div>

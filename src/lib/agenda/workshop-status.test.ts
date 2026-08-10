@@ -12,6 +12,8 @@ import {
   computeForwardMirror,
   computeCorrectionMirror,
   resolveAppointmentLicensePlate,
+  canAttemptVehicleReadyNotification,
+  STALE_NOTIFICATION_CLAIM_MS,
 } from './workshop-status'
 
 let passed = 0
@@ -153,6 +155,41 @@ check(
 check(
   'QuoteRequest.licensePlate chaîne vide traitée comme "non renseigné" côté appelant, pas ce module — vérifie juste que null/undefined sont bien géré',
   resolveAppointmentLicensePlate(undefined, undefined) === null
+)
+
+// ===== canAttemptVehicleReadyNotification =====
+
+const NOW = new Date('2026-08-10T12:00:00.000Z')
+const FIVE_SEC_AGO = new Date(NOW.getTime() - 5_000)
+const STALE_AGO = new Date(NOW.getTime() - STALE_NOTIFICATION_CLAIM_MS - 1_000)
+
+check(
+  'jamais tenté (tous les champs vides) → peut tenter',
+  canAttemptVehicleReadyNotification({ vehicleReadyNotifiedAt: null, vehicleReadyNotificationInProgress: false, vehicleReadyNotificationLastAttemptAt: null }, NOW) === true
+)
+check(
+  'déjà notifié avec succès → ne peut plus jamais tenter, même sans essai en cours',
+  canAttemptVehicleReadyNotification({ vehicleReadyNotifiedAt: FIVE_SEC_AGO, vehicleReadyNotificationInProgress: false, vehicleReadyNotificationLastAttemptAt: FIVE_SEC_AGO }, NOW) === false
+)
+check(
+  'essai en cours récent (verrou posé il y a 5s) → ne peut pas tenter (protège contre la concurrence)',
+  canAttemptVehicleReadyNotification({ vehicleReadyNotifiedAt: null, vehicleReadyNotificationInProgress: true, vehicleReadyNotificationLastAttemptAt: FIVE_SEC_AGO }, NOW) === false
+)
+check(
+  'échec précédent, verrou correctement libéré (inProgress=false) → peut retenter immédiatement',
+  canAttemptVehicleReadyNotification({ vehicleReadyNotifiedAt: null, vehicleReadyNotificationInProgress: false, vehicleReadyNotificationLastAttemptAt: FIVE_SEC_AGO }, NOW) === true
+)
+check(
+  'verrou en cours mais périmé (crash serveur, au-delà de STALE_NOTIFICATION_CLAIM_MS) → peut retenter (auto-guérison)',
+  canAttemptVehicleReadyNotification({ vehicleReadyNotifiedAt: null, vehicleReadyNotificationInProgress: true, vehicleReadyNotificationLastAttemptAt: STALE_AGO }, NOW) === true
+)
+check(
+  'verrou en cours, exactement au seuil (non strictement dépassé) → toujours considéré actif, ne peut pas tenter',
+  canAttemptVehicleReadyNotification({ vehicleReadyNotifiedAt: null, vehicleReadyNotificationInProgress: true, vehicleReadyNotificationLastAttemptAt: new Date(NOW.getTime() - STALE_NOTIFICATION_CLAIM_MS) }, NOW) === false
+)
+check(
+  'inProgress=true mais lastAttemptAt jamais renseigné (incohérence défensive) → autorise (évite un blocage permanent improbable mais non protégé autrement)',
+  canAttemptVehicleReadyNotification({ vehicleReadyNotifiedAt: null, vehicleReadyNotificationInProgress: true, vehicleReadyNotificationLastAttemptAt: null }, NOW) === true
 )
 
 console.log(`\n=== ${passed}/${passed + failed} tests réussis ===`)

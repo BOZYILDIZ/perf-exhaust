@@ -270,9 +270,38 @@ model Appointment {
   // src/lib/agenda/workshop-actions.ts. Volontairement ICI (pas sur
   // QuoteRequest) : un RDV manuel n'a pas de QuoteRequest mais doit pouvoir
   // terminer son intervention normalement, avec ou sans notification (email
-  // client facultatif sur un RDV manuel). Empêche tout double envoi — la
-  // présence de cette date, et elle seule, décide si l'email part ou non.
+  // client facultatif sur un RDV manuel).
+  //
+  // (2026-08-10, correctif fiabilité) `vehicleReadyNotifiedAt` ne représente
+  // QUE la date d'un envoi Resend RÉELLEMENT réussi — jamais posée avant ou
+  // pendant la tentative. La protection anti-double-envoi/concurrence repose
+  // sur `vehicleReadyNotificationInProgress` (verrou distinct, voir
+  // canAttemptVehicleReadyNotification() dans workshop-status.ts et
+  // attemptVehicleReadyNotification() dans workshop-actions.ts) : c'est ce
+  // verrou, réservé par une UPDATE conditionnelle atomique, qui empêche deux
+  // tentatives concurrentes d'envoyer deux emails — pas cette date. Confondre
+  // les deux était précisément le défaut de la version précédente (un échec
+  // Resend après réservation de cette date bloquait alors tout renvoi).
   vehicleReadyNotifiedAt DateTime?
+
+  // Verrou de tentative d'envoi — true UNIQUEMENT pendant l'exécution d'un
+  // essai (entre la réservation atomique et son issue, succès ou échec).
+  // Toujours remis à false à la fin de l'essai, y compris en cas d'échec —
+  // c'est ce qui permet un nouvel essai immédiat ("Réessayer l'envoi") sans
+  // attendre. Le seuil de récupération (STALE_CLAIM_MS, workshop-status.ts)
+  // ne sert qu'au cas résiduel d'un crash serveur en plein essai (verrou
+  // resté à true sans jamais être libéré) — auto-guérison, sans intervention.
+  vehicleReadyNotificationInProgress Boolean @default(false)
+
+  // Horodatage du début du dernier essai (réussi ou non) — repère admin
+  // ("dernière tentative le...") ET seuil de détection d'un verrou resté
+  // bloqué (voir vehicleReadyNotificationInProgress ci-dessus).
+  vehicleReadyNotificationLastAttemptAt DateTime?
+
+  // Message d'erreur court du dernier essai en échec — jamais la réponse
+  // brute Resend (voir sendVehicleReadyEmail()/attemptVehicleReadyNotification()).
+  // Remis à null dès qu'un essai réussit (vehicleReadyNotifiedAt posée).
+  vehicleReadyNotificationLastError String?
 
   // Photos avant/après intervention — métadonnées uniquement (même pattern que
   // QuoteRequest.photos), jamais l'image en base. Schéma posé par anticipation

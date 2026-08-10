@@ -1,7 +1,14 @@
 import 'server-only'
 import { getDb } from '@/lib/db'
 import { AppointmentNotFoundError } from './appointments'
-import { computeForwardMirror, computeCorrectionMirror, WORKSHOP_STATUS_LABELS, type WorkshopStatus } from './workshop-status'
+import {
+  computeForwardMirror,
+  computeCorrectionMirror,
+  canAttemptVehicleReadyNotification,
+  STALE_NOTIFICATION_CLAIM_MS,
+  WORKSHOP_STATUS_LABELS,
+  type WorkshopStatus,
+} from './workshop-status'
 import { logActivityEvent, ACTIVITY_EVENT_TYPES, type ActivityEventType } from '@/lib/activity-events'
 import { sendVehicleReadyEmail } from '@/lib/email'
 
@@ -66,41 +73,141 @@ export async function startIntervention(appointmentId: string): Promise<void> {
   await applyForwardTransition(appointmentId, 'EN_INTERVENTION', ACTIVITY_EVENT_TYPES.WORK_STARTED, 'Intervention démarrée')
 }
 
-export interface CompleteInterventionResult {
+export interface VehicleReadyNotificationResult {
   /** Email effectivement envoyé lors de CET appel. */
   notified: boolean
-  /** Le client avait déjà été notifié auparavant — pas un échec, juste un no-op idempotent. */
+  /** Le client avait déjà été notifié avec succès auparavant — pas un échec, un no-op idempotent. */
   alreadyNotified: boolean
-  /** Message d'erreur si l'envoi a été tenté (réservation posée) mais a échoué côté fournisseur. */
+  /** Un autre essai (même requête concurrente, ou un essai non expiré) est en cours — aucun envoi tenté ici. */
+  inProgress: boolean
+  /** Message d'erreur si un essai a réellement été tenté ici mais a échoué côté fournisseur. */
   notifyError: string | null
 }
 
 /**
- * Termine l'intervention — TOUJOURS effective, indépendamment du succès de
- * la notification client (un RDV manuel sans email continue normalement,
- * `notifyClient` sans email disponible est simplement ignoré, jamais bloquant).
+ * Tente d'envoyer l'email "véhicule prêt" — idempotent et sûr contre toute
+ * concurrence (double-clic, retry serveur, deux onglets admin). Appelée à la
+ * fin de `completeIntervention()` ET par `retryVehicleReadyNotification()`
+ * après un échec : les deux partagent exactement cette même garde, il n'y a
+ * qu'UN SEUL chemin qui envoie réellement l'email.
  *
- * Anti-double-envoi robuste : `vehicleReadyNotifiedAt` est réservé par une
- * UPDATE conditionnelle atomique (`WHERE vehicleReadyNotifiedAt IS NULL`)
- * AVANT la tentative d'envoi — un double-clic ou un retry serveur concurrent
- * ne peut jamais faire gagner la course à deux appels simultanément (un seul
- * `updateMany` peut affecter la ligne ; l'autre voit `count === 0` et sait
- * qu'il a perdu la course, sans jamais envoyer). Contrepartie assumée : si
- * l'envoi échoue APRÈS la réservation, aucun renvoi automatique n'est
- * possible dans cette phase — l'admin doit contacter le client autrement (un
- * bouton "renvoyer" qui lèverait explicitement la réservation n'est pas
- * construit ici, hors périmètre).
+ * Design (voir canAttemptVehicleReadyNotification() dans workshop-status.ts
+ * pour la règle exacte, testée indépendamment de la base) :
+ *  - `vehicleReadyNotifiedAt` ne représente QUE un envoi réellement réussi —
+ *    jamais posé avant/pendant la tentative.
+ *  - `vehicleReadyNotificationInProgress` est le verrou d'unicité : réservé
+ *    par un `updateMany` conditionnel ATOMIQUE (une seule requête peut
+ *    gagner la course), toujours libéré en fin d'essai — succès ou échec —
+ *    ce qui autorise un nouvel essai immédiat après un échec, sans jamais
+ *    permettre à deux essais de s'exécuter en même temps.
+ *  - `vehicleReadyNotificationLastError` garde la dernière erreur (message
+ *    court, jamais la réponse brute Resend) pour que l'admin comprenne
+ *    pourquoi réessayer est nécessaire ; effacé dès qu'un essai réussit.
  */
-export async function completeIntervention(appointmentId: string, notifyClient: boolean): Promise<CompleteInterventionResult> {
+async function attemptVehicleReadyNotification(appointmentId: string): Promise<VehicleReadyNotificationResult> {
   const db = getDb()
   const appointment = await db.appointment.findUnique({
     where: { id: appointmentId },
     select: {
       id: true, quoteRequestId: true, vehicle: true, customerEmail: true, customerName: true,
-      quoteRequest: { select: { status: true } },
+      vehicleReadyNotifiedAt: true, vehicleReadyNotificationInProgress: true, vehicleReadyNotificationLastAttemptAt: true,
     },
   })
   if (!appointment) throw new AppointmentNotFoundError()
+
+  const result: VehicleReadyNotificationResult = { notified: false, alreadyNotified: false, inProgress: false, notifyError: null }
+
+  if (!appointment.customerEmail) return result // RDV manuel sans email — no-op silencieux, jamais bloquant.
+
+  const now = new Date()
+
+  // Pré-vérification locale (même règle que la garde atomique ci-dessous,
+  // voir canAttemptVehicleReadyNotification) — évite une écriture inutile
+  // pour le cas courant (déjà notifié / essai visiblement en cours), sans
+  // être la garantie d'unicité elle-même : celle-ci vient uniquement de
+  // l'atomicité du `updateMany` qui suit.
+  if (!canAttemptVehicleReadyNotification(appointment, now)) {
+    if (appointment.vehicleReadyNotifiedAt) result.alreadyNotified = true
+    else result.inProgress = true
+    return result
+  }
+
+  const staleThreshold = new Date(now.getTime() - STALE_NOTIFICATION_CLAIM_MS)
+  const claim = await db.appointment.updateMany({
+    where: {
+      id: appointmentId,
+      vehicleReadyNotifiedAt: null,
+      OR: [
+        { vehicleReadyNotificationInProgress: false },
+        { vehicleReadyNotificationLastAttemptAt: null },
+        { vehicleReadyNotificationLastAttemptAt: { lt: staleThreshold } },
+      ],
+    },
+    data: { vehicleReadyNotificationInProgress: true, vehicleReadyNotificationLastAttemptAt: now },
+  })
+
+  if (claim.count !== 1) {
+    // Course perdue : soit un autre appel vient de réussir, soit un essai est
+    // actuellement en cours (dans la fenêtre non expirée) — jamais de second envoi.
+    const fresh = await db.appointment.findUnique({ where: { id: appointmentId }, select: { vehicleReadyNotifiedAt: true } })
+    if (fresh?.vehicleReadyNotifiedAt) result.alreadyNotified = true
+    else result.inProgress = true
+    return result
+  }
+
+  try {
+    await sendVehicleReadyEmail({
+      customerEmail: appointment.customerEmail,
+      customerFirstName: appointment.customerName.split(' ')[0] || appointment.customerName,
+      vehicle: appointment.vehicle,
+    })
+    await db.appointment.update({
+      where: { id: appointmentId },
+      data: { vehicleReadyNotifiedAt: now, vehicleReadyNotificationInProgress: false, vehicleReadyNotificationLastError: null },
+    })
+    result.notified = true
+    await logActivityEvent({
+      quoteRequestId: appointment.quoteRequestId,
+      appointmentId: appointment.id,
+      type: ACTIVITY_EVENT_TYPES.VEHICLE_READY_NOTIFICATION_SENT,
+      title: 'Client notifié — véhicule prêt',
+    })
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Erreur inconnue'
+    await db.appointment.update({
+      where: { id: appointmentId },
+      data: { vehicleReadyNotificationInProgress: false, vehicleReadyNotificationLastError: message },
+    })
+    result.notifyError = message
+    // Pas de `metadata` ici : le titre suffit à signaler l'échec dans la
+    // timeline, jamais de détail d'erreur/réponse Resend — le détail exact
+    // reste dans vehicleReadyNotificationLastError (admin uniquement).
+    await logActivityEvent({
+      quoteRequestId: appointment.quoteRequestId,
+      appointmentId: appointment.id,
+      type: ACTIVITY_EVENT_TYPES.VEHICLE_READY_NOTIFICATION_FAILED,
+      title: 'Échec de la notification client — véhicule prêt',
+    })
+  }
+
+  return result
+}
+
+/** Réessai explicite après un échec — même garde d'unicité que l'essai initial, voir attemptVehicleReadyNotification(). */
+export async function retryVehicleReadyNotification(appointmentId: string): Promise<VehicleReadyNotificationResult> {
+  return attemptVehicleReadyNotification(appointmentId)
+}
+
+export type CompleteInterventionResult = VehicleReadyNotificationResult
+
+/**
+ * Termine l'intervention — TOUJOURS effective, indépendamment du succès de
+ * la notification client (un RDV manuel sans email continue normalement,
+ * `notifyClient` sans email disponible est simplement ignoré, jamais bloquant).
+ */
+export async function completeIntervention(appointmentId: string, notifyClient: boolean): Promise<CompleteInterventionResult> {
+  const db = getDb()
+  const appointment = await loadAppointmentOrThrow(appointmentId)
 
   await db.appointment.update({ where: { id: appointmentId }, data: { workshopStatus: 'TERMINE' } })
 
@@ -118,45 +225,8 @@ export async function completeIntervention(appointmentId: string, notifyClient: 
     title: 'Intervention terminée — véhicule prêt',
   })
 
-  const result: CompleteInterventionResult = { notified: false, alreadyNotified: false, notifyError: null }
-
-  if (notifyClient && appointment.customerEmail) {
-    const claimed = await db.appointment.updateMany({
-      where: { id: appointmentId, vehicleReadyNotifiedAt: null },
-      data: { vehicleReadyNotifiedAt: new Date() },
-    })
-
-    if (claimed.count === 1) {
-      try {
-        await sendVehicleReadyEmail({
-          customerEmail: appointment.customerEmail,
-          customerFirstName: appointment.customerName.split(' ')[0] || appointment.customerName,
-          vehicle: appointment.vehicle,
-        })
-        result.notified = true
-        await logActivityEvent({
-          quoteRequestId: appointment.quoteRequestId,
-          appointmentId: appointment.id,
-          type: ACTIVITY_EVENT_TYPES.VEHICLE_READY_NOTIFICATION_SENT,
-          title: 'Client notifié — véhicule prêt',
-        })
-      } catch (err) {
-        const message = err instanceof Error ? err.message : 'Erreur inconnue'
-        result.notifyError = message
-        await logActivityEvent({
-          quoteRequestId: appointment.quoteRequestId,
-          appointmentId: appointment.id,
-          type: ACTIVITY_EVENT_TYPES.VEHICLE_READY_NOTIFICATION_FAILED,
-          title: 'Échec de la notification client — véhicule prêt',
-          metadata: { error: message },
-        })
-      }
-    } else {
-      result.alreadyNotified = true
-    }
-  }
-
-  return result
+  if (!notifyClient) return { notified: false, alreadyNotified: false, inProgress: false, notifyError: null }
+  return attemptVehicleReadyNotification(appointmentId)
 }
 
 export async function markVehicleReturned(appointmentId: string): Promise<void> {
