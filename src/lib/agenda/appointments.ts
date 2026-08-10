@@ -248,6 +248,7 @@ export interface CreateManualAppointmentInput {
   modele: string
   annee: string
   motorisation?: string | null
+  licensePlate?: string | null
   rearDiffuser?: string | null
   vehicleNotes?: string
   startAt: Date
@@ -298,6 +299,7 @@ export async function createManualAppointment(input: CreateManualAppointmentInpu
       customerAddress: input.address?.trim() || null,
       vehicle,
       motorisation: input.motorisation?.trim() || null,
+      licensePlate: input.licensePlate?.trim() || null,
       rearDiffuser: input.rearDiffuser ?? null,
       vehicleNotes: input.vehicleNotes ?? '',
       startAt: input.startAt,

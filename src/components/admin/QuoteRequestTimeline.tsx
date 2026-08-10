@@ -1,6 +1,6 @@
 import {
   FileText, CreditCard, RefreshCw, FileSearch, CalendarPlus, CalendarClock, CalendarX,
-  Car, Wrench, CheckCircle2, KeyRound, Mail, Star, Clock,
+  Car, Wrench, CheckCircle2, KeyRound, Mail, MailWarning, Star, Clock, PenLine,
 } from "lucide-react";
 
 export interface TimelineEvent {
@@ -23,6 +23,9 @@ const ICONS: Record<string, React.ElementType> = {
   WORK_STARTED: Wrench,
   WORK_COMPLETED: CheckCircle2,
   VEHICLE_RETURNED: KeyRound,
+  VEHICLE_READY_NOTIFICATION_SENT: Mail,
+  VEHICLE_READY_NOTIFICATION_FAILED: MailWarning,
+  WORKSHOP_STATUS_CORRECTED: PenLine,
   FOLLOWUP_SENT: Mail,
   REVIEW_REQUEST_SENT: Star,
 };

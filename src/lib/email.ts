@@ -125,6 +125,49 @@ export async function sendConfirmationToClient(data: AppointmentData) {
   return { success: true }
 }
 
+export interface VehicleReadyEmailInput {
+  customerEmail: string
+  customerFirstName: string
+  vehicle: string
+}
+
+/**
+ * "Votre véhicule est prêt" — envoyée uniquement depuis une action atelier
+ * explicite (jamais automatiquement à un simple changement de statut), voir
+ * src/lib/agenda/workshop-actions.ts. La protection anti-double-envoi
+ * (Appointment.vehicleReadyNotifiedAt) vit dans l'appelant, pas ici — cette
+ * fonction envoie sans condition, comme toutes les autres de ce fichier.
+ */
+export async function sendVehicleReadyEmail(data: VehicleReadyEmailInput) {
+  if (!resend) {
+    console.log('[EMAIL MOCK] Vehicle ready:', data.customerEmail)
+    return { success: true, mock: true }
+  }
+  const settings = await getSiteSettings()
+  const { error } = await resend.emails.send({
+    from: FROM_EMAIL,
+    to: data.customerEmail,
+    subject: 'Votre véhicule est prêt — PERF\'EXHAUST',
+    html: `
+      <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#0a0a0a;color:#ffffff;padding:32px">
+        <img src="https://perfexhaust.fr/brand/logo-light.png" alt="PERF'EXHAUST" width="160" style="display:block;margin-bottom:20px" />
+        <h2 style="color:#1266ea">Votre véhicule est prêt ✓</h2>
+        <p>Bonjour ${escapeHtml(data.customerFirstName)},</p>
+        <p>Votre <strong>${escapeHtml(data.vehicle)}</strong> est prêt.</p>
+        <p>Vous pouvez venir le récupérer chez ${escapeHtml(settings.businessName)}.</p>
+        <hr style="border-color:#333;margin:24px 0"/>
+        <p style="color:#aaa;font-size:14px">
+          ${escapeHtml(settings.address)}, ${escapeHtml(settings.postalCode)} ${escapeHtml(settings.city)}<br/>
+          ${escapeHtml(settings.phone)}<br/>
+          ${escapeHtml(settings.openingHours)}
+        </p>
+      </div>
+    `,
+  })
+  if (error) throw new Error(`Resend (véhicule prêt): ${error.message}`)
+  return { success: true }
+}
+
 export interface AppointmentEmailInput {
   customerEmail: string
   customerFirstName: string
