@@ -118,6 +118,9 @@ export default async function AdminQuoteRequestDetailPage({ params }: { params: 
                 status: q.appointment.status,
                 notes: q.appointment.notes,
                 cancelledBy: q.appointment.cancelledBy,
+                vehicle: q.appointment.vehicle,
+                workshopStatus: q.appointment.workshopStatus,
+                vehicleReadyNotifiedAt: q.appointment.vehicleReadyNotifiedAt ? q.appointment.vehicleReadyNotifiedAt.toISOString() : null,
               }
             : null
         }

@@ -217,6 +217,8 @@ export default function QuoteRequestDetail({
           appointment={appointment}
           durationOptions={durationOptions}
           defaultDurationMinutes={defaultDurationMinutes}
+          licensePlate={licensePlate || null}
+          customerEmail={request.email}
         />
       </CollapsibleSection>
 
