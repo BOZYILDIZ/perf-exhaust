@@ -15,6 +15,7 @@
     "db:seed:settings": "tsx --env-file=.env.local scripts/seed-settings.ts",
     "db:studio": "prisma studio",
     "test:pennylane-matching": "tsx src/lib/pennylane-v2/sync.test.ts",
+    "test:workshop-status": "tsx src/lib/agenda/workshop-status.test.ts",
     "postinstall": "prisma generate"
   },
   "dependencies": {
