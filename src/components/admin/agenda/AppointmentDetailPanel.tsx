@@ -10,9 +10,11 @@ import ScheduleAppointmentModal, { type DurationOption } from "./ScheduleAppoint
 import { useAppointmentActions } from "./useAppointmentActions";
 import { APPOINTMENT_STATUS_LABELS, APPOINTMENT_STATUS_STYLES } from "./AppointmentSection";
 import WorkshopActionsPanel from "./WorkshopActionsPanel";
+import WorkshopPhotosPanel from "./WorkshopPhotosPanel";
 import ProjectLightbox from "@/components/gallery/ProjectLightbox";
 import { vehiclePhotoSlotTitle, type VehiclePhoto } from "@/lib/vehicle-photo-slots";
 import { rearDiffuserLabel } from "@/lib/quote-request-options";
+import type { WorkshopPhoto } from "@/lib/agenda/workshop-photos";
 
 interface DetailAppointment {
   id: string;
@@ -41,6 +43,9 @@ interface DetailAppointment {
   vehicleReadyNotifiedAt: string | null;
   vehicleReadyNotificationLastError: string | null;
   vehicleReadyNotificationLastAttemptAt: string | null;
+  photosAvant: WorkshopPhoto[];
+  photosApres: WorkshopPhoto[];
+  realisation: { id: string; slug: string } | null;
 }
 
 interface DetailProfile {
@@ -248,7 +253,19 @@ export default function AppointmentDetailPanel({ appointmentId, onClose, onChang
                   vehicleReadyNotifiedAt={data.appointment.vehicleReadyNotifiedAt}
                   vehicleReadyNotificationLastError={data.appointment.vehicleReadyNotificationLastError}
                   vehicleReadyNotificationLastAttemptAt={data.appointment.vehicleReadyNotificationLastAttemptAt}
+                  realisation={data.appointment.realisation}
                   onChanged={() => { onChanged(); void load(); }}
+                />
+              </div>
+            )}
+
+            {(data.appointment.status === "PENDING" || data.appointment.status === "CONFIRMED") && (
+              <div className="mb-6">
+                <WorkshopPhotosPanel
+                  appointmentId={data.appointment.id}
+                  photosAvant={data.appointment.photosAvant}
+                  photosApres={data.appointment.photosApres}
+                  onChanged={() => void load()}
                 />
               </div>
             )}

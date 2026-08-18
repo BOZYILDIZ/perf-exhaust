@@ -6,6 +6,7 @@ import QuoteRequestDetail from "@/components/admin/QuoteRequestDetail";
 import { getClientProfile } from "@/lib/pennylane-v2/client-profile";
 import { getAgendaSettings } from "@/lib/agenda/settings";
 import type { VehiclePhoto } from "@/lib/vehicle-photo-slots";
+import type { WorkshopPhoto } from "@/lib/agenda/workshop-photos";
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +14,10 @@ export default async function AdminQuoteRequestDetailPage({ params }: { params: 
   if (!isDbConfigured()) notFound();
   const { id } = await params;
   const [q, settings, clientProfile, agendaSettings, events] = await Promise.all([
-    getDb().quoteRequest.findUnique({ where: { id }, include: { appointment: true } }),
+    getDb().quoteRequest.findUnique({
+      where: { id },
+      include: { appointment: { include: { realisation: { select: { id: true, slug: true } } } } },
+    }),
     getSiteSettings(),
     // Agrège client Pennylane + demandes locales soeurs (véhicules, historique,
     // statistiques) — un seul appel Pennylane pour le nom/date de création du
@@ -125,6 +129,9 @@ export default async function AdminQuoteRequestDetailPage({ params }: { params: 
                 vehicleReadyNotificationLastAttemptAt: q.appointment.vehicleReadyNotificationLastAttemptAt
                   ? q.appointment.vehicleReadyNotificationLastAttemptAt.toISOString()
                   : null,
+                photosAvant: Array.isArray(q.appointment.photosAvant) ? (q.appointment.photosAvant as unknown as WorkshopPhoto[]) : [],
+                photosApres: Array.isArray(q.appointment.photosApres) ? (q.appointment.photosApres as unknown as WorkshopPhoto[]) : [],
+                realisation: q.appointment.realisation,
               }
             : null
         }

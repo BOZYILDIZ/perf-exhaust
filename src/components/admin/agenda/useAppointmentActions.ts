@@ -65,5 +65,7 @@ export function useAppointmentActions(appointmentId: string, onDone: () => void)
       if (!window.confirm("Corriger le statut atelier de ce rendez-vous ?")) return;
       run("correct-workshop-status", `/api/admin/appointments/${appointmentId}/correct-workshop-status`, { workshopStatus });
     },
+    createRealisation: (): Promise<{ id: string; slug: string; alreadyExisted: boolean } | null> =>
+      run("create-realisation", `/api/admin/appointments/${appointmentId}/create-realisation`, {}),
   };
 }

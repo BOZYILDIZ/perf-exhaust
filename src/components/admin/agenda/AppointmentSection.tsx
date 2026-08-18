@@ -6,6 +6,8 @@ import { Calendar, Clock, Loader2, AlertCircle, CheckCircle2, XCircle, UserX, Ca
 import ScheduleAppointmentModal, { type DurationOption } from "./ScheduleAppointmentModal";
 import { useAppointmentActions } from "./useAppointmentActions";
 import WorkshopActionsPanel from "./WorkshopActionsPanel";
+import WorkshopPhotosPanel from "./WorkshopPhotosPanel";
+import type { WorkshopPhoto } from "@/lib/agenda/workshop-photos";
 
 export interface AppointmentData {
   id: string;
@@ -20,6 +22,9 @@ export interface AppointmentData {
   vehicleReadyNotifiedAt: string | null;
   vehicleReadyNotificationLastError: string | null;
   vehicleReadyNotificationLastAttemptAt: string | null;
+  photosAvant: WorkshopPhoto[];
+  photosApres: WorkshopPhoto[];
+  realisation: { id: string; slug: string } | null;
 }
 
 export interface AppointmentSectionProps {
@@ -114,6 +119,18 @@ export default function AppointmentSection({ quoteRequestId, appointment, durati
                 vehicleReadyNotifiedAt={appointment.vehicleReadyNotifiedAt}
                 vehicleReadyNotificationLastError={appointment.vehicleReadyNotificationLastError}
                 vehicleReadyNotificationLastAttemptAt={appointment.vehicleReadyNotificationLastAttemptAt}
+                realisation={appointment.realisation}
+                onChanged={() => router.refresh()}
+              />
+            </div>
+          )}
+
+          {(appointment.status === "PENDING" || appointment.status === "CONFIRMED") && (
+            <div className="mb-4">
+              <WorkshopPhotosPanel
+                appointmentId={appointment.id}
+                photosAvant={appointment.photosAvant}
+                photosApres={appointment.photosApres}
                 onChanged={() => router.refresh()}
               />
             </div>

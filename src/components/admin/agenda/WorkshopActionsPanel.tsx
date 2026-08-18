@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Car, ArrowRight, Loader2, AlertCircle, CheckCircle2, Info, RotateCcw } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Car, ArrowRight, Loader2, AlertCircle, CheckCircle2, Info, RotateCcw, ImagePlus, Pencil } from "lucide-react";
 import { WORKSHOP_STATUS_LABELS, WORKSHOP_STATUS_ORDER, type WorkshopStatus } from "@/lib/agenda/workshop-status";
 import { useAppointmentActions } from "./useAppointmentActions";
 
@@ -16,6 +17,8 @@ export interface WorkshopActionsPanelProps {
   vehicleReadyNotificationLastError: string | null;
   /** Horodatage du début du dernier essai (réussi ou non) — pour l'affichage admin uniquement. */
   vehicleReadyNotificationLastAttemptAt: string | null;
+  /** Réalisation déjà créée à partir de ce RDV — null si aucune (voir Project.sourceAppointmentId). */
+  realisation: { id: string; slug: string } | null;
   onChanged: () => void;
 }
 
@@ -49,11 +52,17 @@ const CORRECTION_OPTIONS: { value: WorkshopStatus | null; label: string }[] = [
  */
 export default function WorkshopActionsPanel({
   appointmentId, workshopStatus, licensePlate, vehicle, customerEmail, vehicleReadyNotifiedAt,
-  vehicleReadyNotificationLastError, vehicleReadyNotificationLastAttemptAt, onChanged,
+  vehicleReadyNotificationLastError, vehicleReadyNotificationLastAttemptAt, realisation, onChanged,
 }: WorkshopActionsPanelProps) {
+  const router = useRouter();
   const [correctionOpen, setCorrectionOpen] = useState(false);
   const actions = useAppointmentActions(appointmentId, onChanged);
   const current = (workshopStatus as WorkshopStatus | null) ?? null;
+
+  const createRealisation = async () => {
+    const result = await actions.createRealisation();
+    if (result) router.push(`/admin/realisations/${result.id}/edit`);
+  };
 
   const statusLabel = current ? WORKSHOP_STATUS_LABELS[current] : "Planifié";
   const statusStyle = current ? WORKSHOP_STATUS_STYLES[current] : "text-gray-400 bg-white/5 border-gray-700";
@@ -161,6 +170,31 @@ export default function WorkshopActionsPanel({
           >
             {actions.busy === "retry-notification" ? <Loader2 size={13} className="animate-spin" /> : <RotateCcw size={13} />} Réessayer l&apos;envoi
           </button>
+        </div>
+      )}
+
+      {/* Transformer en réalisation — visible une fois le travail terminé,
+          jamais automatique : crée un BROUILLON pré-rempli, l'admin termine
+          et publie depuis /admin/realisations/[id]/edit comme d'habitude. */}
+      {(current === "TERMINE" || current === "RESTITUE") && (
+        <div className="mt-3">
+          {realisation ? (
+            <a
+              href={`/admin/realisations/${realisation.id}/edit`}
+              className="inline-flex items-center gap-1.5 px-3 py-2 min-h-[44px] text-xs font-bold uppercase tracking-wider text-gray-300 border border-gray-700 hover:border-gray-500 transition-colors"
+            >
+              <Pencil size={13} /> Voir/éditer la réalisation
+            </a>
+          ) : (
+            <button
+              type="button"
+              disabled={actions.busy !== null}
+              onClick={createRealisation}
+              className="inline-flex items-center gap-1.5 px-3 py-2 min-h-[44px] text-xs font-bold uppercase tracking-wider text-gray-300 border border-gray-700 hover:border-gray-500 disabled:opacity-40 transition-colors"
+            >
+              {actions.busy === "create-realisation" ? <Loader2 size={13} className="animate-spin" /> : <ImagePlus size={13} />} Créer une réalisation à partir de ce RDV
+            </button>
+          )}
         </div>
       )}
 

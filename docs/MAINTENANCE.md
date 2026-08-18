@@ -94,6 +94,21 @@ formulaire montre le rendu.
 
 Sans token : message clair en admin, et les champs acceptent des URLs manuelles.
 
+### Photos avant/après intervention (RDV atelier)
+
+Même stockage (Vercel Blob) que ci-dessus, même comportement sans token : le
+bouton d'ajout de photo (fiche RDV/devis) échoue avec un message explicite
+("Stockage d'images non configuré") tant que `BLOB_READ_WRITE_TOKEN` n'est pas
+présent — jamais de solution de repli (pas d'upload sur le filesystem Vercel,
+jamais de base64 en base). Configurer le token (section ci-dessus) suffit à
+activer l'upload/la suppression sans aucun changement de code.
+
+Une fois le travail terminé (statut atelier TERMINE/RESTITUE), le bouton
+« Créer une réalisation à partir de ce RDV » crée un **brouillon** de
+réalisation pré-rempli (véhicule, photos en galerie avant/après) et ouvre son
+édition — jamais publié automatiquement, exactement comme une réalisation
+dupliquée. Au plus une réalisation par rendez-vous (idempotent).
+
 ### Commandes utiles
 
 ```bash

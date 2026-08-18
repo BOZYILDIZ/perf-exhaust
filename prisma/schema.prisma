@@ -57,6 +57,16 @@ model Project {
   updatedAt   DateTime  @updatedAt
   publishedAt DateTime?
 
+  // Rendez-vous atelier à l'origine de ce brouillon (Phase E, 2026-08-18) —
+  // "Créer une réalisation à partir de ce RDV" (voir
+  // src/lib/agenda/realisation-draft.ts). @unique : au plus UNE réalisation
+  // par rendez-vous, jamais de doublon même en cas de double-clic (voir
+  // /api/admin/appointments/[id]/create-realisation, idempotent). onDelete:
+  // SetNull — une réalisation déjà publiée doit survivre à la suppression
+  // éventuelle du rendez-vous source, jamais de cascade.
+  sourceAppointmentId String?      @unique
+  sourceAppointment   Appointment? @relation(fields: [sourceAppointmentId], references: [id], onDelete: SetNull)
+
   @@index([status, sortOrder])
 }
 
@@ -358,6 +368,11 @@ model Appointment {
 
   // Timeline métier (voir ActivityEvent ci-dessous) — extensible, jamais de secret dedans.
   events ActivityEvent[]
+
+  // Réalisation créée à partir de ce rendez-vous (Phase E) — voir
+  // Project.sourceAppointmentId ci-dessus pour la règle exacte (au plus une,
+  // jamais automatique).
+  realisation Project?
 
   @@index([startAt])
   @@index([status])
