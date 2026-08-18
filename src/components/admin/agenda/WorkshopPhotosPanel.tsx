@@ -68,17 +68,20 @@ function CategorySection({
 
       <div className="flex flex-wrap gap-2 mb-2">
         {photos.map((p) => (
-          <div key={p.url} className="relative w-20 h-20 flex-shrink-0 border border-gray-800 overflow-hidden group">
+          <div key={p.url} className="relative w-24 h-24 flex-shrink-0 border border-gray-800 overflow-hidden group">
             {/* eslint-disable-next-line @next/next/no-img-element -- URLs Vercel Blob externes, pas un asset next/image local */}
             <img src={p.url} alt={p.name} className="w-full h-full object-cover" />
+            {/* 36px, pas 44px : overlay sur une vignette de 96px, un vrai bouton
+                44px masquerait une trop grande partie de l'image. Compromis
+                assumé (le retrait reste par ailleurs confirmé via window.confirm). */}
             <button
               type="button"
               disabled={busy}
               onClick={() => remove(p.url)}
               aria-label={`Supprimer ${p.name}`}
-              className="absolute top-1 right-1 w-7 h-7 flex items-center justify-center bg-black/70 text-red-400 disabled:opacity-40"
+              className="absolute top-1 right-1 w-9 h-9 flex items-center justify-center bg-black/70 text-red-400 disabled:opacity-40"
             >
-              <Trash2 size={13} />
+              <Trash2 size={14} />
             </button>
           </div>
         ))}
@@ -87,7 +90,7 @@ function CategorySection({
           type="button"
           disabled={busy}
           onClick={() => inputRef.current?.click()}
-          className="w-20 h-20 flex-shrink-0 flex flex-col items-center justify-center gap-1 border border-dashed border-gray-700 text-gray-500 hover:border-gray-500 hover:text-gray-300 disabled:opacity-40 transition-colors"
+          className="w-24 h-24 min-h-[44px] flex-shrink-0 flex flex-col items-center justify-center gap-1 border border-dashed border-gray-700 text-gray-500 hover:border-gray-500 hover:text-gray-300 disabled:opacity-40 transition-colors"
         >
           {busy ? <Loader2 size={18} className="animate-spin" /> : <Camera size={18} />}
           <span className="text-[10px] uppercase tracking-wider">Ajouter</span>

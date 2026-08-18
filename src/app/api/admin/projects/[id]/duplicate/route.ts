@@ -2,6 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { isAdminAuthenticated } from "@/lib/admin-auth";
 import { isDbConfigured, getDb } from "@/lib/db";
 
+function guardOrigin(req: NextRequest): boolean {
+  const origin = req.headers.get("origin");
+  if (!origin) return true;
+  try {
+    return new URL(origin).host === req.nextUrl.host;
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Duplique une réalisation en BROUILLON (slug suffixé -copie, -copie-2...).
  * Gain de saisie majeur pour les projets similaires.
@@ -9,10 +19,7 @@ import { isDbConfigured, getDb } from "@/lib/db";
 export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   try {
     if (!(await isAdminAuthenticated())) return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
-    const origin = req.headers.get("origin");
-    if (origin && new URL(origin).host !== req.nextUrl.host) {
-      return NextResponse.json({ error: "Origine invalide" }, { status: 403 });
-    }
+    if (!guardOrigin(req)) return NextResponse.json({ error: "Origine invalide" }, { status: 403 });
     if (!isDbConfigured()) return NextResponse.json({ error: "Base de données non configurée (DATABASE_URL)." }, { status: 503 });
 
     const { id } = await ctx.params;
