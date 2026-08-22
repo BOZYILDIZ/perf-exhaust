@@ -5,6 +5,9 @@ import { useRouter } from "next/navigation";
 import { Calendar, Clock, Loader2, AlertCircle, CheckCircle2, XCircle, UserX, CalendarClock } from "lucide-react";
 import ScheduleAppointmentModal, { type DurationOption } from "./ScheduleAppointmentModal";
 import { useAppointmentActions } from "./useAppointmentActions";
+import WorkshopActionsPanel from "./WorkshopActionsPanel";
+import WorkshopPhotosPanel from "./WorkshopPhotosPanel";
+import type { WorkshopPhoto } from "@/lib/agenda/workshop-photos";
 
 export interface AppointmentData {
   id: string;
@@ -14,6 +17,14 @@ export interface AppointmentData {
   status: string;
   notes: string;
   cancelledBy: string | null;
+  vehicle: string;
+  workshopStatus: string | null;
+  vehicleReadyNotifiedAt: string | null;
+  vehicleReadyNotificationLastError: string | null;
+  vehicleReadyNotificationLastAttemptAt: string | null;
+  photosAvant: WorkshopPhoto[];
+  photosApres: WorkshopPhoto[];
+  realisation: { id: string; slug: string } | null;
 }
 
 export interface AppointmentSectionProps {
@@ -21,6 +32,9 @@ export interface AppointmentSectionProps {
   appointment: AppointmentData | null;
   durationOptions: DurationOption[];
   defaultDurationMinutes: number;
+  /** Canonique côté QuoteRequest pour un RDV lié — voir resolveAppointmentLicensePlate. */
+  licensePlate: string | null;
+  customerEmail: string;
 }
 
 export const APPOINTMENT_STATUS_LABELS: Record<string, string> = {
@@ -58,7 +72,7 @@ function frDateTime(iso: string): string {
   return new Date(iso).toLocaleString("fr-FR", { timeZone: "Europe/Paris", weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
 }
 
-export default function AppointmentSection({ quoteRequestId, appointment, durationOptions, defaultDurationMinutes }: AppointmentSectionProps) {
+export default function AppointmentSection({ quoteRequestId, appointment, durationOptions, defaultDurationMinutes, licensePlate, customerEmail }: AppointmentSectionProps) {
   const router = useRouter();
   const [scheduleOpen, setScheduleOpen] = useState(false);
   const [rescheduleOpen, setRescheduleOpen] = useState(false);
@@ -93,6 +107,34 @@ export default function AppointmentSection({ quoteRequestId, appointment, durati
               <span className="text-xs text-gray-500">Annulé par l&apos;atelier</span>
             )}
           </div>
+
+          {(appointment.status === "PENDING" || appointment.status === "CONFIRMED") && (
+            <div className="mb-4">
+              <WorkshopActionsPanel
+                appointmentId={appointment.id}
+                workshopStatus={appointment.workshopStatus}
+                licensePlate={licensePlate}
+                vehicle={appointment.vehicle}
+                customerEmail={customerEmail}
+                vehicleReadyNotifiedAt={appointment.vehicleReadyNotifiedAt}
+                vehicleReadyNotificationLastError={appointment.vehicleReadyNotificationLastError}
+                vehicleReadyNotificationLastAttemptAt={appointment.vehicleReadyNotificationLastAttemptAt}
+                realisation={appointment.realisation}
+                onChanged={() => router.refresh()}
+              />
+            </div>
+          )}
+
+          {(appointment.status === "PENDING" || appointment.status === "CONFIRMED") && (
+            <div className="mb-4">
+              <WorkshopPhotosPanel
+                appointmentId={appointment.id}
+                photosAvant={appointment.photosAvant}
+                photosApres={appointment.photosApres}
+                onChanged={() => router.refresh()}
+              />
+            </div>
+          )}
 
           <div className="flex flex-wrap gap-x-6 gap-y-1 text-gray-300 text-sm mb-4">
             <span className="inline-flex items-center gap-1.5"><Calendar size={13} className="text-brand-400" /> {frDateTime(appointment.startAt)}</span>

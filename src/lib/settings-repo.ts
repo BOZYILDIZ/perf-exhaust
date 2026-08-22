@@ -34,6 +34,13 @@ export const getSiteSettings = cache(async function getSiteSettings(): Promise<S
       siret: row.siret,
       publicationDirector: row.publicationDirector,
       pennylaneManualUrl: row.pennylaneManualUrl,
+      followupDelay1Days: row.followupDelay1Days,
+      followupDelay2Days: row.followupDelay2Days,
+      followupAutomationEnabled: row.followupAutomationEnabled,
+      reminder24hEnabled: row.reminder24hEnabled,
+      reminder1hEnabled: row.reminder1hEnabled,
+      reviewRequestEnabled: row.reviewRequestEnabled,
+      reviewRequestDelayHours: row.reviewRequestDelayHours,
     }
   } catch (error) {
     console.error('[settings-repo] Lecture SiteSettings échouée, repli sur les valeurs par défaut:', error)

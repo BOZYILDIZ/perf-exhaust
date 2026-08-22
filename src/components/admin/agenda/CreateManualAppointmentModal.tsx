@@ -35,6 +35,7 @@ export default function CreateManualAppointmentModal({ open, onOpenChange, durat
   const [modele, setModele] = useState("");
   const [annee, setAnnee] = useState("");
   const [motorisation, setMotorisation] = useState("");
+  const [licensePlate, setLicensePlate] = useState("");
   const [rearDiffuser, setRearDiffuser] = useState("");
   const [vehicleNotes, setVehicleNotes] = useState("");
   const [notes, setNotes] = useState("");
@@ -59,6 +60,7 @@ export default function CreateManualAppointmentModal({ open, onOpenChange, durat
           address: address || undefined,
           marque, modele, annee,
           motorisation: motorisation || undefined,
+          licensePlate: licensePlate || undefined,
           rearDiffuser: rearDiffuser || undefined,
           vehicleNotes: vehicleNotes || undefined,
           notes: notes || undefined,
@@ -157,6 +159,10 @@ export default function CreateManualAppointmentModal({ open, onOpenChange, durat
                     <div>
                       <label htmlFor="man-motorisation" className={labelStyle}>Motorisation</label>
                       <input id="man-motorisation" value={motorisation} onChange={(e) => setMotorisation(e.target.value)} className={inputStyle} />
+                    </div>
+                    <div>
+                      <label htmlFor="man-plate" className={labelStyle}>Immatriculation <span className="text-gray-600 normal-case">(facultatif)</span></label>
+                      <input id="man-plate" value={licensePlate} onChange={(e) => setLicensePlate(e.target.value)} className={inputStyle} placeholder="AA-123-AA" />
                     </div>
                     <div className="col-span-2">
                       <label htmlFor="man-diffuseur" className={labelStyle}>Diffuseur arrière</label>

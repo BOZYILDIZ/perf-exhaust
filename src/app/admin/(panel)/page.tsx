@@ -1,7 +1,10 @@
 import Link from "next/link";
-import { Plus, FileText, Eye, PencilLine, Database, CheckSquare, Square } from "lucide-react";
+import { Plus, FileText, Eye, PencilLine, Database, CheckSquare, Square, Clock, Car } from "lucide-react";
 import { isDbConfigured, getDb } from "@/lib/db";
 import { featuredPosts } from "@/data/social";
+import { computeCalendarRange, todayParisDateString } from "@/lib/agenda/calendar-range";
+import { formatParisTime } from "@/lib/agenda/timezone";
+import { QUOTE_STATUS_LABELS, type QuoteStatus } from "@/lib/quote-pipeline";
 
 export const dynamic = "force-dynamic";
 
@@ -54,12 +57,19 @@ export default async function AdminDashboard() {
   }
 
   const db = getDb();
+  const today = todayParisDateString();
+  const todayRange = computeCalendarRange("day", today);
+  const monthRange = computeCalendarRange("month", today);
+
   const [
     published, drafts, latest,
-    newQuotes, contactedQuotes, inProgressQuotes, completedQuotesCount, totalQuotes,
     publishedServices, publishedFaqs,
     lastProject, lastService, lastFaq, lastQuote, settingsRow,
     projectsWithRealImage,
+    todaysAppointments,
+    nouvellesCount, aContacterCount, enAttenteClientCount, rdvAVenirCount,
+    demandesMoisCount, devisEnvoyesMoisCount, rdvMoisCount, interventionsTermineesMoisCount,
+    totalNonArchiveCount, totalConvertiCount,
   ] = await Promise.all([
     db.project.count({ where: { status: "published" } }),
     db.project.count({ where: { status: "draft" } }),
@@ -68,11 +78,6 @@ export default async function AdminDashboard() {
       take: 6,
       select: { id: true, slug: true, vehicule: true, prestation: true, status: true, updatedAt: true },
     }),
-    db.quoteRequest.count({ where: { status: "new" } }),
-    db.quoteRequest.count({ where: { status: "contacted" } }),
-    db.quoteRequest.count({ where: { status: "in_progress" } }),
-    db.quoteRequest.count({ where: { status: "completed" } }),
-    db.quoteRequest.count(),
     db.service.count({ where: { status: "published" } }),
     db.fAQItem.count({ where: { status: "published" } }),
     db.project.findFirst({ orderBy: { updatedAt: "desc" }, select: { updatedAt: true } }),
@@ -81,12 +86,32 @@ export default async function AdminDashboard() {
     db.quoteRequest.findFirst({ orderBy: { updatedAt: "desc" }, select: { updatedAt: true } }),
     db.siteSettings.findUnique({ where: { id: "singleton" } }),
     db.project.findFirst({ where: { imagePrincipale: { not: null } }, select: { id: true } }),
+    // Aujourd'hui — rendez-vous confirmés (jamais les annulés), triés par heure.
+    db.appointment.findMany({
+      where: { startAt: { gte: todayRange.from, lt: todayRange.to }, status: { in: ["PENDING", "CONFIRMED"] } },
+      orderBy: { startAt: "asc" },
+      select: { id: true, startAt: true, customerName: true, vehicle: true, workshopStatus: true, quoteRequestId: true },
+    }),
+    // À traiter — comptages actionnables.
+    db.quoteRequest.count({ where: { status: "NOUVELLE" } }),
+    db.quoteRequest.count({ where: { status: "A_CONTACTER" } }),
+    db.quoteRequest.count({ where: { status: { in: ["DEVIS_EN_PREPARATION", "DEVIS_ENVOYE", "EN_ATTENTE_CLIENT"] } } }),
+    db.appointment.count({ where: { startAt: { gte: todayRange.to }, status: { in: ["PENDING", "CONFIRMED"] } } }),
+    // Indicateurs du mois.
+    db.quoteRequest.count({ where: { createdAt: { gte: monthRange.from, lt: monthRange.to } } }),
+    db.quoteRequest.count({ where: { status: "DEVIS_ENVOYE", updatedAt: { gte: monthRange.from, lt: monthRange.to } } }),
+    db.appointment.count({ where: { createdAt: { gte: monthRange.from, lt: monthRange.to } } }),
+    db.quoteRequest.count({ where: { status: { in: ["TERMINE", "RESTITUE"] }, updatedAt: { gte: monthRange.from, lt: monthRange.to } } }),
+    // Taux de conversion global (pas limité au mois — trop peu de recul sur les demandes très récentes).
+    db.quoteRequest.count({ where: { status: { not: "ARCHIVE" } } }),
+    db.quoteRequest.count({ where: { status: { in: ["ACCEPTE", "RDV_PLANIFIE", "VEHICULE_ARRIVE", "EN_INTERVENTION", "TERMINE", "RESTITUE"] } } }),
   ]);
 
-  const inProgressTotal = contactedQuotes + inProgressQuotes;
   const lastModified = [lastProject?.updatedAt, lastService?.updatedAt, lastFaq?.updatedAt, lastQuote?.updatedAt]
     .filter((d): d is Date => Boolean(d))
     .sort((a, b) => b.getTime() - a.getTime())[0];
+
+  const conversionRate = totalNonArchiveCount > 0 ? Math.round((totalConvertiCount / totalNonArchiveCount) * 100) : null;
 
   const checklist = [
     { label: "Ajouter les vraies photos des réalisations", done: Boolean(projectsWithRealImage) },
@@ -94,7 +119,6 @@ export default async function AdminDashboard() {
     { label: "Ajouter le lien des avis Google", done: Boolean(settingsRow?.googleReviewsUrl) },
     { label: "Vérifier les mentions légales (SIRET, forme juridique, responsable de publication)", done: Boolean(settingsRow?.siret && settingsRow?.legalForm && settingsRow?.publicationDirector) },
     { label: "Ajouter des posts sociaux (Instagram / TikTok)", done: featuredPosts.length > 0 },
-    { label: "Tester le formulaire de demande de devis en conditions réelles", done: totalQuotes > 0 },
   ];
 
   return (
@@ -110,18 +134,65 @@ export default async function AdminDashboard() {
         </Link>
       </div>
 
+      {/* Aujourd'hui */}
+      <h2 className="text-white font-bold text-sm tracking-widest uppercase mb-4">Aujourd&apos;hui</h2>
+      <div className="border mb-10" style={{ borderColor: "#1e1e1e" }}>
+        {todaysAppointments.length === 0 ? (
+          <p className="p-5 text-gray-500 text-sm">Aucun rendez-vous aujourd&apos;hui.</p>
+        ) : (
+          todaysAppointments.map((a, i) => {
+            const statusLabel = a.workshopStatus
+              ? QUOTE_STATUS_LABELS[a.workshopStatus as QuoteStatus] ?? a.workshopStatus
+              : "Planifié";
+            return (
+              <Link
+                key={a.id}
+                href={a.quoteRequestId ? `/admin/devis/${a.quoteRequestId}` : "/admin/agenda"}
+                className="flex flex-wrap items-center gap-3 px-4 py-3 hover:bg-white/[0.02] transition-colors"
+                style={{ background: i % 2 ? "#0d0d0d" : "#0f0f0f", borderTop: i ? "1px solid #1a1a1a" : "none" }}
+              >
+                <Clock size={15} className="text-brand-400 flex-shrink-0" />
+                <span className="text-white font-bold text-sm">{formatParisTime(a.startAt)}</span>
+                <span className="text-gray-300 text-sm">{a.customerName}</span>
+                <span className="text-gray-600 text-xs flex items-center gap-1"><Car size={12} /> {a.vehicle}</span>
+                <span className="ml-auto text-xs font-bold px-2 py-0.5 uppercase tracking-wider text-purple-300 bg-purple-500/10">
+                  {statusLabel}
+                </span>
+              </Link>
+            );
+          })
+        )}
+      </div>
+
+      {/* À traiter */}
+      <h2 className="text-white font-bold text-sm tracking-widest uppercase mb-4">À traiter</h2>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
-        <StatCard label="Réalisations publiées" value={published} accent href="/admin/realisations" />
+        <StatCard label="Nouvelles demandes" value={nouvellesCount} accent={nouvellesCount > 0} href="/admin/devis" />
+        <StatCard label="Clients à contacter" value={aContacterCount} href="/admin/devis" />
+        <StatCard label="Devis / attente client" value={enAttenteClientCount} href="/admin/devis" />
+        <StatCard label="RDV à venir" value={rdvAVenirCount} href="/admin/agenda" />
+      </div>
+
+      {/* Indicateurs du mois */}
+      <h2 className="text-white font-bold text-sm tracking-widest uppercase mb-4">Indicateurs du mois</h2>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
+        <StatCard label="Demandes reçues" value={demandesMoisCount} href="/admin/devis" />
+        <StatCard label="Devis envoyés" value={devisEnvoyesMoisCount} href="/admin/devis" />
+        <StatCard label="Rendez-vous pris" value={rdvMoisCount} href="/admin/agenda" />
+        <StatCard label="Interventions terminées" value={interventionsTermineesMoisCount} href="/admin/devis" />
+      </div>
+      {conversionRate !== null && (
+        <p className="text-gray-500 text-xs mb-10 -mt-6">
+          Taux de conversion global (hors archivées) : <span className="text-white font-bold">{conversionRate}%</span> ({totalConvertiCount}/{totalNonArchiveCount})
+        </p>
+      )}
+
+      {/* Gestion de contenu */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
+        <StatCard label="Réalisations publiées" value={published} href="/admin/realisations" />
         <StatCard label="Brouillons" value={drafts} href="/admin/realisations" />
-        <StatCard label="Nouvelles demandes" value={newQuotes} accent={newQuotes > 0} href="/admin/devis" />
-        <StatCard label="Devis en cours" value={inProgressTotal} href="/admin/devis" />
-        <StatCard label="Devis terminés" value={completedQuotesCount} href="/admin/devis" />
         <StatCard label="Services publiés" value={publishedServices} href="/admin/services" />
         <StatCard label="FAQ publiée" value={publishedFaqs} href="/admin/faq" />
-        <StatCard
-          label="Dernière modification"
-          value={lastModified ? lastModified.toLocaleDateString("fr-FR") : "—"}
-        />
       </div>
 
       <h2 className="text-white font-bold text-sm tracking-widest uppercase mb-4">Dernières modifications</h2>
@@ -162,6 +233,9 @@ export default async function AdminDashboard() {
           </div>
         ))}
       </div>
+      {lastModified && (
+        <p className="text-gray-600 text-xs mt-3">Dernière modification globale : {lastModified.toLocaleDateString("fr-FR")}</p>
+      )}
 
       <h2 className="text-white font-bold text-sm tracking-widest uppercase mb-4 mt-10">À faire avant livraison finale</h2>
       <div className="border max-w-2xl" style={{ borderColor: "#1e1e1e" }}>

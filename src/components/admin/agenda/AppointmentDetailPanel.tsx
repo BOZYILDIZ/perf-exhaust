@@ -9,9 +9,12 @@ import {
 import ScheduleAppointmentModal, { type DurationOption } from "./ScheduleAppointmentModal";
 import { useAppointmentActions } from "./useAppointmentActions";
 import { APPOINTMENT_STATUS_LABELS, APPOINTMENT_STATUS_STYLES } from "./AppointmentSection";
+import WorkshopActionsPanel from "./WorkshopActionsPanel";
+import WorkshopPhotosPanel from "./WorkshopPhotosPanel";
 import ProjectLightbox from "@/components/gallery/ProjectLightbox";
 import { vehiclePhotoSlotTitle, type VehiclePhoto } from "@/lib/vehicle-photo-slots";
 import { rearDiffuserLabel } from "@/lib/quote-request-options";
+import type { WorkshopPhoto } from "@/lib/agenda/workshop-photos";
 
 interface DetailAppointment {
   id: string;
@@ -32,8 +35,17 @@ interface DetailAppointment {
   cancellationReason: string | null;
   motorisation: string | null;
   rearDiffuser: string | null;
+  licensePlate: string | null;
   vehicleNotes: string | null;
   photos: VehiclePhoto[];
+  workshopStatus: string | null;
+  quoteStatus: string | null;
+  vehicleReadyNotifiedAt: string | null;
+  vehicleReadyNotificationLastError: string | null;
+  vehicleReadyNotificationLastAttemptAt: string | null;
+  photosAvant: WorkshopPhoto[];
+  photosApres: WorkshopPhoto[];
+  realisation: { id: string; slug: string } | null;
 }
 
 interface DetailProfile {
@@ -228,6 +240,35 @@ export default function AppointmentDetailPanel({ appointmentId, onClose, onChang
                 <span className="block text-gray-700 mt-0.5">Confirmation email non envoyée — aucune adresse email renseignée.</span>
               )}
             </p>
+
+            {/* Workflow atelier — en priorité, tout en haut : visible sans défiler, immatriculation et statut en un coup d'œil. */}
+            {(data.appointment.status === "PENDING" || data.appointment.status === "CONFIRMED") && (
+              <div className="mb-6">
+                <WorkshopActionsPanel
+                  appointmentId={data.appointment.id}
+                  workshopStatus={data.appointment.workshopStatus}
+                  licensePlate={data.appointment.licensePlate}
+                  vehicle={data.appointment.vehicle}
+                  customerEmail={data.appointment.customerEmail}
+                  vehicleReadyNotifiedAt={data.appointment.vehicleReadyNotifiedAt}
+                  vehicleReadyNotificationLastError={data.appointment.vehicleReadyNotificationLastError}
+                  vehicleReadyNotificationLastAttemptAt={data.appointment.vehicleReadyNotificationLastAttemptAt}
+                  realisation={data.appointment.realisation}
+                  onChanged={() => { onChanged(); void load(); }}
+                />
+              </div>
+            )}
+
+            {(data.appointment.status === "PENDING" || data.appointment.status === "CONFIRMED") && (
+              <div className="mb-6">
+                <WorkshopPhotosPanel
+                  appointmentId={data.appointment.id}
+                  photosAvant={data.appointment.photosAvant}
+                  photosApres={data.appointment.photosApres}
+                  onChanged={() => void load()}
+                />
+              </div>
+            )}
 
             {/* Infos rendez-vous */}
             <div className="mb-6 space-y-1.5 text-sm text-gray-300">

@@ -111,6 +111,26 @@ export function buildAppointmentCancelledByCustomerEmailHtml(ctx: AppointmentEma
   )
 }
 
+/**
+ * Rappel 24h/1h avant le rendez-vous — jamais de lien d'annulation (le token
+ * brut de la confirmation initiale n'est plus disponible, et en régénérer un
+ * invaliderait silencieusement l'ancien lien déjà envoyé au client, voir
+ * src/lib/agenda/reminders.ts/automation-runner.ts).
+ */
+export function buildAppointmentReminderEmailHtml(ctx: AppointmentEmailContext, kind: '24h' | '1h'): string {
+  return shell(
+    kind === '24h' ? 'Votre rendez-vous est demain' : 'Votre rendez-vous est dans 1 heure',
+    `
+      <p>Bonjour ${escapeHtml(ctx.customerFirstName)},</p>
+      <p>${kind === '24h'
+        ? 'Petit rappel : vous avez rendez-vous demain chez nous.'
+        : 'Petit rappel : votre rendez-vous est dans environ 1 heure.'}</p>
+      ${detailsBlock(ctx)}
+      <p style="color:#888;font-size:13px">Un empêchement ? Contactez-nous au ${escapeHtml(ctx.workshopPhone)}.</p>
+    `
+  )
+}
+
 /** Notification interne à l'atelier quand un client annule lui-même en ligne. */
 export function buildAppointmentCancelledNotificationToShopHtml(ctx: AppointmentEmailContext & { customerFullName: string; reason: string | null }): string {
   return shell(

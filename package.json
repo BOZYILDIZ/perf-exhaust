@@ -15,6 +15,12 @@
     "db:seed:settings": "tsx --env-file=.env.local scripts/seed-settings.ts",
     "db:studio": "prisma studio",
     "test:pennylane-matching": "tsx src/lib/pennylane-v2/sync.test.ts",
+    "test:workshop-status": "tsx src/lib/agenda/workshop-status.test.ts",
+    "test:quote-followup": "tsx src/lib/quote-followup.test.ts",
+    "test:review-request": "tsx src/lib/agenda/review-request.test.ts",
+    "test:reminders": "tsx src/lib/agenda/reminders.test.ts",
+    "test:workshop-photos": "tsx src/lib/agenda/workshop-photos.test.ts",
+    "test:realisation-draft": "tsx src/lib/agenda/realisation-draft.test.ts",
     "postinstall": "prisma generate"
   },
   "dependencies": {

@@ -11,6 +11,7 @@ import { isPennylaneV2Configured } from "@/lib/pennylane-v2/config";
 import { syncCustomerForQuoteRequest } from "@/lib/pennylane-v2/sync";
 import { MAX_PHOTOS, vehiclePhotoMetadataSchema } from "@/lib/vehicle-photo-slots";
 import { sendPushToAllAdmins } from "@/lib/push/sendPushNotification";
+import { logActivityEvent, ACTIVITY_EVENT_TYPES } from "@/lib/activity-events";
 
 /** "Jean Dupont — BMW M240i" avec repli propre si une info manque ; ajoute le type de projet seulement si le résultat reste court (voir mission notifications push § 8). */
 function buildQuoteRequestPushBody(data: { prenom: string; nom: string; marque: string; modele: string; typeProjet: string }): string {
@@ -33,6 +34,8 @@ const schema = z.object({
   modele: z.string().min(1),
   annee: z.string().regex(/^(19|20)\d{2}$/, "Année invalide"),
   motorisation: z.string().optional(),
+  // Facultative — voir QuoteRequest.licensePlate (prisma/schema.prisma).
+  licensePlate: z.string().max(20).optional(),
   rearDiffuser: z.enum(REAR_DIFFUSER_VALUES),
   typeProjet: z.string().min(1),
   sonoritePreference: z.string().min(1),
@@ -82,6 +85,7 @@ export async function POST(req: NextRequest) {
             modele: data.modele,
             annee: data.annee,
             motorisation: data.motorisation || null,
+            licensePlate: data.licensePlate || null,
             rearDiffuser: data.rearDiffuser,
             typeProjet: data.typeProjet,
             sonorite: data.sonoritePreference,
@@ -94,6 +98,12 @@ export async function POST(req: NextRequest) {
           },
         });
         quoteRequestId = created.id;
+        await logActivityEvent({
+          quoteRequestId,
+          type: ACTIVITY_EVENT_TYPES.QUOTE_REQUEST_CREATED,
+          title: `Demande reçue — ${data.prenom} ${data.nom} (${data.marque} ${data.modele})`,
+          actor: "customer",
+        });
       } catch (dbError) {
         console.error("[API/rendez-vous] Échec de l'enregistrement en base (email envoyé normalement) :", dbError);
       }

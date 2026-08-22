@@ -17,6 +17,19 @@ export interface SiteSettingsData {
   publicationDirector: string
   /** Mode manuel Pennylane — URL ouverte par le bouton "Ouvrir Pennylane". */
   pennylaneManualUrl: string
+
+  /** Relances commerciales (devis envoyé sans évolution) — voir src/lib/quote-followup.ts. */
+  followupDelay1Days: number
+  followupDelay2Days: number
+  followupAutomationEnabled: boolean
+
+  /** Rappels de rendez-vous — voir src/lib/agenda/reminders.ts. */
+  reminder24hEnabled: boolean
+  reminder1hEnabled: boolean
+
+  /** Demande d'avis Google après restitution du véhicule. */
+  reviewRequestEnabled: boolean
+  reviewRequestDelayHours: number
 }
 
 /**
@@ -41,4 +54,11 @@ export const FALLBACK_SETTINGS: SiteSettingsData = {
   siret: '882 838 667 00021',
   publicationDirector: '',
   pennylaneManualUrl: 'https://app.pennylane.com/',
+  followupDelay1Days: 3,
+  followupDelay2Days: 7,
+  followupAutomationEnabled: false,
+  reminder24hEnabled: false,
+  reminder1hEnabled: false,
+  reviewRequestEnabled: false,
+  reviewRequestDelayHours: 24,
 }

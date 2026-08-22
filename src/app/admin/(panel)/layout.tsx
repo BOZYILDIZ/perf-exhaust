@@ -22,7 +22,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     redirect("/admin/login");
   }
   const newQuotesCount = isDbConfigured()
-    ? await getDb().quoteRequest.count({ where: { status: "new" } })
+    ? await getDb().quoteRequest.count({ where: { status: "NOUVELLE" } })
     : 0;
   return (
     <div className="min-h-screen flex" style={{ background: "#0a0a0a" }}>

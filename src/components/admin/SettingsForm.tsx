@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Save, CheckCircle, AlertCircle } from "lucide-react";
+import { Loader2, Save, CheckCircle, AlertCircle, PlayCircle } from "lucide-react";
 import type { SiteSettingsData } from "@/lib/settings-repo";
+import CollapsibleSection from "@/components/admin/CollapsibleSection";
+import type { AutomationRunResult } from "@/lib/automation-runner";
 
 const label = "block text-xs font-bold tracking-widest uppercase text-gray-400 mb-2";
 const input = "w-full bg-transparent border border-gray-800 text-white text-sm px-4 py-2.5 focus:outline-none focus:border-brand-500 transition-colors placeholder-gray-700";
@@ -13,11 +15,37 @@ function Field({ children, span = false }: { children: React.ReactNode; span?: b
   return <div className={span ? "sm:col-span-2" : ""}>{children}</div>;
 }
 
+function Toggle({ id, checked, onChange, label: l }: { id: string; checked: boolean; onChange: (v: boolean) => void; label: string }) {
+  return (
+    <label htmlFor={id} className="flex items-center gap-3 min-h-[44px] cursor-pointer select-none">
+      <input id={id} type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="w-5 h-5 accent-brand-500 flex-shrink-0" />
+      <span className="text-gray-300 text-sm">{l}</span>
+    </label>
+  );
+}
+
 export default function SettingsForm({ initial }: { initial: SiteSettingsData }) {
   const router = useRouter();
   const [v, setV] = useState<SiteSettingsData>(initial);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+  const [runningAutomations, setRunningAutomations] = useState(false);
+  const [automationsResult, setAutomationsResult] = useState<AutomationRunResult | { error: string } | null>(null);
+
+  const runAutomationsNow = async () => {
+    setRunningAutomations(true);
+    setAutomationsResult(null);
+    try {
+      const res = await fetch("/api/admin/automations/run", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Exécution impossible");
+      setAutomationsResult(data);
+    } catch (err) {
+      setAutomationsResult({ error: err instanceof Error ? err.message : "Erreur réseau" });
+    } finally {
+      setRunningAutomations(false);
+    }
+  };
 
   const set = <K extends keyof SiteSettingsData>(key: K, value: SiteSettingsData[K]) =>
     setV((prev) => ({ ...prev, [key]: value }));
@@ -139,6 +167,83 @@ export default function SettingsForm({ initial }: { initial: SiteSettingsData })
           </Field>
         </div>
       </section>
+
+      <CollapsibleSection title="Commercial — relances devis">
+        <p className="text-gray-500 text-xs mb-4 -mt-1">
+          La file « Clients à relancer » (/admin/devis) fonctionne indépendamment de ce réglage.
+          Celui-ci pilote l&apos;envoi automatique déclenché depuis « Automatisations » ci-dessous
+          (aucun cron programmé pour l&apos;instant — déclenchement manuel uniquement).
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Field>
+            <label htmlFor="st-followup1" className={label}>Relance 1 (jours après envoi du devis)</label>
+            <input id="st-followup1" type="number" min={1} max={60} value={v.followupDelay1Days} onChange={(e) => set("followupDelay1Days", Number(e.target.value))} className={input} />
+          </Field>
+          <Field>
+            <label htmlFor="st-followup2" className={label}>Relance 2 (jours après envoi du devis)</label>
+            <input id="st-followup2" type="number" min={1} max={60} value={v.followupDelay2Days} onChange={(e) => set("followupDelay2Days", Number(e.target.value))} className={input} />
+          </Field>
+          <Field span>
+            <Toggle id="st-followup-auto" checked={v.followupAutomationEnabled} onChange={(val) => set("followupAutomationEnabled", val)} label="Activer les relances automatiques" />
+          </Field>
+        </div>
+      </CollapsibleSection>
+
+      <CollapsibleSection title="Rendez-vous — rappels">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Field>
+            <Toggle id="st-reminder24h" checked={v.reminder24hEnabled} onChange={(val) => set("reminder24hEnabled", val)} label="Rappel 24h avant le rendez-vous" />
+          </Field>
+          <Field>
+            <Toggle id="st-reminder1h" checked={v.reminder1hEnabled} onChange={(val) => set("reminder1hEnabled", val)} label="Rappel 1h avant le rendez-vous" />
+          </Field>
+        </div>
+      </CollapsibleSection>
+
+      <CollapsibleSection title="Après intervention — demande d'avis">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Field>
+            <Toggle id="st-review-enabled" checked={v.reviewRequestEnabled} onChange={(val) => set("reviewRequestEnabled", val)} label="Activer la demande d'avis Google" />
+          </Field>
+          <Field>
+            <label htmlFor="st-review-delay" className={label}>Délai après restitution (heures)</label>
+            <input id="st-review-delay" type="number" min={1} max={720} value={v.reviewRequestDelayHours} onChange={(e) => set("reviewRequestDelayHours", Number(e.target.value))} className={input} />
+          </Field>
+        </div>
+      </CollapsibleSection>
+
+      <CollapsibleSection title="Automatisations">
+        <p className="text-gray-500 text-xs mb-4 -mt-1">
+          Traite en une fois les rappels, relances et demandes d&apos;avis dus, selon les réglages
+          ci-dessus. Aucun cron n&apos;est programmé pour l&apos;instant : ce bouton est le seul
+          déclencheur actuel.
+        </p>
+        <button
+          type="button"
+          disabled={runningAutomations}
+          onClick={runAutomationsNow}
+          className="inline-flex items-center gap-2 px-5 py-2.5 min-h-[44px] text-xs font-bold tracking-widest uppercase text-white disabled:opacity-60 transition-transform active:scale-95"
+          style={{ background: "linear-gradient(135deg, #1266ea, #0d54c8)" }}
+        >
+          {runningAutomations ? <Loader2 size={14} className="animate-spin" /> : <PlayCircle size={14} />} Exécuter les automatisations maintenant
+        </button>
+
+        {automationsResult && (
+          <div className="mt-4 text-sm">
+            {"error" in automationsResult ? (
+              <p className="px-3 py-2 border flex items-center gap-2 text-red-400 border-red-500/25 bg-red-500/5">
+                <AlertCircle size={14} className="flex-shrink-0" /> {automationsResult.error}
+              </p>
+            ) : (
+              <ul className="space-y-1.5 text-gray-300">
+                <li>Rappels : {automationsResult.reminders.sent} envoyé(s) / {automationsResult.reminders.checked} vérifié(s){automationsResult.reminders.failed > 0 ? ` — ${automationsResult.reminders.failed} échec(s)` : ""}</li>
+                <li>Relances : {automationsResult.followups.sent} envoyée(s) / {automationsResult.followups.checked} vérifiée(s){automationsResult.followups.failed > 0 ? ` — ${automationsResult.followups.failed} échec(s)` : ""}</li>
+                <li>Avis Google : {automationsResult.reviewRequests.sent} envoyée(s) / {automationsResult.reviewRequests.checked} vérifiée(s){automationsResult.reviewRequests.failed > 0 ? ` — ${automationsResult.reviewRequests.failed} échec(s)` : ""}</li>
+              </ul>
+            )}
+          </div>
+        )}
+      </CollapsibleSection>
 
       {msg && (
         <p

@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isAdminAuthenticated } from "@/lib/admin-auth";
-import { isDbConfigured } from "@/lib/db";
+import { isDbConfigured, getDb } from "@/lib/db";
 import { isPennylaneV2Configured } from "@/lib/pennylane-v2/config";
 import { getCustomerFinancials } from "@/lib/pennylane-v2/financials";
+import { logActivityEvent, ACTIVITY_EVENT_TYPES } from "@/lib/activity-events";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -33,7 +34,25 @@ export async function POST(req: NextRequest, ctx: Ctx) {
     }
 
     const { id } = await ctx.params;
+    const before = await getDb().quoteRequest.findUnique({ where: { id }, select: { pennylaneQuotesCache: true } });
+    const previousNumbers = new Set(
+      ((before?.pennylaneQuotesCache as unknown as { number: string | null }[] | null) ?? [])
+        .map((q) => q.number)
+        .filter((n): n is string => Boolean(n))
+    );
+
     const financials = await getCustomerFinancials(id, { forceRefresh: true });
+
+    const newQuotes = (financials.quotes ?? []).filter((q) => q.number && !previousNumbers.has(q.number));
+    for (const q of newQuotes) {
+      await logActivityEvent({
+        quoteRequestId: id,
+        type: ACTIVITY_EVENT_TYPES.PENNYLANE_QUOTE_DETECTED,
+        title: `Nouveau devis Pennylane détecté — ${q.number}`,
+        metadata: { number: q.number, status: q.status },
+      });
+    }
+
     return NextResponse.json({ success: true, financials });
   } catch (error) {
     console.error("[API/admin/pennylane-v2/financials]", error);

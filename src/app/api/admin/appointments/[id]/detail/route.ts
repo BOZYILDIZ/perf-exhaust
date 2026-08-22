@@ -4,6 +4,8 @@ import { getDb, isDbConfigured } from "@/lib/db";
 import { getClientProfile } from "@/lib/pennylane-v2/client-profile";
 import { getSiteSettings } from "@/lib/settings-repo";
 import type { VehiclePhoto } from "@/lib/vehicle-photo-slots";
+import { resolveAppointmentLicensePlate } from "@/lib/agenda/workshop-status";
+import type { WorkshopPhoto } from "@/lib/agenda/workshop-photos";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -22,7 +24,10 @@ export async function GET(req: NextRequest, ctx: Ctx) {
     const db = getDb();
     const appointment = await db.appointment.findUnique({
       where: { id },
-      include: { quoteRequest: { select: { photos: true, motorisation: true, rearDiffuser: true } } },
+      include: {
+        quoteRequest: { select: { photos: true, motorisation: true, rearDiffuser: true, licensePlate: true, status: true } },
+        realisation: { select: { id: true, slug: true } },
+      },
     });
     if (!appointment) return NextResponse.json({ error: "Rendez-vous introuvable" }, { status: 404 });
 
@@ -53,8 +58,19 @@ export async function GET(req: NextRequest, ctx: Ctx) {
         cancellationReason: appointment.cancellationReason,
         motorisation: appointment.quoteRequest?.motorisation ?? appointment.motorisation,
         rearDiffuser: appointment.quoteRequest?.rearDiffuser ?? appointment.rearDiffuser,
+        licensePlate: resolveAppointmentLicensePlate(appointment.quoteRequest?.licensePlate, appointment.licensePlate),
         vehicleNotes: appointment.quoteRequestId ? null : appointment.vehicleNotes,
         photos: Array.isArray(appointment.quoteRequest?.photos) ? (appointment.quoteRequest.photos as unknown as VehiclePhoto[]) : [],
+        workshopStatus: appointment.workshopStatus,
+        quoteStatus: appointment.quoteRequest?.status ?? null,
+        vehicleReadyNotifiedAt: appointment.vehicleReadyNotifiedAt ? appointment.vehicleReadyNotifiedAt.toISOString() : null,
+        vehicleReadyNotificationLastError: appointment.vehicleReadyNotificationLastError,
+        vehicleReadyNotificationLastAttemptAt: appointment.vehicleReadyNotificationLastAttemptAt
+          ? appointment.vehicleReadyNotificationLastAttemptAt.toISOString()
+          : null,
+        photosAvant: Array.isArray(appointment.photosAvant) ? (appointment.photosAvant as unknown as WorkshopPhoto[]) : [],
+        photosApres: Array.isArray(appointment.photosApres) ? (appointment.photosApres as unknown as WorkshopPhoto[]) : [],
+        realisation: appointment.realisation,
       },
       profile: profile
         ? {

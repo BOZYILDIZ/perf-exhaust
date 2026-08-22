@@ -3,6 +3,7 @@ import { z } from "zod";
 import { isAdminAuthenticated } from "@/lib/admin-auth";
 import { isDbConfigured, getDb } from "@/lib/db";
 import { resolvePennylaneCustomerAmbiguity } from "@/lib/pennylane-v2/sync";
+import { logActivityEvent, ACTIVITY_EVENT_TYPES } from "@/lib/activity-events";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -44,6 +45,12 @@ export async function POST(req: NextRequest, ctx: Ctx) {
     }
 
     await resolvePennylaneCustomerAmbiguity(id, parsed.data.customerId, parsed.data.customerType);
+    await logActivityEvent({
+      quoteRequestId: id,
+      type: ACTIVITY_EVENT_TYPES.PENNYLANE_CUSTOMER_SYNCED,
+      title: "Client Pennylane choisi manuellement (ambiguïté résolue)",
+      metadata: { customerId: parsed.data.customerId, customerType: parsed.data.customerType },
+    });
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("[API/admin/pennylane-v2/resolve-ambiguity]", error);

@@ -9,6 +9,7 @@ import {
   buildAppointmentCancelledByWorkshopEmailHtml,
   buildAppointmentCancelledByCustomerEmailHtml,
   buildAppointmentCancelledNotificationToShopHtml,
+  buildAppointmentReminderEmailHtml,
   type AppointmentEmailContext,
 } from '@/lib/agenda/email-templates'
 
@@ -125,6 +126,49 @@ export async function sendConfirmationToClient(data: AppointmentData) {
   return { success: true }
 }
 
+export interface VehicleReadyEmailInput {
+  customerEmail: string
+  customerFirstName: string
+  vehicle: string
+}
+
+/**
+ * "Votre véhicule est prêt" — envoyée uniquement depuis une action atelier
+ * explicite (jamais automatiquement à un simple changement de statut), voir
+ * src/lib/agenda/workshop-actions.ts. La protection anti-double-envoi
+ * (Appointment.vehicleReadyNotifiedAt) vit dans l'appelant, pas ici — cette
+ * fonction envoie sans condition, comme toutes les autres de ce fichier.
+ */
+export async function sendVehicleReadyEmail(data: VehicleReadyEmailInput) {
+  if (!resend) {
+    console.log('[EMAIL MOCK] Vehicle ready:', data.customerEmail)
+    return { success: true, mock: true }
+  }
+  const settings = await getSiteSettings()
+  const { error } = await resend.emails.send({
+    from: FROM_EMAIL,
+    to: data.customerEmail,
+    subject: 'Votre véhicule est prêt — PERF\'EXHAUST',
+    html: `
+      <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#0a0a0a;color:#ffffff;padding:32px">
+        <img src="https://perfexhaust.fr/brand/logo-light.png" alt="PERF'EXHAUST" width="160" style="display:block;margin-bottom:20px" />
+        <h2 style="color:#1266ea">Votre véhicule est prêt ✓</h2>
+        <p>Bonjour ${escapeHtml(data.customerFirstName)},</p>
+        <p>Votre <strong>${escapeHtml(data.vehicle)}</strong> est prêt.</p>
+        <p>Vous pouvez venir le récupérer chez ${escapeHtml(settings.businessName)}.</p>
+        <hr style="border-color:#333;margin:24px 0"/>
+        <p style="color:#aaa;font-size:14px">
+          ${escapeHtml(settings.address)}, ${escapeHtml(settings.postalCode)} ${escapeHtml(settings.city)}<br/>
+          ${escapeHtml(settings.phone)}<br/>
+          ${escapeHtml(settings.openingHours)}
+        </p>
+      </div>
+    `,
+  })
+  if (error) throw new Error(`Resend (véhicule prêt): ${error.message}`)
+  return { success: true }
+}
+
 export interface AppointmentEmailInput {
   customerEmail: string
   customerFirstName: string
@@ -230,6 +274,93 @@ export async function sendAppointmentCancelledByCustomerEmail(input: Omit<Appoin
     html: buildAppointmentCancelledByCustomerEmailHtml(ctx),
   })
   if (error) throw new Error(`Resend (annulation client, email client): ${error.message}`)
+  return { success: true }
+}
+
+/** Rappel 24h/1h avant le rendez-vous — voir src/lib/agenda/reminders.ts (calcul) et src/lib/automation-runner.ts (envoi effectif). */
+export async function sendAppointmentReminderEmail(kind: '24h' | '1h', input: Omit<AppointmentEmailInput, 'cancellationUrl'>) {
+  const ctx = await emailContext({ ...input, cancellationUrl: null })
+  if (!resend) {
+    console.log(`[EMAIL MOCK] Reminder ${kind}:`, input.customerEmail)
+    return { success: true, mock: true }
+  }
+  const { error } = await resend.emails.send({
+    from: FROM_EMAIL,
+    to: input.customerEmail,
+    subject: kind === '24h' ? "Rappel — votre rendez-vous PERF'EXHAUST est demain" : "Rappel — votre rendez-vous PERF'EXHAUST est dans 1 heure",
+    html: buildAppointmentReminderEmailHtml(ctx, kind),
+  })
+  if (error) throw new Error(`Resend (rappel ${kind}): ${error.message}`)
+  return { success: true }
+}
+
+export interface FollowupEmailInput {
+  customerEmail: string
+  customerFirstName: string
+  vehicle: string
+}
+
+/** Relance commerciale (devis envoyé sans réponse) — voir src/lib/quote-followup.ts pour la règle d'éligibilité/le gate Pennylane. */
+export async function sendFollowupEmail(data: FollowupEmailInput) {
+  if (!resend) {
+    console.log('[EMAIL MOCK] Followup:', data.customerEmail)
+    return { success: true, mock: true }
+  }
+  const settings = await getSiteSettings()
+  const { error } = await resend.emails.send({
+    from: FROM_EMAIL,
+    to: data.customerEmail,
+    subject: 'Votre devis est toujours disponible — PERF\'EXHAUST',
+    html: `
+      <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#0a0a0a;color:#ffffff;padding:32px">
+        <img src="https://perfexhaust.fr/brand/logo-light.png" alt="PERF'EXHAUST" width="160" style="display:block;margin-bottom:20px" />
+        <h2 style="color:#1266ea">Votre devis est toujours disponible</h2>
+        <p>Bonjour ${escapeHtml(data.customerFirstName)},</p>
+        <p>Nous vous avons transmis un devis pour votre <strong>${escapeHtml(data.vehicle)}</strong> et n'avons pas encore eu de retour de votre part.</p>
+        <p>N'hésitez pas à nous contacter si vous avez des questions ou souhaitez donner suite.</p>
+        <hr style="border-color:#333;margin:24px 0"/>
+        <p style="color:#aaa;font-size:14px">${escapeHtml(settings.businessName)} · ${escapeHtml(settings.phone)}</p>
+      </div>
+    `,
+  })
+  if (error) throw new Error(`Resend (relance devis): ${error.message}`)
+  return { success: true }
+}
+
+export interface ReviewRequestEmailInput {
+  customerEmail: string
+  customerFirstName: string
+  vehicle: string
+  googleReviewsUrl: string
+}
+
+/** Demande d'avis Google après restitution — voir src/lib/agenda/review-request.ts pour la règle d'éligibilité (une seule fois, jamais avant RESTITUE). */
+export async function sendReviewRequestEmail(data: ReviewRequestEmailInput) {
+  if (!resend) {
+    console.log('[EMAIL MOCK] Review request:', data.customerEmail)
+    return { success: true, mock: true }
+  }
+  const settings = await getSiteSettings()
+  const { error } = await resend.emails.send({
+    from: FROM_EMAIL,
+    to: data.customerEmail,
+    subject: 'Votre avis compte pour nous — PERF\'EXHAUST',
+    html: `
+      <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#0a0a0a;color:#ffffff;padding:32px">
+        <img src="https://perfexhaust.fr/brand/logo-light.png" alt="PERF'EXHAUST" width="160" style="display:block;margin-bottom:20px" />
+        <h2 style="color:#1266ea">Merci pour votre confiance</h2>
+        <p>Bonjour ${escapeHtml(data.customerFirstName)},</p>
+        <p>Nous espérons que vous êtes satisfait de l'intervention réalisée sur votre <strong>${escapeHtml(data.vehicle)}</strong>.</p>
+        <p>Si vous avez deux minutes, un avis Google nous aiderait beaucoup :</p>
+        <p style="margin:16px 0">
+          <a href="${escapeHtml(data.googleReviewsUrl)}" style="background:#1266ea;color:#fff;padding:12px 24px;text-decoration:none;font-weight:bold;display:inline-block">Laisser un avis Google</a>
+        </p>
+        <hr style="border-color:#333;margin:24px 0"/>
+        <p style="color:#aaa;font-size:14px">${escapeHtml(settings.businessName)} · ${escapeHtml(settings.phone)}</p>
+      </div>
+    `,
+  })
+  if (error) throw new Error(`Resend (demande d'avis): ${error.message}`)
   return { success: true }
 }
 

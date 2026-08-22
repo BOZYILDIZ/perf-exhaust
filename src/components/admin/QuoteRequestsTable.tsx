@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Search, Eye, ExternalLink, SlidersHorizontal, X, Calendar, Car } from "lucide-react";
+import { QUOTE_STATUS_LABELS, QUOTE_STATUS_STYLES, QUOTE_QUICK_FILTERS } from "@/lib/quote-pipeline";
 
 export interface QuoteRequestRow {
   id: string;
@@ -14,6 +15,7 @@ export interface QuoteRequestRow {
   modele: string;
   annee: string;
   motorisation: string | null;
+  licensePlate: string | null;
   typeProjet: string;
   status: string;
   createdAt: string;
@@ -27,21 +29,8 @@ export interface QuoteRequestRow {
   nextAppointment: { startAt: string; status: string } | null;
 }
 
-const STATUS_LABELS: Record<string, string> = {
-  new: "Nouvelle",
-  contacted: "Contactée",
-  in_progress: "En cours",
-  completed: "Terminée",
-  archived: "Archivée",
-};
-
-const STATUS_STYLES: Record<string, string> = {
-  new: "text-brand-400 bg-brand-500/10",
-  contacted: "text-blue-300 bg-blue-500/10",
-  in_progress: "text-yellow-400 bg-yellow-500/10",
-  completed: "text-green-400 bg-green-500/10",
-  archived: "text-gray-500 bg-white/5",
-};
+const STATUS_LABELS: Record<string, string> = QUOTE_STATUS_LABELS;
+const STATUS_STYLES: Record<string, string> = QUOTE_STATUS_STYLES;
 
 const PENNYLANE_LABELS: Record<string, string> = {
   not_configured: "Non configuré",
@@ -100,24 +89,26 @@ export default function QuoteRequestsTable({ initialRows, pennylaneMode }: { ini
   const [statusFilter, setStatusFilter] = useState<"all" | string>("all");
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
 
+  const activeFilter = QUOTE_QUICK_FILTERS.find((f) => f.key === statusFilter);
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return initialRows.filter((r) => {
-      if (statusFilter !== "all" && r.status !== statusFilter) return false;
+      if (activeFilter && !(activeFilter.statuses as readonly string[]).includes(r.status)) return false;
       if (!q) return true;
       const textFields = [
         r.nom, r.prenom, r.email, r.telephone,
-        r.marque, r.modele, r.annee, r.motorisation ?? "",
+        r.marque, r.modele, r.annee, r.motorisation ?? "", r.licensePlate ?? "",
         r.pennylaneCustomerId ?? "",
         ...r.quoteNumbers, ...r.invoiceNumbers,
       ];
       return textFields.some((v) => v.toLowerCase().includes(q));
     });
-  }, [initialRows, query, statusFilter]);
+  }, [initialRows, query, activeFilter]);
 
   const statusButtons = (
     <div className="flex flex-wrap gap-2" role="group" aria-label="Filtrer par statut">
-      {([["all", "Tous"], ...Object.entries(STATUS_LABELS)] as [string, string][]).map(([v, l]) => (
+      {([["all", "Tous"], ...QUOTE_QUICK_FILTERS.map((f) => [f.key, f.label] as [string, string])]).map(([v, l]) => (
         <button
           key={v}
           onClick={() => { setStatusFilter(v); setFilterSheetOpen(false); }}
@@ -144,7 +135,7 @@ export default function QuoteRequestsTable({ initialRows, pennylaneMode }: { ini
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Rechercher (nom, email, téléphone, véhicule, n° devis/facture, ID Pennylane...)"
+            placeholder="Rechercher (nom, email, téléphone, véhicule, immatriculation, n° devis/facture, ID Pennylane...)"
             aria-label="Rechercher une demande"
             className="w-full bg-transparent border border-gray-800 text-white text-sm pl-9 pr-4 py-2.5 min-h-[44px] focus:outline-none focus:border-brand-500 transition-colors placeholder-gray-700"
           />

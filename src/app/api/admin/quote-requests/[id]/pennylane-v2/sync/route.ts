@@ -3,6 +3,7 @@ import { isAdminAuthenticated } from "@/lib/admin-auth";
 import { isDbConfigured } from "@/lib/db";
 import { isPennylaneV2Configured } from "@/lib/pennylane-v2/config";
 import { syncCustomerForQuoteRequest } from "@/lib/pennylane-v2/sync";
+import { logActivityEvent, ACTIVITY_EVENT_TYPES } from "@/lib/activity-events";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -35,6 +36,14 @@ export async function POST(req: NextRequest, ctx: Ctx) {
 
     const { id } = await ctx.params;
     const outcome = await syncCustomerForQuoteRequest(id);
+    if (outcome.status === "SYNCED") {
+      await logActivityEvent({
+        quoteRequestId: id,
+        type: ACTIVITY_EVENT_TYPES.PENNYLANE_CUSTOMER_SYNCED,
+        title: "Client synchronisé avec Pennylane",
+        metadata: { customerId: outcome.customerId, customerType: outcome.customerType },
+      });
+    }
     return NextResponse.json({ success: outcome.status !== "FAILED", outcome });
   } catch (error) {
     console.error("[API/admin/pennylane-v2/sync]", error);

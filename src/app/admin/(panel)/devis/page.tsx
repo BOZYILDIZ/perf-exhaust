@@ -1,6 +1,7 @@
 import { isDbConfigured, getDb } from "@/lib/db";
 import { getPennylaneMode } from "@/lib/pennylane/client";
 import QuoteRequestsTable, { type QuoteRequestRow } from "@/components/admin/QuoteRequestsTable";
+import { QUOTE_QUICK_FILTERS } from "@/lib/quote-pipeline";
 
 export const dynamic = "force-dynamic";
 
@@ -21,16 +22,16 @@ function StatChip({ label, value, accent }: { label: string; value: number; acce
 
 export default async function AdminQuoteRequestsPage() {
   let rows: QuoteRequestRow[] = [];
-  let counts = { new: 0, inProgress: 0, completed: 0, archived: 0 };
+  let quickFilterCounts: { key: string; label: string; count: number }[] = [];
 
   if (isDbConfigured()) {
     const db = getDb();
-    const [items, newCount, contactedCount, inProgressCount, completedCount, archivedCount] = await Promise.all([
+    const [items, ...counts] = await Promise.all([
       db.quoteRequest.findMany({
         orderBy: { createdAt: "desc" },
         select: {
           id: true, nom: true, prenom: true, email: true, telephone: true,
-          marque: true, modele: true, annee: true, motorisation: true, typeProjet: true,
+          marque: true, modele: true, annee: true, motorisation: true, licensePlate: true, typeProjet: true,
           status: true, createdAt: true,
           pennylaneSyncStatus: true, pennylaneQuoteUrl: true,
           pennylaneManualStatus: true, pennylaneQuoteNumber: true,
@@ -38,11 +39,7 @@ export default async function AdminQuoteRequestsPage() {
           appointment: { select: { startAt: true, status: true } },
         },
       }),
-      db.quoteRequest.count({ where: { status: "new" } }),
-      db.quoteRequest.count({ where: { status: "contacted" } }),
-      db.quoteRequest.count({ where: { status: "in_progress" } }),
-      db.quoteRequest.count({ where: { status: "completed" } }),
-      db.quoteRequest.count({ where: { status: "archived" } }),
+      ...QUOTE_QUICK_FILTERS.map((f) => db.quoteRequest.count({ where: { status: { in: f.statuses } } })),
     ]);
     const now = new Date();
     rows = items.map((r) => {
@@ -61,7 +58,7 @@ export default async function AdminQuoteRequestsPage() {
         nextAppointment,
       };
     });
-    counts = { new: newCount, inProgress: contactedCount + inProgressCount, completed: completedCount, archived: archivedCount };
+    quickFilterCounts = QUOTE_QUICK_FILTERS.map((f, i) => ({ key: f.key, label: f.label, count: counts[i] }));
   }
 
   return (
@@ -81,10 +78,9 @@ export default async function AdminQuoteRequestsPage() {
       ) : (
         <>
           <div className="flex flex-wrap gap-3 mb-8">
-            <StatChip label="Nouvelles" value={counts.new} accent />
-            <StatChip label="En cours" value={counts.inProgress} />
-            <StatChip label="Terminées" value={counts.completed} />
-            <StatChip label="Archivées" value={counts.archived} />
+            {quickFilterCounts.map((f) => (
+              <StatChip key={f.key} label={f.label} value={f.count} accent={f.key === "nouvelles"} />
+            ))}
           </div>
           <QuoteRequestsTable initialRows={rows} pennylaneMode={getPennylaneMode()} />
         </>

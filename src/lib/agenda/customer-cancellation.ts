@@ -2,6 +2,7 @@ import 'server-only'
 import { getDb } from '@/lib/db'
 import { hashCancellationToken } from './cancellation-token'
 import { sendAppointmentCancelledByCustomerEmail, sendAppointmentCancelledNotificationToShop } from '@/lib/email'
+import { logActivityEvent, ACTIVITY_EVENT_TYPES } from '@/lib/activity-events'
 
 const CANCELLATION_WINDOW_MS = 48 * 3600 * 1000
 
@@ -21,6 +22,7 @@ export interface CancellationLookupResult {
 
 interface FullAppointmentRow {
   id: string
+  quoteRequestId: string | null
   status: string
   startAt: Date
   endAt: Date
@@ -37,7 +39,7 @@ async function findByToken(token: string): Promise<FullAppointmentRow | null> {
   return getDb().appointment.findUnique({
     where: { cancellationTokenHash: hash },
     select: {
-      id: true, status: true, startAt: true, endAt: true, vehicle: true, durationMinutes: true,
+      id: true, quoteRequestId: true, status: true, startAt: true, endAt: true, vehicle: true, durationMinutes: true,
       customerName: true, customerEmail: true, cancellationTokenExpiresAt: true,
     },
   })
@@ -141,6 +143,27 @@ export async function cancelAppointmentByCustomer(token: string, reason: string 
   } catch (err) {
     console.error(`[agenda] Échec de la notification atelier (annulation par le client) pour le rendez-vous ${appt.id} :`, err)
   }
+
+  // Même logique de retour en arrière que l'annulation atelier : la demande
+  // liée redevient "acceptée en attente de nouvelle date", pas bloquant.
+  if (appt.quoteRequestId) {
+    try {
+      await db.quoteRequest.updateMany({
+        where: { id: appt.quoteRequestId, status: 'RDV_PLANIFIE' },
+        data: { status: 'ACCEPTE' },
+      })
+    } catch (err) {
+      console.error(`[agenda] Échec de la mise à jour du statut commercial pour la demande ${appt.quoteRequestId} (annulation non affectée) :`, err)
+    }
+  }
+  await logActivityEvent({
+    quoteRequestId: appt.quoteRequestId,
+    appointmentId: appt.id,
+    type: ACTIVITY_EVENT_TYPES.APPOINTMENT_CANCELLED,
+    title: `Rendez-vous annulé par le client — ${appt.vehicle}`,
+    actor: 'customer',
+    metadata: reason ? { reason: reason.slice(0, 500) } : undefined,
+  })
 
   return { success: true }
 }

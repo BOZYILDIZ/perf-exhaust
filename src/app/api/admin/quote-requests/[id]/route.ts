@@ -3,6 +3,8 @@ import { isAdminAuthenticated } from "@/lib/admin-auth";
 import { isDbConfigured, getDb } from "@/lib/db";
 import { quoteRequestUpdateSchema, sanitizeStrings } from "@/lib/admin-validation";
 import { ACTIVE_APPOINTMENT_STATUSES } from "@/lib/agenda/appointments";
+import { logActivityEvent, ACTIVITY_EVENT_TYPES } from "@/lib/activity-events";
+import { QUOTE_STATUS_LABELS, type QuoteStatus } from "@/lib/quote-pipeline";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -38,18 +40,36 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
       return NextResponse.json({ error: `${first.path.join(".")} : ${first.message}` }, { status: 400 });
     }
     const db = getDb();
-    const exists = await db.quoteRequest.findUnique({ where: { id }, select: { id: true } });
+    const exists = await db.quoteRequest.findUnique({ where: { id }, select: { id: true, status: true } });
     if (!exists) return NextResponse.json({ error: "Demande introuvable" }, { status: 404 });
 
     const { pennylaneQuoteNumber, pennylaneQuoteUrl, ...rest } = parsed.data;
+    // Un (re)passage à DEVIS_ENVOYE relance le compteur de relances
+    // commerciales : nouveau repère temporel, et les relances déjà comptées
+    // pour un envoi précédent ne doivent pas bloquer un nouvel envoi (voir
+    // src/lib/quote-followup.ts et prisma/schema.prisma § QuoteRequest.quoteSentAt).
+    const enteringDevisEnvoye = rest.status === "DEVIS_ENVOYE" && rest.status !== exists.status;
     await db.quoteRequest.update({
       where: { id },
       data: {
         ...rest,
         ...(pennylaneQuoteNumber !== undefined && { pennylaneQuoteNumber: pennylaneQuoteNumber || null }),
         ...(pennylaneQuoteUrl !== undefined && { pennylaneQuoteUrl: pennylaneQuoteUrl || null }),
+        ...(enteringDevisEnvoye && { quoteSentAt: new Date(), followupStage: 0, lastFollowupSentAt: null }),
       },
     });
+
+    if (rest.status && rest.status !== exists.status) {
+      const fromLabel = QUOTE_STATUS_LABELS[exists.status as QuoteStatus] ?? exists.status;
+      const toLabel = QUOTE_STATUS_LABELS[rest.status as QuoteStatus] ?? rest.status;
+      await logActivityEvent({
+        quoteRequestId: id,
+        type: ACTIVITY_EVENT_TYPES.QUOTE_STATUS_CHANGED,
+        title: `Statut changé : ${fromLabel} → ${toLabel}`,
+        metadata: { from: exists.status, to: rest.status },
+      });
+    }
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("[API/admin/quote-requests PATCH]", error);
